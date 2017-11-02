@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="background_list">#FF0010B8</color>
+    <color name="background_list2">#5aa7ff</color>
+    <color name="background_header">#FF000000</color>
+    <color name="text_list">#FFFFFFFF</color>
+    <color name="negative_highlight">#ffff0000</color>
+    <color name="positive_highlight">#ff00ff00</color>
+    <color name="lga_primary_dark">#060a71</color>
+    <color name="lga_accent">#4070ff</color>
+    <color name="background_material_dark">#303030</color>
+</resources>
