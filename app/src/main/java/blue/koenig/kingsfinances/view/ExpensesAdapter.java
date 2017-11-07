@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
 import blue.koenig.kingsfinances.R;
 
 /**
@@ -31,17 +32,17 @@ public class ExpensesAdapter extends BaseAdapter
 {
     protected final Context context;
     private final HashMap<User, Integer> usersId;
-    protected ExpensesDeleteListener callback;
+    protected ExpensesInteractListener deleteListener;
     private List<User> users;
     protected boolean showDeleteButton;
     private List<Expenses> expenses;
 
 
 
-    public ExpensesAdapter(Context context, ExpensesDeleteListener listener, List<User> users)
+    public ExpensesAdapter(Context context, ExpensesInteractListener listener, List<User> users)
     {
         this.context = context;
-        this.callback = listener;
+        this.deleteListener = listener;
         this.users = users;
         expenses = new ArrayList<>();
         this.usersId = new HashMap<User, Integer>();
@@ -49,10 +50,6 @@ public class ExpensesAdapter extends BaseAdapter
             usersId.put(user, View.generateViewId());
         }
     }
-
-
-
-
 
     public void updateExpenses(List<Expenses> expenses)
     {
@@ -119,9 +116,15 @@ public class ExpensesAdapter extends BaseAdapter
 
 
 
-        final Button delete = (Button) convertView.findViewById(R.id.button_delete);
-        delete.setVisibility(showDeleteButton ? View.VISIBLE : View.GONE);
+        final ImageButton delete = convertView.findViewById(R.id.button_delete);
+        //delete.setVisibility(showDeleteButton ? View.VISIBLE : View.GONE);
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (deleteListener != null) deleteListener.onDelete(ex);
 
+            }
+        });
 
 
         TextView name = (TextView) convertView.findViewById(R.id.text_name);
@@ -173,8 +176,9 @@ public class ExpensesAdapter extends BaseAdapter
         this.expenses = expenses;
     }
 
-    public interface ExpensesDeleteListener
+    public interface ExpensesInteractListener
     {
-        void onDelete();
+        void onDelete(Expenses expenses);
+        void onEdit(Expenses expenses);
     }
 }

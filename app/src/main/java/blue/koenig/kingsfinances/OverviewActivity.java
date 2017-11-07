@@ -81,7 +81,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView {
     public void showExpenses(List<Expenses> expenses) {
         ExpensesFragment expensesFragment = pageAdapter.getExpensesFragment();
         if (expensesFragment != null) {
-            expensesFragment.updateExpenses(expenses);
+            runOnUiThread(() -> expensesFragment.updateExpenses(expenses));
         } else {
             logger.error("Couldn't update expensesFragment!");
         }
@@ -90,19 +90,16 @@ public class OverviewActivity extends FamilyActivity implements FinanceView {
 
     @Override
     public void setFamilyMembers(final List<User> members) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                // Expenses list view
-                ExpensesFragment expensesFragment = pageAdapter.getExpensesFragment();
-                if (expensesFragment == null) {
-                    logger.error("Couldn't set members to expenses fragment!");
-                } else {
-                    expensesFragment.setFamilyMembers(members);
-                }
-                // overview
-                // TODO
+        runOnUiThread(() -> {
+            // Expenses list view
+            ExpensesFragment expensesFragment = pageAdapter.getExpensesFragment();
+            if (expensesFragment == null) {
+                logger.error("Couldn't set members to expenses fragment!");
+            } else {
+                expensesFragment.updateFamilyMembers(members);
             }
+            // overview
+            // TODO
         });
 
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
+import com.koenig.communication.messages.AUDMessage;
 import com.koenig.communication.messages.FamilyMessage;
 import com.koenig.communication.messages.TextMessage;
 import com.koenig.communication.messages.family.FamilyTextMessages;
@@ -40,11 +41,17 @@ public class FinanceModel extends FamilyModel {
     @Override
     public void start() {
         logger.info("Start");
+        List<User> members = loginHandler.getMembers();
+        if (members != null) {
+            updateFamilymembers(members);
+        }
+
         connection.sendFamilyMessage(FinanceTextMessages.getAllExpensesMessage());
     }
 
     @Override
     protected void updateFamilymembers(List<User> members) {
+        logger.info("Setting family members...");
         getFinanceView().setFamilyMembers(members);
     }
 
@@ -84,5 +91,15 @@ public class FinanceModel extends FamilyModel {
 
     public FamilyView createNullView() {
         return new FinanceNullView();
+    }
+
+    public void deleteExpenses(Expenses expenses) {
+        logger.info("Deleting expenses: " + expenses.getName());
+        connection.sendFamilyMessage(AUDMessage.createDelete(expenses));
+    }
+
+    public void updateExpenses(Expenses expenses) {
+        logger.info("Updating expenses: " + expenses.getName());
+        connection.sendFamilyMessage(AUDMessage.createUpdate(expenses));
     }
 }

@@ -1,7 +1,6 @@
 package blue.koenig.kingsfinances.view;
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -21,7 +20,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
 import blue.koenig.kingsfinances.R;
+import blue.koenig.kingsfinances.dagger.FinanceApplication;
+import blue.koenig.kingsfinances.model.FinanceModel;
 
 
 /**
@@ -35,6 +39,11 @@ public class ExpensesFragment extends Fragment
     private String LogKey = "ExpensesFragment";
     private ExpensesAdapter adapter;
 
+    @Inject
+    FinanceModel model;
+    private boolean initialized;
+    private List<User> familyMembers;
+
     public ExpensesFragment()
     {
         // Required empty public constructor
@@ -42,19 +51,11 @@ public class ExpensesFragment extends Fragment
     }
 
     @Override
-    public void onAttach(Activity context)
-    {
-        Log.d(LogKey, "On Attach Activity");
-        super.onAttach(context);
-        //callback = (ExpensesListener) context;
-    }
-
-    @Override
     public void onAttach(Context context)
     {
         Log.d(LogKey, "On Attach Context");
         super.onAttach(context);
-        //callback = (ExpensesListener) context;
+        ((FinanceApplication) getActivity().getApplication()).getFinanceAppComponent().inject(this);
     }
 
     @Override
@@ -69,8 +70,8 @@ public class ExpensesFragment extends Fragment
                              Bundle savedInstanceState)
     {
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
-        init(view);
         logger.info("Creating view expenses fragment");
+        init();
         return view;
     }
 
@@ -81,23 +82,18 @@ public class ExpensesFragment extends Fragment
         logger.info("Resume expenses fragment");
     }
 
-    private void init(View view)
+    private void initAdapter()
     {
-
-    }
-
-
-    public void updateExpenses(List<Expenses> expenses) {
-        adapter.updateExpenses(expenses);
-    }
-
-    public void setFamilyMembers(List<User> members) {
-
+        if (initialized) {
+            logger.debug("Adapter already initialized");
+            return;
+        }
+        logger.info("Init adapter");
         LinearLayout linearLayout = getView().findViewById(R.id.persons_container);
         linearLayout.removeAllViews();
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, members.size());
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, familyMembers.size());
         linearLayout.setLayoutParams(layoutParams);
-        for (User member : members) {
+        for (User member : familyMembers) {
             TextView person = (TextView) getActivity().getLayoutInflater().inflate(R.layout.expenses_person, null);
             person.setText(member.getName());
             LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
@@ -105,7 +101,48 @@ public class ExpensesFragment extends Fragment
         }
 
         ListView listView = getView().findViewById(R.id.list_expenses);
-        adapter = new ExpensesAdapter(getContext(), null, members);
+        adapter = new ExpensesAdapter(getContext(), new ExpensesAdapter.ExpensesInteractListener() {
+            @Override
+            public void onDelete(Expenses expenses) {
+                new DeleteDialog<Expenses>(getActivity(), expenses.getName(), expenses, (e) -> model.deleteExpenses(e)).show();
+            }
+
+            @Override
+            public void onEdit(Expenses expenses) {
+
+            }
+        }, familyMembers);
         listView.setAdapter(adapter);
+    }
+
+
+    public void updateExpenses(List<Expenses> expenses) {
+        if (adapter == null) {
+            logger.error("Adapter is null");
+            init();
+        }
+
+        adapter.updateExpenses(expenses);
+    }
+
+    private void init() {
+        if (initialized) {
+            logger.debug("Already initialized");
+            return;
+        }
+
+        familyMembers = model.getFamilyMembers();
+        if (familyMembers != null) {
+            initAdapter();
+            initialized = true;
+            logger.info("Initialized");
+        } else {
+            logger.debug("Family members null");
+        }
+    }
+
+    public void updateFamilyMembers(List<User> members) {
+        familyMembers = members;
+        init();
     }
 }

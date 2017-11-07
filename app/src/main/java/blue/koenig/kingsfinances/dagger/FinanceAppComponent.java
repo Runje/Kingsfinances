@@ -6,6 +6,7 @@ import blue.koenig.kingsfamilylibrary.dagger.AppModule;
 import blue.koenig.kingsfamilylibrary.dagger.ConnectionModule;
 import blue.koenig.kingsfamilylibrary.dagger.InstallationModule;
 import blue.koenig.kingsfinances.OverviewActivity;
+import blue.koenig.kingsfinances.view.ExpensesFragment;
 import dagger.Component;
 
 /**
@@ -15,4 +16,6 @@ import dagger.Component;
 @Component(modules = {AppModule.class, ConnectionModule.class, InstallationModule.class})
 public interface FinanceAppComponent extends FamilyAppComponent{
     void inject(OverviewActivity target);
+
+    void inject(ExpensesFragment expensesFragment);
 }
