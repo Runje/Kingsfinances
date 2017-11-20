@@ -10,4 +10,5 @@
     <color name="lga_primary_dark">#060a71</color>
     <color name="lga_accent">#4070ff</color>
     <color name="background_material_dark">#303030</color>
+    <color name="selected">#605f5f</color>
 </resources>

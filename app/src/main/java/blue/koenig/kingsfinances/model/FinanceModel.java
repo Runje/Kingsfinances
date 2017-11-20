@@ -8,6 +8,7 @@ import com.koenig.communication.messages.AUDMessage;
 import com.koenig.communication.messages.FamilyMessage;
 import com.koenig.communication.messages.TextMessage;
 import com.koenig.communication.messages.family.FamilyTextMessages;
+import com.koenig.communication.messages.finance.CategorysMessage;
 import com.koenig.communication.messages.finance.ExpensesMessage;
 import com.koenig.communication.messages.finance.FinanceTextMessages;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection;
 import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
@@ -33,9 +35,11 @@ import blue.koenig.kingsfinances.view.FinanceView;
 
 public class FinanceModel extends FamilyModel {
 
-    @Inject
+    private CategoryService categoryService;
+
     public FinanceModel(ServerConnection connection, Context context, LoginHandler handler) {
         super(connection, context, handler);
+        categoryService = new FinanceCategoryService();
     }
 
     @Override
@@ -63,6 +67,13 @@ public class FinanceModel extends FamilyModel {
                 case ExpensesMessage.NAME:
                     ExpensesMessage expensesMessage = (ExpensesMessage) message;
                     getFinanceView().showExpenses(expensesMessage.getExpenses());
+                    // update categorys
+                    connection.sendFamilyMessage(FinanceTextMessages.getAllCategorysMessage());
+                    break;
+                case CategorysMessage.NAME:
+                    CategorysMessage categorysMessage = (CategorysMessage) message;
+                    categoryService.update(categorysMessage.getCategorys());
+
                     break;
                 default:
                     logger.error("Unknown Message: " + message.getName());
@@ -96,10 +107,24 @@ public class FinanceModel extends FamilyModel {
     public void deleteExpenses(Expenses expenses) {
         logger.info("Deleting expenses: " + expenses.getName());
         connection.sendFamilyMessage(AUDMessage.createDelete(expenses));
+        // TODO: update expenses!
+        // TODO: Transaction should have an id and then update on update on return success transaction id
     }
 
     public void updateExpenses(Expenses expenses) {
         logger.info("Updating expenses: " + expenses.getName());
         connection.sendFamilyMessage(AUDMessage.createUpdate(expenses));
+    }
+
+    public void editExpenses(Expenses expenses) {
+        connection.sendFamilyMessage(AUDMessage.createUpdate(expenses));
+    }
+
+    public CategoryService getCategoryService() {
+        return categoryService;
+    }
+
+    public void setCategoryService(CategoryService categoryService) {
+        this.categoryService = categoryService;
     }
 }

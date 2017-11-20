@@ -23,6 +23,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
+import blue.koenig.kingsfamilylibrary.view.EditDialog;
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
@@ -109,7 +110,24 @@ public class ExpensesFragment extends Fragment
 
             @Override
             public void onEdit(Expenses expenses) {
+                new EditExpensesDialog(getContext(), expenses, model.getCategoryService(), model.getFamilyMembers(), new EditDialog.EditListener<Expenses>() {
+                    @Override
+                    public void onEdit(Expenses expenses) {
+                        model.editExpenses(expenses);
+                        adapter.notifyDataSetChanged();
+                    }
 
+                    @Override
+                    public boolean validate(Expenses expenses) {
+
+                        return expenses.isValid();
+                    }
+
+                    @Override
+                    public int getErrorMessage() {
+                        return R.string.invalid_entry;
+                    }
+                }).show();
             }
         }, familyMembers);
         listView.setAdapter(adapter);

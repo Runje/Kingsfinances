@@ -112,4 +112,11 @@
     <string name="action_check_date">Abgleichdatum setzen</string>
     <string name="getExpensesFail">Fehler beim Anfordern der Buchführung</string>
     <string name="person">Person</string>
+    <string name="real">Real</string>
+    <string name="theory">Theoretisch</string>
+    <string name="invalid_entry">Ungültige Eingabe</string>
+    <string name="may_not_be_empty">Darf nicht leer sein</string>
+    <string name="wrong_format_use_point_as_separator">Falsches Format. Benutze . als Trennzeichen.</string>
+    <string name="invalid_choice">Ungültige Auswahl</string>
+    <string name="invalid_costs">Ungültige Kosten</string>
 </resources>

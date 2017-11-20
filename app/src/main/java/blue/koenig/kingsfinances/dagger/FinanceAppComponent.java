@@ -13,7 +13,7 @@ import dagger.Component;
  * Created by Thomas on 19.10.2017.
  */
 @Singleton
-@Component(modules = {AppModule.class, ConnectionModule.class, InstallationModule.class})
+@Component(modules = {AppModule.class, ConnectionModule.class, InstallationModule.class, ModelModule.class})
 public interface FinanceAppComponent extends FamilyAppComponent{
     void inject(OverviewActivity target);
 

@@ -1,5 +1,6 @@
 package blue.koenig.kingsfinances;
 import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
+import blue.koenig.kingsfamilylibrary.view.ViewUtils;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
@@ -7,15 +8,22 @@ import blue.koenig.kingsfinances.view.ExpensesFragment;
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
 import blue.koenig.kingsfinances.view.FinanceView;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.DatePicker;
 import android.widget.TextView;
 
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
 
+import org.joda.time.DateTime;
+
 import java.util.List;
+import java.util.zip.Inflater;
 
 import javax.inject.Inject;
 
@@ -62,6 +70,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView {
         });
 
         pager.setCurrentItem(0);
+
     }
 
     private FinanceModel getFinanceModel() {

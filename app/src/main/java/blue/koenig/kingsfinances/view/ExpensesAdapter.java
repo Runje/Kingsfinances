@@ -22,7 +22,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
 import blue.koenig.kingsfinances.R;
 
 /**
@@ -32,7 +31,7 @@ public class ExpensesAdapter extends BaseAdapter
 {
     protected final Context context;
     private final HashMap<User, Integer> usersId;
-    protected ExpensesInteractListener deleteListener;
+    protected ExpensesInteractListener listener;
     private List<User> users;
     protected boolean showDeleteButton;
     private List<Expenses> expenses;
@@ -42,7 +41,7 @@ public class ExpensesAdapter extends BaseAdapter
     public ExpensesAdapter(Context context, ExpensesInteractListener listener, List<User> users)
     {
         this.context = context;
-        this.deleteListener = listener;
+        this.listener = listener;
         this.users = users;
         expenses = new ArrayList<>();
         this.usersId = new HashMap<User, Integer>();
@@ -117,13 +116,15 @@ public class ExpensesAdapter extends BaseAdapter
 
 
         final ImageButton delete = convertView.findViewById(R.id.button_delete);
-        //delete.setVisibility(showDeleteButton ? View.VISIBLE : View.GONE);
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (deleteListener != null) deleteListener.onDelete(ex);
+        delete.setOnClickListener(view -> {
+            if (listener != null) listener.onDelete(ex);
+        });
 
-            }
+        final ImageButton edit = convertView.findViewById(R.id.button_edit);
+        edit.setOnClickListener(view -> {
+            if (listener != null) listener.onEdit(ex);
+
+
         });
 
 
@@ -134,7 +135,7 @@ public class ExpensesAdapter extends BaseAdapter
 
 
         for (User user : users) {
-            Costs costsFor = ex.getCostDistribution().getCostsFor(user.getId());
+            Costs costsFor = ex.getCostDistribution().getCostsFor(user);
             TextView costView = convertView.findViewById(usersId.get(user));
             costView.setText(costsFor.toEuroString());
             int colorRes;
