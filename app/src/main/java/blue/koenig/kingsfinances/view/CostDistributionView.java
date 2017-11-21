@@ -54,7 +54,7 @@ public class CostDistributionView extends LinearLayout {
 
         for (User user : users) {
             Costs costs = costDistribution.getCostsFor(user);
-            View distributorView = makeDistributor(user, costs.Real, costDistribution.getRealPercent(user), userRealViewIdMap, true);
+            View distributorView = makeDistributor(user, costs.Real, costDistribution.getRealPercent(user), userRealViewIdMap);
             addView(distributorView, layoutParams);
         }
 
@@ -63,12 +63,12 @@ public class CostDistributionView extends LinearLayout {
 
         for (User user : users) {
             Costs costs = costDistribution.getCostsFor(user);
-            View distributorView = makeDistributor(user, costs.Theory, costDistribution.getTheoryPercent(user), userTheoryViewIdMap, false);
+            View distributorView = makeDistributor(user, costs.Theory, costDistribution.getTheoryPercent(user), userTheoryViewIdMap);
             addView(distributorView, layoutParams);
         }
     }
 
-    private View makeDistributor(User user, int costs, float percent, Map<User, Integer> userViewIdMap, boolean real) {
+    private View makeDistributor(User user, int costs, float percent, Map<User, Integer> userViewIdMap) {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View view = inflater.inflate(R.layout.cost_distributor, null);
         int id = View.generateViewId();
@@ -91,13 +91,11 @@ public class CostDistributionView extends LinearLayout {
 
                 lock.lock();
                 try {
-                    logger.info("Starting to change text");
                     float euro = FinanceViewUtils.getCostsFromTextView(textView);
                     View otherUsersView = findViewById(userViewIdMap.get(otherUser));
                     EditText otherEditCosts = otherUsersView.findViewById(R.id.editEuro);
                     EditText otherEditPercent = otherUsersView.findViewById(R.id.editPercent);
                     textView.setError(null);
-                    Costs c = costDistribution.getCostsFor(user);
                     int cents = (int) (euro * 100);
                     otherEditCosts.setText(StringFormats.centsToCentString(itemCosts - cents));
                     if (itemCosts != 0) {
@@ -112,8 +110,6 @@ public class CostDistributionView extends LinearLayout {
                     textView.setError(getContext().getString(R.string.invalid_costs));
                 } finally {
                     lock.unlock();
-
-                    logger.info("Stopped changing text");
                 }
             }
 
@@ -129,13 +125,11 @@ public class CostDistributionView extends LinearLayout {
                                                    }
                                                    try {
                                                        lock.lock();
-                                                       logger.info("Starting to change text");
                                                        float percent = FinanceViewUtils.getPercentFromTextView(textView);
                                                        View otherUsersView = findViewById(userViewIdMap.get(otherUser));
                                                        EditText otherEditCosts = otherUsersView.findViewById(R.id.editEuro);
                                                        EditText otherEditPercent = otherUsersView.findViewById(R.id.editPercent);
                                                        textView.setError(null);
-                                                       Costs c = costDistribution.getCostsFor(user);
                                                        int cents = (int) (percent * itemCosts);
                                                        editCosts.setText(StringFormats.centsToCentString(cents));
                                                        otherEditCosts.setText(StringFormats.centsToCentString(itemCosts - cents));
@@ -149,13 +143,12 @@ public class CostDistributionView extends LinearLayout {
                                                        textView.setError(getContext().getString(R.string.invalid_costs));
                                                    } finally {
                                                        lock.unlock();
-                                                       logger.info("Stopped changing text");
                                                    }
                                                }
                                            });
         // add buttons
         LinearLayout buttons = view.findViewById(R.id.buttons);
-        int n = costDistribution.getDistribution().size();
+        int n = users.size();
         if (n == 2) {
             Button bu100 = new Button(getContext());
             bu100.setText("100%");
@@ -192,7 +185,7 @@ public class CostDistributionView extends LinearLayout {
     }
 
     private void updateCostDistribution() {
-        for (User user : costDistribution.getDistribution().keySet()) {
+        for (User user : users) {
             Costs oldCosts = costDistribution.getCostsFor(user);
             // Theory
             View distributorView = findViewById(userTheoryViewIdMap.get(user));
@@ -201,11 +194,12 @@ public class CostDistributionView extends LinearLayout {
             try {
                 float costs = FinanceViewUtils.getCostsFromTextView(editCosts);
                 editCosts.setError(null);
-                oldCosts.Theory = (int)(costs * 100);
+                costDistribution.putCosts(user, new Costs(oldCosts.Real,(int)(costs * 100)));
             } catch (NumberFormatException e) {
                 editCosts.setError(getContext().getString(R.string.invalid_costs));
             }
 
+            oldCosts = costDistribution.getCostsFor(user);
             // Real
             distributorView = findViewById(userRealViewIdMap.get(user));
 
@@ -213,7 +207,7 @@ public class CostDistributionView extends LinearLayout {
             try {
                 float costs = FinanceViewUtils.getCostsFromTextView(editCosts);
                 editCosts.setError(null);
-                oldCosts.Real = (int)(costs * 100);
+                costDistribution.putCosts(user, new Costs((int)(costs * 100), oldCosts.Theory));
             } catch (NumberFormatException e) {
                 editCosts.setError(getContext().getString(R.string.invalid_costs));
             }

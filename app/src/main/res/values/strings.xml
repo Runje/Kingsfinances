@@ -119,4 +119,5 @@
     <string name="wrong_format_use_point_as_separator">Falsches Format. Benutze . als Trennzeichen.</string>
     <string name="invalid_choice">Ungültige Auswahl</string>
     <string name="invalid_costs">Ungültige Kosten</string>
+    <string name="add">Hinzufügen</string>
 </resources>

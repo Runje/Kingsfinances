@@ -4,12 +4,14 @@ import blue.koenig.kingsfamilylibrary.view.ViewUtils;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
+import blue.koenig.kingsfinances.view.AddExpensesDialog;
 import blue.koenig.kingsfinances.view.ExpensesFragment;
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
 import blue.koenig.kingsfinances.view.FinanceView;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -32,6 +34,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView {
 
     private FinanceFragmentPagerAdapter pageAdapter;
     private ViewPager pager;
+    private FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +45,8 @@ public class OverviewActivity extends FamilyActivity implements FinanceView {
         setSupportActionBar(toolbar);
         // TODO: move to base class
         connectionStatus = (TextView) findViewById(R.id.connectionStatus);
+        fab = findViewById(R.id.fab_add);
+        fab.setOnClickListener(ignored -> clickFab());
         pageAdapter = new FinanceFragmentPagerAdapter(this, getSupportFragmentManager());
         pager = (ViewPager) findViewById(R.id.statistics_pager);
         pager.setAdapter(pageAdapter);
@@ -71,6 +76,13 @@ public class OverviewActivity extends FamilyActivity implements FinanceView {
 
         pager.setCurrentItem(0);
 
+    }
+
+    private void clickFab() {
+        new AddExpensesDialog(this, getFinanceModel().getCategoryService(), model.getFamilyMembers(), (expenses -> {
+            getFinanceModel().addExpenses(expenses);
+
+        })).show();
     }
 
     private FinanceModel getFinanceModel() {

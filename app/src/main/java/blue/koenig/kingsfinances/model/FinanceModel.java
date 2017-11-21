@@ -127,4 +127,9 @@ public class FinanceModel extends FamilyModel {
     public void setCategoryService(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
+
+    public void addExpenses(Expenses expenses) {
+        connection.sendFamilyMessage(AUDMessage.createAdd(expenses));
+        connection.sendFamilyMessage(FinanceTextMessages.getAllExpensesMessage());
+    }
 }

@@ -93,6 +93,8 @@ public class EditExpensesDialog extends EditDialog<Expenses> {
                 @Override
                 public void onPick(String mainCategory, String subCategory) {
                     editCategory.setText(FinanceViewUtils.CategoryToString(mainCategory ,subCategory));
+                    item.setSubCategory(subCategory);
+                    item.setCategory(mainCategory);
                 }
 
                 @Override
