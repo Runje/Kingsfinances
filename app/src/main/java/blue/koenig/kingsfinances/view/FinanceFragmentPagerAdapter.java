@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.SparseArray;
 import android.view.ViewGroup;
 
@@ -12,10 +11,9 @@ import android.view.ViewGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import blue.koenig.kingsfinances.R;
+import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
+import blue.koenig.kingsfinances.view.fragments.PendingFragment;
 
 /**
  * Created by Thomas on 20.08.2015.
@@ -44,12 +42,16 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     public Fragment getItem(int position)
     {
         logger.info("Get item " + position);
-        if (fragments.get(0) == null) {
+        if (fragments.get(position) == null) {
             logger.info("Fragment is null");
             switch (position) {
                 case 0:
                     ExpensesFragment expensesFragment = new ExpensesFragment();
                     fragments.put(0, expensesFragment);
+                    break;
+
+                case 1:
+                    fragments.put(1, new PendingFragment());
                     break;
             }
         }
@@ -75,7 +77,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     @Override
     public int getCount()
     {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -86,7 +88,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
             case 0:
                 return context.getResources().getString(R.string.expenses);
             case 1:
-                return context.getResources().getString(R.string.standing_order);
+                return context.getResources().getString(R.string.pending);
             case 2:
                 return context.getResources().getString(R.string.bank_account);
             case 3:

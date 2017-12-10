@@ -1,4 +1,4 @@
-package blue.koenig.kingsfinances.view;
+package blue.koenig.kingsfinances.view.fragments;
 
 
 import android.content.Context;
@@ -27,6 +27,8 @@ import blue.koenig.kingsfamilylibrary.view.EditDialog;
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
+import blue.koenig.kingsfinances.view.EditExpensesDialog;
+import blue.koenig.kingsfinances.view.lists.ExpensesAdapter;
 
 
 /**
@@ -102,7 +104,7 @@ public class ExpensesFragment extends Fragment
         }
 
         ListView listView = getView().findViewById(R.id.list_expenses);
-        adapter = new ExpensesAdapter(getContext(), new ExpensesAdapter.ExpensesInteractListener() {
+        adapter = new ExpensesAdapter(new ExpensesAdapter.ExpensesInteractListener() {
             @Override
             public void onDelete(Expenses expenses) {
                 new DeleteDialog<Expenses>(getActivity(), expenses.getName(), expenses, (e) -> model.deleteExpenses(e)).show();
@@ -140,7 +142,7 @@ public class ExpensesFragment extends Fragment
             init();
         }
 
-        adapter.updateExpenses(expenses);
+        adapter.update(expenses);
     }
 
     private void init() {

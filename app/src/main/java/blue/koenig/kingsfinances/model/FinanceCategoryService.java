@@ -17,7 +17,7 @@ class FinanceCategoryService implements CategoryService {
     public boolean isValid(String newCategory) {
         if (categorys != null) {
             for (Category category : categorys) {
-                if (category.getMain().equals(newCategory)) {
+                if (category.getName().equals(newCategory)) {
                     return false;
                 }
                 for (String sub : category.getSubs()) {
@@ -41,7 +41,7 @@ class FinanceCategoryService implements CategoryService {
 
         List<String> mains = new ArrayList<>(categorys.size());
         for (Category category : categorys) {
-            mains.add(category.getMain());
+            mains.add(category.getName());
         }
 
         return mains;
@@ -55,7 +55,7 @@ class FinanceCategoryService implements CategoryService {
 
         List<String> subs = new ArrayList<>(categorys.size());
         for (Category category : categorys) {
-            if (category.getMain().equals(mainCategory)) {
+            if (category.getName().equals(mainCategory)) {
                 for (String sub : category.getSubs()) {
                     subs.add(sub);
                 }
@@ -77,7 +77,7 @@ class FinanceCategoryService implements CategoryService {
     public void addSubCategory(String mainCategory, String newCategory) {
 // TODO: network
         for (Category category : categorys) {
-            if (category.getMain().equals(mainCategory)) {
+            if (category.getName().equals(mainCategory)) {
                 category.addSub(newCategory);
             }
         }

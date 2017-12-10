@@ -1,4 +1,4 @@
-package blue.koenig.kingsfinances.view;
+package blue.koenig.kingsfinances.view.lists;
 
 import android.app.Activity;
 import android.content.Context;
@@ -27,93 +27,46 @@ import blue.koenig.kingsfinances.R;
 /**
  * Created by Thomas on 08.09.2015.
  */
-public class ExpensesAdapter extends BaseAdapter
+public class ExpensesAdapter extends ListAdapter<Expenses>
 {
-    protected final Context context;
-    private final HashMap<User, Integer> usersId;
+    private HashMap<User, Integer> usersId;
     protected ExpensesInteractListener listener;
     private List<User> users;
-    protected boolean showDeleteButton;
-    private List<Expenses> expenses;
 
-
-
-    public ExpensesAdapter(Context context, ExpensesInteractListener listener, List<User> users)
+    public ExpensesAdapter(ExpensesInteractListener listener, List<User> users)
     {
-        this.context = context;
+        super();
         this.listener = listener;
         this.users = users;
-        expenses = new ArrayList<>();
         this.usersId = new HashMap<User, Integer>();
         for (User user : users) {
             usersId.put(user, View.generateViewId());
         }
     }
 
-    public void updateExpenses(List<Expenses> expenses)
-    {
-        this.expenses = expenses;
-
-        Collections.sort(this.expenses, new Comparator<Expenses>()
-        {
-            @Override
-            public int compare(Expenses lhs, Expenses rhs)
-            {
-                return rhs.getDate().compareTo(lhs.getDate());
-            }
-        });
-        ((Activity) context).runOnUiThread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                notifyDataSetChanged();
-            }
-        });
+    @Override
+    protected Comparator<Expenses> getComparator() {
+        return (lhs, rhs) -> rhs.getDate().compareTo(lhs.getDate());
     }
 
     @Override
-    public int getCount()
-    {
-        return expenses.size();
-    }
+    protected void initView(View convertView, Expenses ex) {
+        Context context = convertView.getContext();
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+        convertView.setLongClickable(true);
 
-    @Override
-    public Object getItem(int position)
-    {
-        return expenses.get(position);
-    }
+        LinearLayout linearLayout = convertView.findViewById(R.id.persons_container);
+        linearLayout.removeAllViews();
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, users.size());
+        linearLayout.setLayoutParams(layoutParams);
+        for (User member : users) {
+            TextView person = (TextView) inflater.inflate(R.layout.expenses_person, null);
+            person.setText(member.getName());
+            person.setId(usersId.get(member));
 
-    @Override
-    public long getItemId(int position)
-    {
-        return expenses.indexOf(getItem(position));
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent)
-    {
-        final Expenses ex = expenses.get(position);
-        if (convertView == null)
-        {
-            LayoutInflater inflater = (LayoutInflater) parent.getContext().getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.expenses_item, null);
-            convertView.setLongClickable(true);
-
-            LinearLayout linearLayout = convertView.findViewById(R.id.persons_container);
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, users.size());
-            linearLayout.setLayoutParams(layoutParams);
-            for (User member : users) {
-                TextView person = (TextView) inflater.inflate(R.layout.expenses_person, null);
-                person.setText(member.getName());
-                person.setId(usersId.get(member));
-
-                LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-                linearLayout.addView(person, layoutParams2);
-            }
+            LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            linearLayout.addView(person, layoutParams2);
         }
-
-
 
         final ImageButton delete = convertView.findViewById(R.id.button_delete);
         delete.setOnClickListener(view -> {
@@ -126,7 +79,6 @@ public class ExpensesAdapter extends BaseAdapter
 
 
         });
-
 
         TextView name = (TextView) convertView.findViewById(R.id.text_name);
         TextView category = (TextView) convertView.findViewById(R.id.text_category);
@@ -167,14 +119,11 @@ public class ExpensesAdapter extends BaseAdapter
 
         date.setText(ex.getDate().toString("dd.MM.yy"));
 
-        return convertView;
     }
 
-
-
-    public void setExpenses(List<Expenses> expenses)
-    {
-        this.expenses = expenses;
+    @Override
+    protected int getItemLayout() {
+        return R.layout.expenses_item;
     }
 
     public interface ExpensesInteractListener

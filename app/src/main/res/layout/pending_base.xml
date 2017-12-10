@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1">
+
+    <TextView
+        android:id="@+id/text_name"
+        style="@style/LinearLayoutNormalText"
+
+        android:text="@string/name" />
+    <TextView
+        android:id="@+id/text_operation"
+        style="@style/LinearLayoutNormalText"
+
+        android:text="@string/operation"
+        />
+    <TextView
+        android:id="@+id/text_date"
+        android:layout_height="wrap_content"
+        android:layout_width="@dimen/day_width"
+        android:text="@string/date"
+        />
+    <TextView
+        android:id="@+id/text_status"
+        style="@style/LinearLayoutNormalText"
+
+        android:text="@string/status"
+        />
+
+
+</LinearLayout>

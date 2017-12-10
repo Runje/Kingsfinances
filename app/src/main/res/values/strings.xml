@@ -5,7 +5,7 @@
     <string name="owning">Eigentum</string>
     <string name="cleanPlanner">Putzplan</string>
     <string name="options">Einstellungen</string>
-    <string name="expenses">Ausgaben</string>
+    <string name="items">Ausgaben</string>
     <string name="costs">Kosten</string>
     <string name="name">Name</string>
     <string name="firstDate">Erste Ausführung</string>
@@ -120,4 +120,11 @@
     <string name="invalid_choice">Ungültige Auswahl</string>
     <string name="invalid_costs">Ungültige Kosten</string>
     <string name="add">Hinzufügen</string>
+    <string name="test">Test</string>
+    <string name="pending">Ausgang</string>
+    <string name="navigation_drawer_open">Öffne Navigation</string>
+    <string name="navigation_drawer_close">Schließe Navigation</string>
+    <string name="operation">Operation</string>
+    <string name="status">Status</string>
+    <string name="expenses">Ausgaben</string>
 </resources>
