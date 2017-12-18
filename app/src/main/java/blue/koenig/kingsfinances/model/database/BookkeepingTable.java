@@ -58,7 +58,10 @@ abstract class BookkeepingTable<T extends BookkeepingEntry> extends Table<T> {
         statement.bindString(map.get(SUBCATEGORY), item.getSubCategory());
         statement.bindLong(map.get(COSTS), item.getCosts());
         statement.bindBlob(map.get(COSTDISTRIBUTION), byteableToValue(item.getCostDistribution()));
+        bindBookkeepingItem(statement, map, item);
     }
+
+    protected abstract void bindBookkeepingItem(SQLiteStatement statement, Map<String, Integer> map, T item);
 
     @Override
     protected T getItem(Cursor cursor) {

@@ -45,7 +45,8 @@ dependencies {
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'org.jetbrains:annotations:15.0'
-
+// https://mvnrepository.com/artifact/net.iharder/base64
+    compile group: 'net.iharder', name: 'base64', version: '2.3.9'
 
 }
 

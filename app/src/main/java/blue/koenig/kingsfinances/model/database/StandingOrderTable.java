@@ -3,6 +3,7 @@ package blue.koenig.kingsfinances.model.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 
 import com.koenig.commonModel.Frequency;
 import com.koenig.commonModel.finance.BookkeepingEntry;
@@ -14,6 +15,7 @@ import org.joda.time.DateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Thomas on 30.11.2017.
@@ -47,6 +49,15 @@ public class StandingOrderTable extends BookkeepingTable<StandingOrder> {
         values.put(FREQUENCY, item.getFrequency().name());
         values.put(FREQUENCY_FACTOR, item.getFrequencyFactor());
         values.put(EXECUTED_EXPENSES, buildStringList(item.getExecutedExpenses()));
+    }
+
+    @Override
+    protected void bindBookkeepingItem(SQLiteStatement statement, Map<String, Integer> map, StandingOrder item) {
+        statement.bindLong(map.get(FIRST_DATE), dateTimeToValue(item.getFirstDate()));
+        statement.bindLong(map.get(END_DATE), dateTimeToValue(item.getEndDate()));
+        statement.bindString(map.get(FREQUENCY_FACTOR), item.getFrequency().name());
+        statement.bindLong(map.get(FREQUENCY), item.getFrequencyFactor());
+        statement.bindString(map.get(EXECUTED_EXPENSES), buildStringList(item.getExecutedExpenses()));
     }
 
     @Override

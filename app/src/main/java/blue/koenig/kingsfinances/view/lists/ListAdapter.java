@@ -30,12 +30,12 @@ public abstract class ListAdapter<T> extends BaseAdapter {
     }
     public ListAdapter(List<T> items)
     {
-        this.items = items;
+        update(items);
     }
 
-    public void update(List<T> operations)
+    public void update(List<T> items)
     {
-        this.items = operations;
+        this.items = items;
         Comparator<T> comparator = getComparator();
         if (comparator != null) Collections.sort(this.items, comparator);
         notifyDataSetChanged();

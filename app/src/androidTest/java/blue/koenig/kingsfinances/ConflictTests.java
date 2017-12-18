@@ -27,7 +27,8 @@ import blue.koenig.kingsfinances.model.PendingOperation;
 import blue.koenig.kingsfinances.model.PendingStatus;
 import blue.koenig.kingsfinances.model.database.FinanceDatabase;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Instrumentation test, which will execute on an Android device.
@@ -35,7 +36,7 @@ import static org.junit.Assert.*;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class DatabaseTests {
+public class ConflictTests {
 
     private FinanceDatabase financeDatabase;
 
@@ -104,16 +105,5 @@ public class DatabaseTests {
         FinanceModel.update(financeDatabase, updatesMessage.getItems());
         allExpenses = financeDatabase.getAllExpenses();
         assertEquals(1, allExpenses.size());
-
-
-        // delete
-        databaseItem.setDeleted(true);
-        List<DatabaseItem> databaseItems = new ArrayList<>(1);
-        databaseItems.add(databaseItem);
-        FinanceModel.update(financeDatabase,  databaseItems);
-
-        allExpenses = financeDatabase.getAllExpenses();
-        assertEquals(0, allExpenses.size());
-
     }
 }

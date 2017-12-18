@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.ArrayMap;
 
 import com.koenig.commonModel.Byteable;
+import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Item;
 import com.koenig.commonModel.database.Database;
 import com.koenig.commonModel.database.DatabaseItem;
@@ -49,9 +50,9 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
         return runInLock(() -> {
             ArrayList<DatabaseItem<T>> items = new ArrayList<>();
 
-            String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + COLUMN_DELETED + " = ?";
+            String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + COLUMN_DELETED + " != ?";
 
-            Cursor cursor = db.rawQuery(selectQuery, new String[]{FALSE_STRING});
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{TRUE_STRING});
 
             if (cursor.moveToFirst())
             {
@@ -64,6 +65,11 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
 
             cursor.close();
 
+            for (DatabaseItem<T> item : items) {
+                if (item.isDeleted()) {
+                    logger.error("Deleted item found: " + item.getName());
+                }
+            }
             return items;
         });
 
@@ -156,7 +162,10 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     }
 
     protected void update(String itemId, List<String> columns, StatementBinder binder) throws SQLException {
+        // don't update id!
+        columns.remove(COLUMN_ID);
         String query = "UPDATE " + getTableName() + " SET " + getParameters(columns) + " WHERE " + COLUMN_ID + "= ?";
+        // id of where clause
         columns.add(COLUMN_ID);
         Map<String, Integer> map = createMap(columns);
         SQLiteStatement statement = db.compileStatement(query);
@@ -171,27 +180,29 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
 
     protected void runTransaction(Database.Transaction runnable) throws SQLException {
         db.beginTransaction();
-            this.lock.lock();
+        this.lock.lock();
 
-            try {
-                runnable.run();
-                db.setTransactionSuccessful();
-            } finally {
-                this.lock.unlock();
-                db.endTransaction();
-            }
+        try {
+            runnable.run();
+            db.setTransactionSuccessful();
+        } finally {
+            this.lock.unlock();
+            db.endTransaction();
+        }
     }
 
     public void updateFromServer(List<DatabaseItem> items) throws SQLException {
         runTransaction(() -> {
             for (DatabaseItem<T> item : items) {
-                DatabaseItem<T> fromId = getDatabaseItemFromId(item.getId());
-                if (fromId == null) {
+                DatabaseItem<T> databaseItem = getDatabaseItemFromId(item.getId());
+                if (databaseItem == null) {
                     // new
                     add(item);
+                    logger.info("Added new item: " + item.getName());
                 } else {
                     // overwrite
                     overwrite(item);
+                    logger.info("Overwritten item: " + item.getName());
                 }
             }
         });
@@ -209,6 +220,59 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
         });
     }
 
+    public DatabaseItem<T> getDatabaseItemFromName(String name) {
+        String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + COLUMN_NAME + " = ?";
+
+        Cursor cursor = db.rawQuery(selectQuery, new String[]{name});
+
+        DatabaseItem<T> result = null;
+        if (cursor.moveToFirst())
+        {
+            result = createDatabaseItemFromCursor(cursor);
+        }
+
+        cursor.close();
+        return result;
+    }
+
+    public T getFromName(String name) {
+        DatabaseItem<T> item = getDatabaseItemFromName(name);
+        if (item == null) {
+            return null;
+        }
+
+        return item.getItem();
+    }
+
+    public List<T> getAllDeletedItems() throws SQLException {
+        return toItemList(getAllDeleted());
+    }
+
+    public List<DatabaseItem<T>> getAllDeleted() throws SQLException {
+        return runInLock(() -> {
+            ArrayList<DatabaseItem<T>> items = new ArrayList<>();
+
+            String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + COLUMN_DELETED + " = ?";
+
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{TRUE_STRING});
+
+            if (cursor.moveToFirst())
+            {
+                do
+                {
+                    DatabaseItem<T> databaseItem = createDatabaseItemFromCursor(cursor);
+                    items.add(databaseItem);
+                } while (cursor.moveToNext());
+            }
+
+            cursor.close();
+
+            return items;
+        });
+
+    }
+
+
     protected interface StatementBinder {
         void bind(SQLiteStatement statement, Map<String, Integer> columnsMap);
     }
@@ -218,11 +282,13 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
         List<String> columns = new ArrayList<>();
         columns.add(COLUMN_MODIFIED_ID);
         columns.add(COLUMN_MODIFIED_DATE);
+        columns.add(COLUMN_NAME);
         columns.addAll(getColumnNames());
 
         update(item.getId(), columns, (statement, map) -> {
             statement.bindString(map.get(COLUMN_MODIFIED_ID), userId);
             statement.bindLong(map.get(COLUMN_MODIFIED_DATE), dateTimeToValue(DateTime.now()));
+            statement.bindString(map.get(COLUMN_NAME), item.getName());
             bindItem(statement, map, item);
         });
 

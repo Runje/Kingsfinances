@@ -3,6 +3,7 @@ package blue.koenig.kingsfinances.model;
 import android.content.Context;
 import android.provider.ContactsContract;
 
+import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Component;
 import com.koenig.commonModel.Item;
 import com.koenig.commonModel.ItemType;
@@ -20,9 +21,11 @@ import com.koenig.communication.messages.finance.FinanceTextMessages;
 import org.joda.time.DateTime;
 
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
+import blue.koenig.kingsfamilylibrary.model.shared.FamilyContentProvider;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection;
@@ -39,18 +42,22 @@ import blue.koenig.kingsfinances.view.PendingView;
  * Created by Thomas on 18.10.2017.
  */
 
-public class FinanceModel extends FamilyModel {
+public class FinanceModel extends FamilyModel implements FinanceCategoryService.CategoryServiceListener {
 
     private FinanceDatabase database;
-    private CategoryService categoryService;
+    private FinanceCategoryService categoryService;
     private PendingView pendingView;
+    private int succesMessages;
 
     public FinanceModel(ServerConnection connection, Context context, LoginHandler handler) {
         super(connection, context, handler);
         pendingView = new NullPendingView();
         categoryService = new FinanceCategoryService();
+        categoryService.setListener(this);
+
         try {
             database = new FinanceDatabase(context);
+            categoryService.update(database.getAllCategorys());
         } catch (SQLException e) {
             logger.error("Couldn't create database: " + e.getMessage());
         }
@@ -64,16 +71,42 @@ public class FinanceModel extends FamilyModel {
             updateFamilymembers(members);
         }
 
-        askForAllUpdates();
+
 
         List<PendingOperation> operations = database.getNonConfiremdPendingOperations();
+        clearAUDSuccesMessages();
         for (PendingOperation operation : operations) {
             connection.sendFamilyMessage(new AUDMessage(Component.FINANCE,operation.getOperation()));
         }
+
+        // ask for update after sent my changes!
+        waitForSuccessMessages(operations.size());
+        askForAllUpdates();
+    }
+
+    private void waitForSuccessMessages(int size) {
+        int i = 0;
+        int timeOutInS = 2;
+        int intervall = 100;
+        try {
+            while (i < 1000 * timeOutInS / intervall) {
+            if (succesMessages >= size) return;
+            Thread.sleep(intervall);
+            i++;
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void clearAUDSuccesMessages() {
+        succesMessages = 0;
     }
 
     private void askForAllUpdates() {
         askForUpdates(ItemType.EXPENSES);
+        askForUpdates(ItemType.CATEGORY);
+        askForUpdates(ItemType.STANDING_ORDER);
     }
 
     private void askForUpdates(ItemType itemType) {
@@ -126,7 +159,12 @@ public class FinanceModel extends FamilyModel {
     }
 
     private void updateAllCategorys() {
-        // TODO:
+        try {
+            List<Category> categories = database.getAllCategorys();
+            categoryService.update(categories);
+        } catch (SQLException e) {
+            logger.error("Error getting categoires: " + e.getMessage());
+        }
     }
 
     private void updateAllStandingOrders() {
@@ -140,7 +178,6 @@ public class FinanceModel extends FamilyModel {
         switch (itemType) {
             case EXPENSES:
                 database.updateExpensesChanges(items);
-
                 break;
             case STANDING_ORDER:
                 database.updateStandingOrderChanges(items);
@@ -172,6 +209,7 @@ public class FinanceModel extends FamilyModel {
                     view.showText(R.string.getExpensesFail);
                     break;
                 case FinanceTextMessages.AUD_SUCCESS:
+                    succesMessages++;
                     database.setPendingOperation(PendingStatus.CONFIRMED, words[1]);
                     pendingView.update(getPendingOperations());
                     break;
@@ -200,18 +238,6 @@ public class FinanceModel extends FamilyModel {
             updateAllExpenses();
         } catch (SQLException e) {
             logger.error("Error while deleting expenses");
-        }
-    }
-
-    public void updateExpenses(Expenses expenses) {
-        // TODO: warum wird es nicht aufgerufen?
-        logger.info("Updating expenses: " + expenses.getName());
-        makeUpdateOperation(expenses);
-        try {
-            database.updateExpenses(expenses);
-            updateAllExpenses();
-        } catch (SQLException e) {
-            logger.error("Error while updating expenses: " + e.getMessage());
         }
     }
 
@@ -252,10 +278,6 @@ public class FinanceModel extends FamilyModel {
         return categoryService;
     }
 
-    public void setCategoryService(CategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
-
     public void addExpenses(Expenses expenses) {
         try {
             makeAddOperation(expenses);
@@ -277,7 +299,7 @@ public class FinanceModel extends FamilyModel {
             logger.error("Couldn't get pending operations: " + e.getMessage());
         }
 
-        return null;
+        return new ArrayList<>();
     }
 
     public void deletePending(PendingOperation operation) {
@@ -300,5 +322,43 @@ public class FinanceModel extends FamilyModel {
 
     public void detachPendingView() {
         this.pendingView = new NullPendingView();
+    }
+
+    public List<Expenses> getExpenses() {
+        try {
+            return database.getAllExpenses();
+        } catch (SQLException e) {
+            logger.error("Couldn't get expenses: " + e.getMessage());
+        }
+
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void addMainCategory(String newCategory) {
+        try {
+            Category category = new Category(newCategory);
+            makeAddOperation(category);
+            database.addCategory(category);
+        } catch (SQLException e) {
+            logger.error("Error adding new Category");
+        }
+    }
+
+    @Override
+    public void addSubCategory(String mainCategory, String newCategory) {
+            try {
+                Category category = database.getCategory(mainCategory);
+                if (category != null) {
+                    category.addSub(newCategory);
+                    makeUpdateOperation(category);
+                    database.updateCategory(category);
+                } else {
+                    logger.error("Couldn't find main category to add subcategory: " + mainCategory);
+                }
+
+            } catch (SQLException e) {
+                logger.error("Error adding new subcategory");
+            }
     }
 }

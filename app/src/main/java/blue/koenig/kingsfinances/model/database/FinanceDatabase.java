@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.koenig.commonModel.Category;
 import com.koenig.commonModel.database.DatabaseItem;
 import com.koenig.commonModel.finance.Expenses;
 
@@ -139,7 +140,8 @@ public class FinanceDatabase extends SQLiteOpenHelper
     }
 
     public List<Expenses> getAllExpenses() throws SQLException {
-        return expensesTable.getAllItems();
+        List<Expenses> allItems = expensesTable.getAllItems();
+        return allItems;
     }
 
     public void updateExpenses(Expenses expenses) throws SQLException {
@@ -156,5 +158,21 @@ public class FinanceDatabase extends SQLiteOpenHelper
 
     public void addExpenses(Expenses expenses) throws SQLException {
         expensesTable.addFrom(expenses, getUserId());
+    }
+
+    public void addCategory(Category category) throws SQLException {
+        categoryTable.addFrom(category, getUserId());
+    }
+
+    public Category getCategory(String mainCategory) {
+        return categoryTable.getFromName(mainCategory);
+    }
+
+    public void updateCategory(Category category) throws SQLException {
+        categoryTable.updateFrom(category, getUserId());
+    }
+
+    public List<Category> getAllCategorys() throws SQLException {
+        return categoryTable.getAllItems();
     }
 }

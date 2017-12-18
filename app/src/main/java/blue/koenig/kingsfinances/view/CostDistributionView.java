@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.StringRes;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -38,7 +39,7 @@ public class CostDistributionView extends LinearLayout {
     private Map<User, Integer> userRealViewIdMap = new HashMap<>();
     private Map<User, Integer> userTheoryViewIdMap = new HashMap<>();
     LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-    LayoutParams buttonLayoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+    LayoutParams buttonLayoutParams = new LayoutParams(25, LayoutParams.MATCH_PARENT);
     ReentrantLock lock = new ReentrantLock();
     private int itemCosts;
 
@@ -75,7 +76,7 @@ public class CostDistributionView extends LinearLayout {
         view.setId(id);
         userViewIdMap.put(user, id);
 
-        setCosts(user.getName(), StringFormats.centsToCentString(costs), StringFormats.floatToPercentString(percent), view);
+        setCosts(user.getAbbreviation(), StringFormats.centsToCentString(costs), StringFormats.floatToPercentString(percent), view);
         User otherUser = getOtherUser(user);
 
         // add text watcher
@@ -150,22 +151,25 @@ public class CostDistributionView extends LinearLayout {
         LinearLayout buttons = view.findViewById(R.id.buttons);
         int n = users.size();
         if (n == 2) {
-            Button bu100 = new Button(getContext());
-            bu100.setText("100%");
+            Button bu100 = view.findViewById(R.id.bu100);
 
+            //bu100.setText("100%");
+            //bu100.setWidth(50);
             bu100.setOnClickListener((b) -> {
                 editCosts.setText(StringFormats.centsToCentString(itemCosts));
                 updateCostDistribution();
             });
-            buttons.addView(bu100, buttonLayoutParams);
+            //buttons.addView(bu100, buttonLayoutParams);
 
-            Button bu50 = new Button(getContext());
-            bu50.setText("50%");
+            Button bu50 = view.findViewById(R.id.bu50);
+            //bu50.setWidth(50);
+            //bu50.setText("50%");
             bu50.setOnClickListener((b) -> {
                 editCosts.setText(StringFormats.centsToCentString(FamilyUtils.getHalfRoundDown(itemCosts)));
                 updateCostDistribution();
             });
-            buttons.addView(bu50, buttonLayoutParams);
+            //9buttons.addView(bu50, buttonLayoutParams);
+            //buttons.setLayoutParams(new LayoutParams(100, LayoutParams.MATCH_PARENT));
         }
         return view;
     }

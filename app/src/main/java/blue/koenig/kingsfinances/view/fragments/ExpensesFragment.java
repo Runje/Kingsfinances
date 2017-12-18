@@ -74,7 +74,7 @@ public class ExpensesFragment extends Fragment
     {
         View view = inflater.inflate(R.layout.fragment_expenses, container, false);
         logger.info("Creating view expenses fragment");
-        init();
+        init(view);
         return view;
     }
 
@@ -85,14 +85,17 @@ public class ExpensesFragment extends Fragment
         logger.info("Resume expenses fragment");
     }
 
-    private void initAdapter()
+    private void initAdapter(View view)
     {
         if (initialized) {
             logger.debug("Adapter already initialized");
             return;
         }
         logger.info("Init adapter");
-        LinearLayout linearLayout = getView().findViewById(R.id.persons_container);
+        if (view == null) {
+            return;
+        }
+        LinearLayout linearLayout = view.findViewById(R.id.persons_container);
         linearLayout.removeAllViews();
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, familyMembers.size());
         linearLayout.setLayoutParams(layoutParams);
@@ -103,11 +106,11 @@ public class ExpensesFragment extends Fragment
             linearLayout.addView(person, layoutParams2);
         }
 
-        ListView listView = getView().findViewById(R.id.list_expenses);
-        adapter = new ExpensesAdapter(new ExpensesAdapter.ExpensesInteractListener() {
+        ListView listView = view.findViewById(R.id.list_expenses);
+        adapter = new ExpensesAdapter(model.getExpenses(), new ExpensesAdapter.ExpensesInteractListener() {
             @Override
             public void onDelete(Expenses expenses) {
-                new DeleteDialog<Expenses>(getActivity(), expenses.getName(), expenses, (e) -> model.deleteExpenses(e)).show();
+                new DeleteDialog<>(getActivity(), expenses.getName(), expenses, (e) -> model.deleteExpenses(e)).show();
             }
 
             @Override
@@ -133,28 +136,29 @@ public class ExpensesFragment extends Fragment
             }
         }, familyMembers);
         listView.setAdapter(adapter);
+        initialized = true;
     }
 
 
     public void updateExpenses(List<Expenses> expenses) {
         if (adapter == null) {
             logger.error("Adapter is null");
-            init();
+            init(getView());
         }
 
         adapter.update(expenses);
     }
 
-    private void init() {
+    private void init(View view) {
         if (initialized) {
             logger.debug("Already initialized");
             return;
         }
 
         familyMembers = model.getFamilyMembers();
-        if (familyMembers != null) {
-            initAdapter();
-            initialized = true;
+        if (familyMembers != null && familyMembers.size() > 0) {
+            initAdapter(view);
+
             logger.info("Initialized");
         } else {
             logger.debug("Family members null");
@@ -163,6 +167,6 @@ public class ExpensesFragment extends Fragment
 
     public void updateFamilyMembers(List<User> members) {
         familyMembers = members;
-        init();
+        init(getView());
     }
 }

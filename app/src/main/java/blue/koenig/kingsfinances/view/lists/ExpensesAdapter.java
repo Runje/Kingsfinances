@@ -33,9 +33,9 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
     protected ExpensesInteractListener listener;
     private List<User> users;
 
-    public ExpensesAdapter(ExpensesInteractListener listener, List<User> users)
+    public ExpensesAdapter(List<Expenses> expenses, ExpensesInteractListener listener, List<User> users)
     {
-        super();
+        super(expenses);
         this.listener = listener;
         this.users = users;
         this.usersId = new HashMap<User, Integer>();
