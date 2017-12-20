@@ -4,6 +4,7 @@ import android.support.annotation.StringRes;
 
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
+import com.koenig.commonModel.finance.StandingOrder;
 
 import java.util.List;
 
@@ -46,6 +47,11 @@ public class FinanceNullView implements FinanceView {
 
     @Override
     public void setFamilyMembers(List<User> members) {
+
+    }
+
+    @Override
+    public void showStandingOrders(List<StandingOrder> standingOrders) {
 
     }
 }

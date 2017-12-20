@@ -1,7 +1,6 @@
 package blue.koenig.kingsfinances.model;
 
 import android.content.Context;
-import android.provider.ContactsContract;
 
 import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Component;
@@ -12,6 +11,7 @@ import com.koenig.commonModel.Operator;
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.database.DatabaseItem;
 import com.koenig.commonModel.finance.Expenses;
+import com.koenig.commonModel.finance.StandingOrder;
 import com.koenig.communication.messages.AUDMessage;
 import com.koenig.communication.messages.AskForUpdatesMessage;
 import com.koenig.communication.messages.FamilyMessage;
@@ -21,7 +21,6 @@ import com.koenig.communication.messages.finance.FinanceTextMessages;
 import org.joda.time.DateTime;
 
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
-import blue.koenig.kingsfamilylibrary.model.shared.FamilyContentProvider;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 
 import java.sql.SQLException;
@@ -168,7 +167,12 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
     }
 
     private void updateAllStandingOrders() {
-        // TODO:
+        try {
+            List<StandingOrder> standingOrders = database.getAllStandingOrders();
+            getFinanceView().showStandingOrders(standingOrders);
+        } catch (SQLException e) {
+            logger.error("Error getting categoires: " + e.getMessage());
+        }
     }
 
     public static void update(FinanceDatabase database, List<DatabaseItem> items) throws SQLException {
@@ -360,5 +364,44 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
             } catch (SQLException e) {
                 logger.error("Error adding new subcategory");
             }
+    }
+
+    public List<StandingOrder> getStandingOrders()  {
+        try {
+            return database.getAllStandingOrders();
+        } catch (SQLException e) {
+            logger.error("Error getting standing orders");
+            return new ArrayList<>();
+        }
+    }
+
+    public void addStandingOrder(StandingOrder standingOrder) {
+        try {
+            makeAddOperation(standingOrder);
+            database.addStandingOrder(standingOrder);
+            updateAllStandingOrders();
+        } catch (SQLException e) {
+            logger.error("Error while adding standingOrder: " + e.getMessage());
+        }
+    }
+
+    public void editStandingOrder(StandingOrder standingOrder) {
+        makeUpdateOperation(standingOrder);
+        try {
+            database.updateStandingOrder(standingOrder);
+            updateAllStandingOrders();
+        } catch (SQLException e) {
+            logger.error("Error while updating standingOrder: " + e.getMessage());
+        }
+    }
+
+    public void deleteStandingOrder(StandingOrder standingOrder) {
+        makeDeleteOperation(standingOrder);
+        try {
+            database.deleteStandingOrder(standingOrder);
+            updateAllStandingOrders();
+        } catch (SQLException e) {
+            logger.error("Error while deleting standingOrder");
+        }
     }
 }

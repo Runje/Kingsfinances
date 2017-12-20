@@ -13,6 +13,7 @@ import org.joda.time.DateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Thomas on 30.11.2017.
@@ -22,8 +23,8 @@ public class ExpensesTable extends BookkeepingTable<Expenses> {
     public final String NAME = "ExpensesTable";
     private static final String DATE = "date";
     private static final String STANDING_ORDER = "standing_order";
-    public ExpensesTable(SQLiteDatabase database) {
-        super(database);
+    public ExpensesTable(SQLiteDatabase database, ReentrantLock lock) {
+        super(database, lock);
     }
 
     @Override

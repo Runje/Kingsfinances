@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:layout_width="80dp"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageButton
+        android:id="@+id/button_delete"
+        style="@style/Icon"
+        android:src="@drawable/ic_delete_white_24px" />
+
+    <ImageButton
+        android:id="@+id/button_edit"
+        style="@style/Icon"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:src="@android:drawable/ic_menu_edit" />
+</LinearLayout>

@@ -5,7 +5,7 @@
               android:orientation="horizontal">
 
     <include
-        layout="@layout/expenses_base"
+        layout="@layout/standing_order_base"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

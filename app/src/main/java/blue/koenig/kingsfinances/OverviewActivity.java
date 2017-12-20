@@ -4,10 +4,12 @@ import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
 import blue.koenig.kingsfinances.view.AddExpensesDialog;
+import blue.koenig.kingsfinances.view.FinanceViewUtils;
 import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
 import blue.koenig.kingsfinances.view.FinanceView;
 import blue.koenig.kingsfinances.view.fragments.PendingFragment;
+import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -24,6 +26,7 @@ import android.widget.TextView;
 
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
+import com.koenig.commonModel.finance.StandingOrder;
 
 import java.util.List;
 
@@ -93,10 +96,19 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
     }
 
     private void clickFab() {
-        new AddExpensesDialog(this, getFinanceModel().getCategoryService(), model.getFamilyMembers(), (expenses -> {
-            getFinanceModel().addExpenses(expenses);
+        int currentItem = pager.getCurrentItem();
+        if (currentItem == 0) {
+            FinanceViewUtils.startAddExpensesActivity(this);
+            /**new AddExpensesDialog(this, getFinanceModel().getCategoryService(), model.getFamilyMembers(), (expenses -> {
+                getFinanceModel().addExpenses(expenses);
 
-        })).show();
+            })).show();**/
+        } else if (currentItem == 1) {
+            FinanceViewUtils.startAddStandingOrderActivity(this);
+            // standing order
+        } else {
+            logger.error("FAB should not be visible!");
+        }
     }
 
     private FinanceModel getFinanceModel() {
@@ -133,10 +145,27 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             } else {
                 expensesFragment.updateFamilyMembers(members);
             }
+
+            StandingOrderFragment standingOrderFragment = pageAdapter.getStandingOrderFragment();
+            if (standingOrderFragment == null) {
+                logger.error("Couldn't set members to expenses fragment!");
+            } else {
+                standingOrderFragment.updateFamilyMembers(members);
+            }
             // overview
             // TODO
         });
 
+    }
+
+    @Override
+    public void showStandingOrders(List<StandingOrder> standingOrders) {
+        StandingOrderFragment standingOrderFragment = pageAdapter.getStandingOrderFragment();
+        if (standingOrderFragment != null) {
+            runOnUiThread(() -> standingOrderFragment.update(standingOrders));
+        } else {
+            logger.error("Couldn't update standingOrderFragment!");
+        }
     }
 
     @Override

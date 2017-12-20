@@ -68,7 +68,7 @@
     <string name="question_user_income">Wer sollte das Geld erhalten?</string>
     <string name="weekly">Wöchentlich</string>
     <string name="transaction_name">Transaktion Name</string>
-    <string name="unlimited">Unbegrenzt</string>
+
     <string name="change_standing_order">Dauerauftrag ändern</string>
     <string name="change_only_entry">Nur diesen Eintrag ändern</string>
     <string name="confirm_standing_order_delete">Wollen Sie diesen Dauerauftrag wirklich löschen?</string>
@@ -127,4 +127,6 @@
     <string name="operation">Operation</string>
     <string name="status">Status</string>
     <string name="expenses">Ausgaben</string>
+    <string name="last_execution">Letzte Ausführung</string>
+    <string name="daily">täglich</string>
 </resources>

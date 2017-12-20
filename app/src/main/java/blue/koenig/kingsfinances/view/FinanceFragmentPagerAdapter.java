@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
 import blue.koenig.kingsfinances.view.fragments.PendingFragment;
+import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
 
 /**
  * Created by Thomas on 20.08.2015.
@@ -29,13 +30,6 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
         super(fm);
         logger.info("Constructor adapter");
         this.context = context;
-        this.fragments = fragments;
-        //fragments.put(0, new ExpensesFragment());
-/**
-        fragments.add(new StandingOrderFragment());
-        fragments.add(new BankAccountFragment());
-        fragments.add(new StatisticsFragment_());**/
-
     }
 
     @Override
@@ -51,7 +45,10 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
                     break;
 
                 case 1:
-                    fragments.put(1, new PendingFragment());
+                    fragments.put(position, new StandingOrderFragment());
+                    break;
+                case 2:
+                    fragments.put(position, new PendingFragment());
                     break;
             }
         }
@@ -77,7 +74,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     @Override
     public int getCount()
     {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -103,4 +100,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     }
 
 
+    public StandingOrderFragment getStandingOrderFragment() {
+        return (StandingOrderFragment) fragments.get(1);
+    }
 }

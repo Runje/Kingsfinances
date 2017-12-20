@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+
+    <TextView
+        android:id="@+id/text_name"
+        style="@style/LinearLayoutNormalText"
+
+        android:text="@string/name"
+        />
+
+    <TextView
+        android:id="@+id/text_costs"
+        style="@style/LinearLayoutNormalText"
+        android:text="€"
+        />
+
+
+
+
+
+
+
+    <TextView
+        android:id="@+id/text_first_date"
+        android:layout_height="wrap_content"
+        android:layout_width="@dimen/day_width"
+        android:text="@string/last_execution"
+        />
+
+
+</merge>

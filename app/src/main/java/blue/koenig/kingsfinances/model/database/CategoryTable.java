@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import blue.koenig.kingsfinances.model.PendingOperation;
 import blue.koenig.kingsfinances.model.PendingStatus;
@@ -27,8 +28,8 @@ public class CategoryTable extends Table<Category> {
     public static final String NAME = "category_table";
     private static final String SUBS = "subs";
 
-    public CategoryTable(SQLiteDatabase database) {
-        super(database);
+    public CategoryTable(SQLiteDatabase database, ReentrantLock lock) {
+        super(database, lock);
     }
 
     @Override

@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Thomas on 25.11.2017.
@@ -34,8 +35,10 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     SQLiteDatabase db;
     protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
-    public Table(SQLiteDatabase database) {
+    public Table(SQLiteDatabase database, ReentrantLock lock) {
         db = database;
+        //share locks between all tables of one database
+        this.lock = lock;
     }
 
     @Override
@@ -179,15 +182,15 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     }
 
     protected void runTransaction(Database.Transaction runnable) throws SQLException {
-        db.beginTransaction();
+        //db.beginTransaction();
         this.lock.lock();
 
         try {
             runnable.run();
-            db.setTransactionSuccessful();
+            //db.setTransactionSuccessful();
         } finally {
             this.lock.unlock();
-            db.endTransaction();
+            //db.endTransaction();
         }
     }
 

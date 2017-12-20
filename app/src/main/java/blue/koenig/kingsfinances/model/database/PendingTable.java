@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import blue.koenig.kingsfinances.model.PendingOperation;
 import blue.koenig.kingsfinances.model.PendingStatus;
@@ -31,8 +32,8 @@ public class PendingTable extends Table<PendingOperation> {
     public static final String COLUMN_STATUS = "status";
     private List<String> columnNames;
 
-    public PendingTable(SQLiteDatabase database) {
-        super(database);
+    public PendingTable(SQLiteDatabase database, ReentrantLock lock) {
+        super(database, lock);
         columnNames = new ArrayList<>(3);
         columnNames.add(COLUMN_DATE);
         columnNames.add(COLUMN_OPERATION);

@@ -35,36 +35,18 @@ import blue.koenig.kingsfinances.view.lists.PendingAdapter;
  * A simple {@link Fragment} subclass.
  * create an instance of this fragment.
  */
-public class PendingFragment extends Fragment implements PendingView
+public class PendingFragment extends FinanceFragment implements PendingView
 {
-    protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
     private PendingAdapter adapter;
-
-    @Inject
-    FinanceModel model;
-
-    public PendingFragment()
-    {
-        // Required empty public constructor
-        logger.info("Constructor expenses fragment");
-    }
 
     @Override
     public void onAttach(Context context)
     {
         super.onAttach(context);
         logger.info("Attaching pending fragment");
-        ((FinanceApplication) getActivity().getApplication()).getFinanceAppComponent().inject(this);
         model.attachPendingView(this);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        logger.info("Creating pending fragment");
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -72,6 +54,25 @@ public class PendingFragment extends Fragment implements PendingView
     {
         View view = inflater.inflate(R.layout.fragment_pending, container, false);
         logger.info("Creating view pending fragment");
+        init(view);
+        return view;
+    }
+
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        logger.info("Resume pending fragment");
+        model.attachPendingView(this);
+    }
+
+    @Override
+    protected void update() {
+        update(model.getPendingOperations());
+    }
+
+    @Override
+    protected void init(View view) {
         ListView listView = view.findViewById(R.id.list_pendings);
         adapter = new PendingAdapter(model.getPendingOperations(), new PendingAdapter.PendingInteractListener() {
             @Override
@@ -85,15 +86,7 @@ public class PendingFragment extends Fragment implements PendingView
             }
         });
         listView.setAdapter(adapter);
-        return view;
-    }
-
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        logger.info("Resume pending fragment");
-        model.attachPendingView(this);
+        initialized = true;
     }
 
     @Override

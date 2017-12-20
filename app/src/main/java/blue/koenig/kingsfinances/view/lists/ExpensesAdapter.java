@@ -29,13 +29,15 @@ import blue.koenig.kingsfinances.R;
  */
 public class ExpensesAdapter extends ListAdapter<Expenses>
 {
+    private final boolean bigWidth;
     private HashMap<User, Integer> usersId;
     protected ExpensesInteractListener listener;
     private List<User> users;
 
-    public ExpensesAdapter(List<Expenses> expenses, ExpensesInteractListener listener, List<User> users)
+    public ExpensesAdapter(List<Expenses> expenses, boolean bigWidth, ExpensesInteractListener listener, List<User> users)
     {
         super(expenses);
+        this.bigWidth = bigWidth;
         this.listener = listener;
         this.users = users;
         this.usersId = new HashMap<User, Integer>();
@@ -59,13 +61,18 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
         linearLayout.removeAllViews();
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, users.size());
         linearLayout.setLayoutParams(layoutParams);
-        for (User member : users) {
-            TextView person = (TextView) inflater.inflate(R.layout.expenses_person, null);
-            person.setText(member.getName());
-            person.setId(usersId.get(member));
+        if (bigWidth) {
+            for (User member : users) {
+                TextView person = (TextView) inflater.inflate(R.layout.expenses_person, null);
+                person.setText(member.getName());
+                person.setId(usersId.get(member));
 
-            LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-            linearLayout.addView(person, layoutParams2);
+                LinearLayout.LayoutParams layoutParams2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                linearLayout.addView(person, layoutParams2);
+            }
+        }
+        else {
+            linearLayout.setVisibility(View.GONE);
         }
 
         final ImageButton delete = convertView.findViewById(R.id.button_delete);
@@ -86,22 +93,22 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
         TextView date = (TextView) convertView.findViewById(R.id.text_date);
 
 
-        for (User user : users) {
-            Costs costsFor = ex.getCostDistribution().getCostsFor(user);
-            TextView costView = convertView.findViewById(usersId.get(user));
-            costView.setText(costsFor.toEuroString());
-            int colorRes;
-            if (costsFor.Theory > 0)
-            {
-                colorRes = R.color.positive_highlight;
-            } else if (costsFor.Theory < 0)
-            {
-                colorRes = R.color.negative_highlight;
-            } else {
-                colorRes = R.color.normalText;
-            }
+        if (bigWidth) {
+            for (User user : users) {
+                Costs costsFor = ex.getCostDistribution().getCostsFor(user);
+                TextView costView = convertView.findViewById(usersId.get(user));
+                costView.setText(costsFor.toEuroString());
+                int colorRes;
+                if (costsFor.Theory > 0) {
+                    colorRes = R.color.positive_highlight;
+                } else if (costsFor.Theory < 0) {
+                    colorRes = R.color.negative_highlight;
+                } else {
+                    colorRes = R.color.normalText;
+                }
 
-            costView.setTextColor(ContextCompat.getColor(context, colorRes));
+                costView.setTextColor(ContextCompat.getColor(context, colorRes));
+            }
         }
 
         name.setText(ex.getName());

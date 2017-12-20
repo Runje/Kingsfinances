@@ -12,6 +12,7 @@ import android.util.Log;
 import com.koenig.commonModel.Category;
 import com.koenig.commonModel.database.DatabaseItem;
 import com.koenig.commonModel.finance.Expenses;
+import com.koenig.commonModel.finance.StandingOrder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfinances.model.PendingOperation;
@@ -37,6 +39,7 @@ public class FinanceDatabase extends SQLiteOpenHelper
     private static final int DATABASE_VERSION = 1;
     private Context context;
     List<Table> tables = new ArrayList<>();
+    protected ReentrantLock lock = new ReentrantLock();
 
     public FinanceDatabase(Context context, String databaseName) throws SQLException {
         this(context,databaseName, null, DATABASE_VERSION);
@@ -49,10 +52,10 @@ public class FinanceDatabase extends SQLiteOpenHelper
     public FinanceDatabase(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) throws SQLException {
         super(context, name, factory, version);
         this.context = context;
-        pendingTable = new PendingTable(getWritableDatabase());
-        expensesTable = new ExpensesTable(getWritableDatabase());
-        standingOrderTable = new StandingOrderTable(getWritableDatabase());
-        categoryTable = new CategoryTable(getWritableDatabase());
+        pendingTable = new PendingTable(getWritableDatabase(), lock);
+        expensesTable = new ExpensesTable(getWritableDatabase(), lock);
+        standingOrderTable = new StandingOrderTable(getWritableDatabase(), lock);
+        categoryTable = new CategoryTable(getWritableDatabase(), lock);
         tables.add(pendingTable);
         tables.add(expensesTable);
         tables.add(standingOrderTable);
@@ -174,5 +177,21 @@ public class FinanceDatabase extends SQLiteOpenHelper
 
     public List<Category> getAllCategorys() throws SQLException {
         return categoryTable.getAllItems();
+    }
+
+    public List<StandingOrder> getAllStandingOrders() throws SQLException {
+        return standingOrderTable.getAllItems();
+    }
+
+    public void addStandingOrder(StandingOrder standingOrder) throws SQLException {
+        standingOrderTable.addFrom(standingOrder, getUserId());
+    }
+
+    public void updateStandingOrder(StandingOrder standingOrder) throws SQLException {
+        standingOrderTable.updateFrom(standingOrder, getUserId());
+    }
+
+    public void deleteStandingOrder(StandingOrder standingOrder) throws SQLException {
+        standingOrderTable.deleteFrom(standingOrder.getId(), getUserId());
     }
 }

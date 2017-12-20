@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Thomas on 30.11.2017.
@@ -29,8 +30,8 @@ public class StandingOrderTable extends BookkeepingTable<StandingOrder> {
     private static final String FREQUENCY_FACTOR = "frequency_factor";
     private static final String EXECUTED_EXPENSES = "executed_expenses";
 
-    public StandingOrderTable(SQLiteDatabase database) {
-        super(database);
+    public StandingOrderTable(SQLiteDatabase database, ReentrantLock lock) {
+        super(database, lock);
     }
 
     @Override
@@ -55,8 +56,8 @@ public class StandingOrderTable extends BookkeepingTable<StandingOrder> {
     protected void bindBookkeepingItem(SQLiteStatement statement, Map<String, Integer> map, StandingOrder item) {
         statement.bindLong(map.get(FIRST_DATE), dateTimeToValue(item.getFirstDate()));
         statement.bindLong(map.get(END_DATE), dateTimeToValue(item.getEndDate()));
-        statement.bindString(map.get(FREQUENCY_FACTOR), item.getFrequency().name());
-        statement.bindLong(map.get(FREQUENCY), item.getFrequencyFactor());
+        statement.bindString(map.get(FREQUENCY), item.getFrequency().name());
+        statement.bindLong(map.get(FREQUENCY_FACTOR), item.getFrequencyFactor());
         statement.bindString(map.get(EXECUTED_EXPENSES), buildStringList(item.getExecutedExpenses()));
     }
 

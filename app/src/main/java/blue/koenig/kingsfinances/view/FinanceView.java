@@ -2,6 +2,7 @@ package blue.koenig.kingsfinances.view;
 
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
+import com.koenig.commonModel.finance.StandingOrder;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface FinanceView extends FamilyView {
     void showExpenses(List<Expenses> expenses);
 
     void setFamilyMembers(List<User> members);
+
+    void showStandingOrders(List<StandingOrder> standingOrders);
 }

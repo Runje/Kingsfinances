@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Thomas on 29.11.2017.
@@ -25,8 +26,8 @@ abstract class BookkeepingTable<T extends BookkeepingEntry> extends Table<T> {
     private static final String COSTS = "costs";
     private static final String COSTDISTRIBUTION = "cost_distribution";
 
-    public BookkeepingTable(SQLiteDatabase database) {
-        super(database);
+    public BookkeepingTable(SQLiteDatabase database, ReentrantLock lock) {
+        super(database, lock);
     }
 
     @Override
