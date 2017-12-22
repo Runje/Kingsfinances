@@ -26,34 +26,34 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile 'com.android.support:appcompat-v7:27.+'
-    compile 'com.android.support.constraint:constraint-layout:1.0.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:27.+'
-
-
-    compile(name: 'aar/kingsfamilylibrary-debug', ext: 'aar')
-    compile 'joda-time:joda-time:2.9.2'
+    compile project(':tcpcommunication')
+    compile project(':kingsfamilylibrary')
+    compile project(':commonfamily')
+    //compile(name: 'aar/kingsfamilylibrary-debug', ext: 'aar')
+    compile 'joda-time:joda-time:2.9.9'
     testCompile 'junit:junit:4.12'
 
     // Dependency Injection
-    annotationProcessor  "com.google.dagger:dagger-compiler:2.11"
-    compile "com.google.dagger:dagger:2.11"
+    annotationProcessor  "com.google.dagger:dagger-compiler:2.13"
+    compile "com.google.dagger:dagger:2.11´3"
     provided 'javax.annotation:jsr250-api:1.0'
     compile 'org.slf4j:slf4j-android:1.7.22'
     //compile files('../../Utilties/tcpcommunication/build/libs/tcpcommunication.jar')
-    compile files('../../Kingsfamily/commonfamily/build/libs/commonfamily.jar')
-    compile 'com.android.support.constraint:constraint-layout:1.0.1'
+    //compile files('../../Kingsfamily/commonfamily/build/libs/commonfamily.jar')
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'org.jetbrains:annotations:15.0'
 // https://mvnrepository.com/artifact/net.iharder/base64
     compile group: 'net.iharder', name: 'base64', version: '2.3.9'
-
+    compile 'com.android.support:multidex:1.0.2'
 }
 
 repositories {
-    flatDir {
+    /*flatDir {
         dirs '../../Kingsfamily/kingsfamilylibrary/build/outputs'
-    }
+    }*/
     google()
 }
 

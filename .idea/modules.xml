@@ -4,6 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Kingsfinances.iml" filepath="$PROJECT_DIR$/Kingsfinances.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Kingsfamily/commonfamily/commonfamily.iml" filepath="$PROJECT_DIR$/../Kingsfamily/commonfamily/commonfamily.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Kingsfamily/kingsfamilylibrary/kingsfamilylibrary.iml" filepath="$PROJECT_DIR$/../Kingsfamily/kingsfamilylibrary/kingsfamilylibrary.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Utilties/tcpcommunication/tcpcommunication.iml" filepath="$PROJECT_DIR$/../Utilties/tcpcommunication/tcpcommunication.iml" />
     </modules>
   </component>
 </project>

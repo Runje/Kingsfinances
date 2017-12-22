@@ -104,7 +104,9 @@ public class ExpensesFragment extends FinanceFragment
             init(getView());
         }
 
-        adapter.update(expenses);
+        if (adapter != null) {
+            adapter.update(expenses);
+        }
     }
 
     @Override

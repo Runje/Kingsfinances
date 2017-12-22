@@ -7,8 +7,11 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
+            <option value="$PROJECT_DIR$/../Kingsfamily/commonfamily" />
+            <option value="$PROJECT_DIR$/../Kingsfamily/kingsfamilylibrary" />
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/../Utilties/tcpcommunication" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
