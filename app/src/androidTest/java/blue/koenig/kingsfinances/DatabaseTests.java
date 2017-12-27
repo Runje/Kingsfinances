@@ -27,7 +27,8 @@ import blue.koenig.kingsfinances.model.PendingOperation;
 import blue.koenig.kingsfinances.model.PendingStatus;
 import blue.koenig.kingsfinances.model.database.FinanceDatabase;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Instrumentation test, which will execute on an Android device.
@@ -46,7 +47,7 @@ public class DatabaseTests {
 
         assertEquals("blue.koenig.kingsfinances", appContext.getPackageName());
 
-        financeDatabase = new FinanceDatabase(appContext, "TestDatabase.sqlite");
+        financeDatabase = new FinanceDatabase(appContext, "TestDatabase.sqlite", null);
         financeDatabase.deleteAllEntrys();
     }
 

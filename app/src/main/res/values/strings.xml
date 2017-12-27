@@ -76,11 +76,11 @@
     <string name="finance_file_key">finance_file_key</string>
     <string name="category_already_exists">Kategorie existiert bereits</string>
     <string name="question_delete_category">Möchten Sie diese Kategorie löschen?</string>
-    <string name="owner">Besitzer</string>
+    <string name="owners">Besitzer</string>
     <string name="last_update">Letztes Update</string>
     <string name="confirm_delete_bank_account">Wollen Sie das Konto %1$s wirklich löschen?</string>
     <string name="bank_account">Konto</string>
-    <string name="bank_name">Bank Name</string>
+    <string name="bank">Bank</string>
     <string name="monthly_costs">Monatliche Kosten</string>
     <string name="empty_not_allowed">Feld darf nicht leer sein</string>
     <string name="interest">Zinsen</string>
@@ -129,4 +129,6 @@
     <string name="expenses">Ausgaben</string>
     <string name="last_execution">Letzte Ausführung</string>
     <string name="daily">täglich</string>
+    <string name="owner">Besitzer</string>
+    <string name="bank_name">Bank Name</string>
 </resources>

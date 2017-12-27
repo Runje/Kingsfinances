@@ -7,11 +7,11 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.util.SparseArray;
 import android.view.ViewGroup;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import blue.koenig.kingsfinances.R;
+import blue.koenig.kingsfinances.view.fragments.AccountFragment;
 import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
 import blue.koenig.kingsfinances.view.fragments.PendingFragment;
 import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
@@ -21,8 +21,8 @@ import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
  */
 public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
 {
-    protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     private final Context context;
+    protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     SparseArray<Fragment> fragments = new SparseArray<>();
 
     public FinanceFragmentPagerAdapter(Context context, FragmentManager fm)
@@ -48,6 +48,9 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
                     fragments.put(position, new StandingOrderFragment());
                     break;
                 case 2:
+                    fragments.put(position, new AccountFragment());
+                    break;
+                case 3:
                     fragments.put(position, new PendingFragment());
                     break;
             }
@@ -74,7 +77,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     @Override
     public int getCount()
     {
-        return 3;
+        return 4;
     }
 
     @Override
@@ -102,5 +105,9 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
 
     public StandingOrderFragment getStandingOrderFragment() {
         return (StandingOrderFragment) fragments.get(1);
+    }
+
+    public AccountFragment getAccountFragment() {
+        return (AccountFragment) fragments.get(2);
     }
 }

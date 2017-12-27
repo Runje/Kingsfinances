@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/text_bankname"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="@string/bank"
+        android:textColor="@color/text_list" />
+
+    <TextView
+        android:id="@+id/text_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="@string/bank_account"
+        android:textColor="@color/text_list" />
+
+    <TextView
+        android:id="@+id/text_balance"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="€"
+        android:textColor="@color/text_list" />
+
+    <TextView
+        android:id="@+id/text_owner"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/short_owner"
+        android:textColor="@color/text_list" />
+
+    <TextView
+        android:id="@+id/text_last_update"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/last_update"
+        android:textColor="@color/text_list" />
+</merge>

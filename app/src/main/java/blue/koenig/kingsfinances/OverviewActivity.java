@@ -1,21 +1,9 @@
 package blue.koenig.kingsfinances;
-import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
-import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
-import blue.koenig.kingsfinances.dagger.FinanceApplication;
-import blue.koenig.kingsfinances.model.FinanceModel;
-import blue.koenig.kingsfinances.view.AddExpensesDialog;
-import blue.koenig.kingsfinances.view.FinanceViewUtils;
-import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
-import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
-import blue.koenig.kingsfinances.view.FinanceView;
-import blue.koenig.kingsfinances.view.fragments.PendingFragment;
-import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -25,12 +13,25 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.koenig.commonModel.User;
+import com.koenig.commonModel.finance.BankAccount;
 import com.koenig.commonModel.finance.Expenses;
 import com.koenig.commonModel.finance.StandingOrder;
 
 import java.util.List;
 
 import javax.inject.Inject;
+
+import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
+import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
+import blue.koenig.kingsfinances.dagger.FinanceApplication;
+import blue.koenig.kingsfinances.model.FinanceModel;
+import blue.koenig.kingsfinances.view.BankAccountDialog;
+import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
+import blue.koenig.kingsfinances.view.FinanceView;
+import blue.koenig.kingsfinances.view.FinanceViewUtils;
+import blue.koenig.kingsfinances.view.fragments.AccountFragment;
+import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
+import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
 
 public class OverviewActivity extends FamilyActivity implements FinanceView, NavigationView.OnNavigationItemSelectedListener {
 
@@ -106,6 +107,13 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         } else if (currentItem == 1) {
             FinanceViewUtils.startAddStandingOrderActivity(this);
             // standing order
+        } else if (currentItem == 2) {
+            BankAccountDialog bankAccountDialog = new BankAccountDialog(this, getFinanceModel().getFamilyMembers());
+            bankAccountDialog.setConfirmListener(bankAccount -> {
+                getFinanceModel().addBankAccount(bankAccount);
+                updateBankAccounts(getFinanceModel().getBankAccounts());
+            });
+            bankAccountDialog.showAdd();
         } else {
             logger.error("FAB should not be visible!");
         }
@@ -165,6 +173,16 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             runOnUiThread(() -> standingOrderFragment.update(standingOrders));
         } else {
             logger.error("Couldn't update standingOrderFragment!");
+        }
+    }
+
+    @Override
+    public void updateBankAccounts(List<BankAccount> bankAccounts) {
+        AccountFragment accountFragment = pageAdapter.getAccountFragment();
+        if (accountFragment != null) {
+            runOnUiThread(() -> accountFragment.update(bankAccounts));
+        } else {
+            logger.error("Couldn't update accountFragment!");
         }
     }
 

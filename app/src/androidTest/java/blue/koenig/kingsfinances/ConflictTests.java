@@ -47,7 +47,7 @@ public class ConflictTests {
 
         assertEquals("blue.koenig.kingsfinances", appContext.getPackageName());
 
-        financeDatabase = new FinanceDatabase(appContext, "TestDatabase.sqlite");
+        financeDatabase = new FinanceDatabase(appContext, "TestDatabase.sqlite", null);
         financeDatabase.deleteAllEntrys();
     }
 

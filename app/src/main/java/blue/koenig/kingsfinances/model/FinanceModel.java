@@ -10,6 +10,8 @@ import com.koenig.commonModel.Operation;
 import com.koenig.commonModel.Operator;
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.database.DatabaseItem;
+import com.koenig.commonModel.finance.Balance;
+import com.koenig.commonModel.finance.BankAccount;
 import com.koenig.commonModel.finance.Expenses;
 import com.koenig.commonModel.finance.StandingOrder;
 import com.koenig.communication.messages.AUDMessage;
@@ -20,16 +22,15 @@ import com.koenig.communication.messages.finance.FinanceTextMessages;
 
 import org.joda.time.DateTime;
 
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
-import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection;
 import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView;
+import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.model.database.FinanceDatabase;
 import blue.koenig.kingsfinances.view.FinanceNullView;
@@ -43,6 +44,7 @@ import blue.koenig.kingsfinances.view.PendingView;
 
 public class FinanceModel extends FamilyModel implements FinanceCategoryService.CategoryServiceListener {
 
+    private final FinanceUserService userService;
     private FinanceDatabase database;
     private FinanceCategoryService categoryService;
     private PendingView pendingView;
@@ -53,12 +55,33 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
         pendingView = new NullPendingView();
         categoryService = new FinanceCategoryService();
         categoryService.setListener(this);
+        userService = new FinanceUserService(loginHandler.getMembers());
 
         try {
-            database = new FinanceDatabase(context);
+            database = new FinanceDatabase(context, userService);
             categoryService.update(database.getAllCategorys());
         } catch (SQLException e) {
             logger.error("Couldn't create database: " + e.getMessage());
+        }
+    }
+
+    public static void update(FinanceDatabase database, List<DatabaseItem> items) throws SQLException {
+        if (items.size() == 0) return;
+        ItemType itemType = ItemType.fromItem(items.get(0).getItem());
+
+        switch (itemType) {
+            case EXPENSES:
+                database.updateExpensesChanges(items);
+                break;
+            case STANDING_ORDER:
+                database.updateStandingOrderChanges(items);
+                break;
+            case CATEGORY:
+                database.updateCategoryChanges(items);
+                break;
+            case BANKACCOUNT:
+                database.updateBankAccountChanges(items);
+                break;
         }
     }
 
@@ -106,6 +129,7 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
         askForUpdates(ItemType.EXPENSES);
         askForUpdates(ItemType.CATEGORY);
         askForUpdates(ItemType.STANDING_ORDER);
+        askForUpdates(ItemType.BANKACCOUNT);
     }
 
     private void askForUpdates(ItemType itemType) {
@@ -116,9 +140,8 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
     protected void updateFamilymembers(List<User> members) {
         logger.info("Setting family members...");
         getFinanceView().setFamilyMembers(members);
+        userService.setUser(members);
     }
-
-
 
     @Override
     public void onReceiveFinanceMessage(FamilyMessage message) {
@@ -148,6 +171,9 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
                 case CATEGORY:
                     updateAllCategorys();
                     break;
+                case BANKACCOUNT:
+                    updateAllBankAccounts();
+                    break;
             }
 
             FamilyConfig.saveLastSyncDate(DateTime.now(), context, itemType.name());
@@ -174,24 +200,6 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
             logger.error("Error getting categoires: " + e.getMessage());
         }
     }
-
-    public static void update(FinanceDatabase database, List<DatabaseItem> items) throws SQLException {
-        if (items.size() == 0) return;
-        ItemType itemType = ItemType.fromItem(items.get(0).getItem());
-
-        switch (itemType) {
-            case EXPENSES:
-                database.updateExpensesChanges(items);
-                break;
-            case STANDING_ORDER:
-                database.updateStandingOrderChanges(items);
-                break;
-            case CATEGORY:
-                database.updateCategoryChanges(items);
-                break;
-        }
-    }
-
 
     private FinanceView getFinanceView() {
         return (FinanceView) view;
@@ -294,6 +302,10 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
 
     private void updateAllExpenses() throws SQLException {
         getFinanceView().showExpenses(database.getAllExpenses());
+    }
+
+    private void updateAllBankAccounts() throws SQLException {
+        getFinanceView().updateBankAccounts(database.getAllBankAccounts());
     }
 
     public List<PendingOperation> getPendingOperations() {
@@ -402,6 +414,54 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
             updateAllStandingOrders();
         } catch (SQLException e) {
             logger.error("Error while deleting standingOrder");
+        }
+    }
+
+    public List<BankAccount> getBankAccounts() {
+        try {
+            return database.getAllBankAccounts();
+        } catch (SQLException e) {
+            logger.error("Couldn't get bankaccounts: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public void deleteBankAccount(BankAccount account) {
+        makeDeleteOperation(account);
+        try {
+            database.deleteBankAccount(account);
+            updateAllBankAccounts();
+        } catch (SQLException e) {
+            logger.error("Error while deleting standingOrder");
+        }
+    }
+
+
+    public void deleteBalance(BankAccount account, Balance balance) {
+        makeUpdateOperation(account);
+        try {
+            database.deleteBalance(account, balance);
+        } catch (SQLException e) {
+            logger.error("Couldn't delete balance: " + e.getMessage());
+        }
+    }
+
+    public void addBalance(BankAccount account, Balance balance) {
+        makeUpdateOperation(account);
+        try {
+            database.addBalance(account, balance);
+
+        } catch (SQLException e) {
+            logger.error("Couldn't add balance: " + e.getMessage());
+        }
+    }
+
+    public void addBankAccount(BankAccount bankAccount) {
+        makeAddOperation(bankAccount);
+        try {
+            database.addBankAccount(bankAccount);
+        } catch (SQLException e) {
+            logger.error("Couldn't add bankAccount: " + e.getMessage());
         }
     }
 }

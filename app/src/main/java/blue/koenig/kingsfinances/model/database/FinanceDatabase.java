@@ -11,6 +11,9 @@ import android.util.Log;
 
 import com.koenig.commonModel.Category;
 import com.koenig.commonModel.database.DatabaseItem;
+import com.koenig.commonModel.database.UserService;
+import com.koenig.commonModel.finance.Balance;
+import com.koenig.commonModel.finance.BankAccount;
 import com.koenig.commonModel.finance.Expenses;
 import com.koenig.commonModel.finance.StandingOrder;
 
@@ -28,38 +31,41 @@ import blue.koenig.kingsfinances.model.PendingStatus;
 
 public class FinanceDatabase extends SQLiteOpenHelper
 {
-    private final ExpensesTable expensesTable;
-    private final StandingOrderTable standingOrderTable;
-    private final CategoryTable categoryTable;
-    private PendingTable pendingTable;
-    protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     // Database Name
     public static final String DATABASE_NAME = "family_finance.sqlite";
     // Database Version
     private static final int DATABASE_VERSION = 1;
-    private Context context;
-    List<Table> tables = new ArrayList<>();
+    private final ExpensesTable expensesTable;
+    private final StandingOrderTable standingOrderTable;
+    private final CategoryTable categoryTable;
+    private final BankAccountTable bankAccountTable;
+    protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     protected ReentrantLock lock = new ReentrantLock();
+    List<Table> tables = new ArrayList<>();
+    private PendingTable pendingTable;
+    private Context context;
 
-    public FinanceDatabase(Context context, String databaseName) throws SQLException {
-        this(context,databaseName, null, DATABASE_VERSION);
+    public FinanceDatabase(Context context, String databaseName, UserService userService) throws SQLException {
+        this(context, databaseName, null, DATABASE_VERSION, userService);
     }
 
-    public FinanceDatabase(Context context) throws SQLException {
-        this(context, DATABASE_NAME);
+    public FinanceDatabase(Context context, UserService userService) throws SQLException {
+        this(context, DATABASE_NAME, userService);
     }
 
-    public FinanceDatabase(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) throws SQLException {
+    public FinanceDatabase(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, UserService userService) throws SQLException {
         super(context, name, factory, version);
         this.context = context;
         pendingTable = new PendingTable(getWritableDatabase(), lock);
         expensesTable = new ExpensesTable(getWritableDatabase(), lock);
         standingOrderTable = new StandingOrderTable(getWritableDatabase(), lock);
         categoryTable = new CategoryTable(getWritableDatabase(), lock);
+        bankAccountTable = new BankAccountTable(getWritableDatabase(), userService, lock);
         tables.add(pendingTable);
         tables.add(expensesTable);
         tables.add(standingOrderTable);
         tables.add(categoryTable);
+        tables.add(bankAccountTable);
         createAllTables();
         //pendingTable.drop();
         //pendingTable.create();
@@ -193,5 +199,33 @@ public class FinanceDatabase extends SQLiteOpenHelper
 
     public void deleteStandingOrder(StandingOrder standingOrder) throws SQLException {
         standingOrderTable.deleteFrom(standingOrder.getId(), getUserId());
+    }
+
+    public List<BankAccount> getAllBankAccounts() throws SQLException {
+        return bankAccountTable.getAllItems();
+    }
+
+    public void deleteBankAccount(BankAccount account) throws SQLException {
+        bankAccountTable.deleteFrom(account.getId(), getUserId());
+    }
+
+    public void updateBankAccountChanges(List<DatabaseItem> bankAccounts) throws SQLException {
+        bankAccountTable.updateFromServer(bankAccounts);
+    }
+
+    public void deleteBalance(BankAccount account, Balance balance) throws SQLException {
+        BankAccount bankAccount = bankAccountTable.getFromId(account.getId());
+        bankAccount.deleteBalance(balance);
+        bankAccountTable.updateFrom(bankAccount, getUserId());
+    }
+
+    public void addBalance(BankAccount account, Balance balance) throws SQLException {
+        BankAccount bankAccount = bankAccountTable.getFromId(account.getId());
+        bankAccount.addBalance(balance);
+        bankAccountTable.updateFrom(bankAccount, getUserId());
+    }
+
+    public void addBankAccount(BankAccount bankAccount) throws SQLException {
+        bankAccountTable.addFrom(bankAccount, getUserId());
     }
 }
