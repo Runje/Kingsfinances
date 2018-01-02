@@ -131,4 +131,5 @@
     <string name="daily">täglich</string>
     <string name="owner">Besitzer</string>
     <string name="bank_name">Bank Name</string>
+    <string name="debts_of">Schulden von %s</string>
 </resources>

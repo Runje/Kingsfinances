@@ -31,7 +31,6 @@ dependencies {
     implementation project(':tcpcommunication')
     implementation project(':kingsfamilylibrary')
     implementation project(':commonfamily')
-    //compile(name: 'aar/kingsfamilylibrary-debug', ext: 'aar')
     implementation 'joda-time:joda-time:2.9.9'
     testImplementation 'junit:junit:4.12'
 
@@ -40,21 +39,16 @@ dependencies {
     implementation "com.google.dagger:dagger:2.13"
     compileOnly 'javax.annotation:jsr250-api:1.0'
     implementation 'org.slf4j:slf4j-android:1.7.22'
-    //compile files('../../Utilties/tcpcommunication/build/libs/tcpcommunication.jar')
-    //compile files('../../Kingsfamily/commonfamily/build/libs/commonfamily.jar')
-    //compile 'com.jakewharton:butterknife:8.8.1'
-    //annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     implementation 'org.jetbrains:annotations:15.0'
-// https://mvnrepository.com/artifact/net.iharder/base64
+    // https://mvnrepository.com/artifact/net.iharder/base64
     implementation group: 'net.iharder', name: 'base64', version: '2.3.9'
     implementation 'com.android.support:multidex:1.0.2'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
 }
 
 repositories {
-    /*flatDir {
-        dirs '../../Kingsfamily/kingsfamilylibrary/build/outputs'
-    }*/
     google()
+    maven { url "https://jitpack.io" }
 }
 
 android {

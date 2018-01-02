@@ -5,9 +5,6 @@ import com.koenig.commonModel.Category;
 import java.util.ArrayList;
 import java.util.List;
 
-import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection;
-import blue.koenig.kingsfinances.model.database.CategoryTable;
-
 /**
  * Created by Thomas on 18.11.2017.
  */
@@ -22,6 +19,7 @@ class FinanceCategoryService implements CategoryService {
 
     @Override
     public boolean isValid(String newCategory) {
+        if (newCategory.trim().isEmpty()) return false;
         if (categorys != null) {
             for (Category category : categorys) {
                 if (category.getName().equals(newCategory)) {

@@ -25,6 +25,7 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
+import blue.koenig.kingsfinances.model.calculation.Debts;
 import blue.koenig.kingsfinances.view.BankAccountDialog;
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
 import blue.koenig.kingsfinances.view.FinanceView;
@@ -100,13 +101,10 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         int currentItem = pager.getCurrentItem();
         if (currentItem == 0) {
             FinanceViewUtils.startAddExpensesActivity(this);
-            /**new AddExpensesDialog(this, getFinanceModel().getCategoryService(), model.getFamilyMembers(), (expenses -> {
-                getFinanceModel().addExpenses(expenses);
 
-            })).show();**/
         } else if (currentItem == 1) {
-            FinanceViewUtils.startAddStandingOrderActivity(this);
             // standing order
+            FinanceViewUtils.startAddStandingOrderActivity(this);
         } else if (currentItem == 2) {
             BankAccountDialog bankAccountDialog = new BankAccountDialog(this, getFinanceModel().getFamilyMembers());
             bankAccountDialog.setConfirmListener(bankAccount -> {
@@ -183,6 +181,16 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             runOnUiThread(() -> accountFragment.update(bankAccounts));
         } else {
             logger.error("Couldn't update accountFragment!");
+        }
+    }
+
+    @Override
+    public void updateDebts(List<Debts> debts) {
+        ExpensesFragment expensesFragment = pageAdapter.getExpensesFragment();
+        if (expensesFragment != null) {
+            runOnUiThread(() -> expensesFragment.updateDebts(debts));
+        } else {
+            logger.error("Couldn't update debts!");
         }
     }
 

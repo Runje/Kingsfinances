@@ -1,14 +1,9 @@
 package blue.koenig.kingsfinances.view.fragments;
 
 
-import android.app.Activity;
-import android.content.Context;
-import android.graphics.Point;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,23 +11,24 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import javax.inject.Inject;
-
+import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
-import blue.koenig.kingsfamilylibrary.view.EditDialog;
 import blue.koenig.kingsfamilylibrary.view.ViewUtils;
 import blue.koenig.kingsfinances.R;
-import blue.koenig.kingsfinances.dagger.FinanceApplication;
-import blue.koenig.kingsfinances.model.FinanceModel;
-import blue.koenig.kingsfinances.view.EditExpensesDialog;
+import blue.koenig.kingsfinances.model.calculation.Debts;
 import blue.koenig.kingsfinances.view.FinanceViewUtils;
 import blue.koenig.kingsfinances.view.lists.ExpensesAdapter;
 
@@ -44,6 +40,7 @@ import blue.koenig.kingsfinances.view.lists.ExpensesAdapter;
 public class ExpensesFragment extends FinanceFragment
 {
     private ExpensesAdapter adapter;
+    private LineChart lineChart;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -80,7 +77,8 @@ public class ExpensesFragment extends FinanceFragment
         }
 
         ListView listView = view.findViewById(R.id.list_expenses);
-        adapter = new ExpensesAdapter(model.getExpenses(), bigWidth, new ExpensesAdapter.ExpensesInteractListener() {
+        List<Expenses> expenses = model.getExpenses();
+        adapter = new ExpensesAdapter(expenses, bigWidth, new ExpensesAdapter.ExpensesInteractListener() {
             @Override
             public void onDelete(Expenses expenses) {
                 new DeleteDialog<>(getActivity(), expenses.getName(), expenses, (e) -> model.deleteExpenses(e)).show();
@@ -92,10 +90,76 @@ public class ExpensesFragment extends FinanceFragment
             }
         }, familyMembers);
         listView.setAdapter(adapter);
+
+        //bar chart
+        lineChart = view.findViewById(R.id.linechart);
+        List<Debts> debtsList = model.getDebts();
+        lineChart.getAxisRight().setTextColor(Color.WHITE);
+        lineChart.getAxisLeft().setTextColor(Color.WHITE);
+        lineChart.getXAxis().setTextColor(Color.WHITE);
+        Legend legend = lineChart.getLegend();
+        legend.setTextColor(Color.WHITE);
+        legend.setEnabled(false);
+
+        lineChart.setGridBackgroundColor(Color.BLACK);
+        lineChart.setVisibleXRangeMaximum(12);
+
+        updateLinechart(debtsList);
+
         initialized = true;
     }
 
+    private List<String> debtsToXValues(List<Debts> debtsList) {
+        ArrayList<String> xEntrys = new ArrayList<>(debtsList.size());
+        for (Debts debt : debtsList) {
+            String dateString = debt.getDate().toString("MM/yy");
+            xEntrys.add(dateString);
+        }
 
+        return xEntrys;
+
+    }
+
+    /**
+     * Return only debts from this user
+     *
+     * @param debts
+     * @return
+     */
+    private LineData debtsToLineData(List<Debts> debts) {
+        // One debts not possible
+        if (debts.size() <= 1) return new LineData();
+        Map<User, Integer> debtsMap = debts.get(1).getDebts();
+        List<Integer> colors = new ArrayList<>(debts.size());
+        ArrayList<ILineDataSet> dataSets = new ArrayList<>();
+        for (User user : debtsMap.keySet()) {
+            if (user.getId().equals(FamilyConfig.getUserId(getContext()))) {
+                ArrayList<Entry> userEntrys = new ArrayList<>(debts.size());
+                int i = 0;
+                for (Debts debt : debts) {
+                    int value = debt.getDebtsFor(user);
+                    userEntrys.add(new Entry(i, value / 100f));
+                    if (value < 0) {
+                        colors.add(Color.RED);
+                    } else colors.add(Color.GREEN);
+
+                    i++;
+                }
+                LineDataSet barDataSet = new LineDataSet(userEntrys, getContext().getString(R.string.debts_of, user.getName()));
+                //barDataSet.setColors(colors);
+                barDataSet.setColor(model.getColorFor(user));
+                //barDataSet.setBarBorderWidth(20);
+
+                barDataSet.setValueTextColor(Color.WHITE);
+                dataSets.add(barDataSet);
+            }
+        }
+
+        LineData lineData = new LineData(dataSets);
+        //lineData.setBarWidth(0.04f);
+
+        return lineData;
+    }
 
 
     public void updateExpenses(List<Expenses> expenses) {
@@ -112,6 +176,7 @@ public class ExpensesFragment extends FinanceFragment
     @Override
     protected void update() {
         updateExpenses(model.getExpenses());
+        updateLinechart(model.getDebts());
     }
 
     protected void init(View view) {
@@ -127,4 +192,36 @@ public class ExpensesFragment extends FinanceFragment
     }
 
 
+    public void updateDebts(List<Debts> debts) {
+        if (lineChart == null) {
+            logger.error("Adapter is null");
+            init(getView());
+        }
+
+        if (lineChart != null) {
+            updateLinechart(debts);
+        }
+    }
+
+    private synchronized void updateLinechart(List<Debts> debtsList) {
+        LineData lineData = debtsToLineData(debtsList);
+        lineChart.setData(lineData);
+
+        List<String> xValues = debtsToXValues(debtsList);
+        //convert x values to date string
+        lineChart.getXAxis().setValueFormatter((value, axis) -> {
+            int intValue = (int) value;
+            if (intValue > xValues.size() - 1) {
+                logger.error("intvalue: " + intValue + ", xValues.size(): " + xValues.size());
+                return "Error";
+            }
+
+            return xValues.get(intValue);
+        });
+
+        // show last 12 month
+        //lineChart.setVisibleXRangeMaximum(12);
+        lineChart.moveViewToX(Math.max(0, debtsList.size() - 12));
+        lineChart.invalidate();
+    }
 }

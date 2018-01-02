@@ -4,15 +4,12 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
-import android.util.ArrayMap;
 
 import com.koenig.commonModel.Byteable;
-import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Item;
 import com.koenig.commonModel.database.Database;
 import com.koenig.commonModel.database.DatabaseItem;
 import com.koenig.commonModel.database.DatabaseTable;
-import com.koenig.commonModel.finance.Expenses;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -20,20 +17,24 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import blue.koenig.kingsfinances.model.calculation.ItemSubject;
+
 /**
  * Created by Thomas on 25.11.2017.
  */
 
-public abstract class Table<T extends Item> extends DatabaseTable<T> {
+public abstract class Table<T extends Item> extends DatabaseTable<T> implements ItemSubject<T> {
 
-    SQLiteDatabase db;
     protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    protected List<OnDeleteListener> onDeleteListeners = new ArrayList<>();
+    protected List<OnAddListener> onAddListeners = new ArrayList<>();
+    protected List<OnUpdateListener> onUpdateListeners = new ArrayList<>();
+    SQLiteDatabase db;
 
     public Table(SQLiteDatabase database, ReentrantLock lock) {
         db = database;
@@ -68,11 +69,6 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
 
             cursor.close();
 
-            for (DatabaseItem<T> item : items) {
-                if (item.isDeleted()) {
-                    logger.error("Deleted item found: " + item.getName());
-                }
-            }
             return items;
         });
 
@@ -115,6 +111,10 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     @Override
     public void add(DatabaseItem<T> databaseItem) throws SQLException {
         runInLock(() -> {
+            for (OnAddListener onAddListener : onAddListeners) {
+                onAddListener.onAdd(databaseItem.getItem());
+            }
+
             db.insert(getTableName(), null, itemToValues(databaseItem));
         });
     }
@@ -135,7 +135,7 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
         return result;
     }
 
-    private DatabaseItem<T> createDatabaseItemFromCursor(Cursor cursor) {
+    protected DatabaseItem<T> createDatabaseItemFromCursor(Cursor cursor) {
         String id = getString(cursor, COLUMN_ID);
         String lastModifiedId = getString(cursor, COLUMN_MODIFIED_ID);
         String insertId = getString(cursor, COLUMN_INSERT_ID);
@@ -153,6 +153,9 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
 
     @Override
     public void deleteFrom(String itemId, String userId) throws SQLException {
+        for (OnDeleteListener onDeleteListener : onDeleteListeners) {
+            onDeleteListener.onDelete(getFromId(itemId));
+        }
         List<String> columns = new ArrayList<>();
         columns.add(COLUMN_MODIFIED_ID);
         columns.add(COLUMN_MODIFIED_DATE);
@@ -203,6 +206,9 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
                     add(item);
                     logger.info("Added new item: " + item.getName());
                 } else {
+                    for (OnUpdateListener onUpdateListener : onUpdateListeners) {
+                        onUpdateListener.onUpdate(databaseItem.getItem(), item.getItem());
+                    }
                     // overwrite
                     overwrite(item);
                     logger.info("Overwritten item: " + item.getName());
@@ -275,13 +281,12 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
 
     }
 
-
-    protected interface StatementBinder {
-        void bind(SQLiteStatement statement, Map<String, Integer> columnsMap);
-    }
-
     @Override
     public void updateFrom(T item, String userId) throws SQLException {
+        for (OnUpdateListener onUpdateListener : onUpdateListeners) {
+            onUpdateListener.onUpdate(getFromId(item.getId()), item);
+        }
+
         List<String> columns = new ArrayList<>();
         columns.add(COLUMN_MODIFIED_ID);
         columns.add(COLUMN_MODIFIED_DATE);
@@ -298,8 +303,6 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     }
 
     protected abstract void bindItem(SQLiteStatement statement, Map<String, Integer> map, T item);
-
-
 
     protected String dateTimeToStringValue(DateTime time) {
         return Long.toString(dateTimeToValue(time));
@@ -338,10 +341,10 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     protected String getString(Cursor cursor, String columnName) {
         return cursor.getString(cursor.getColumnIndex(columnName));
     }
+
     protected  <T extends Enum<T>> T getEnum(Cursor cursor, String name, Class<T> className) {
         return Enum.valueOf(className, getString(cursor, name));
     }
-
 
     protected int getInt(Cursor cursor, String columnName) {
         return cursor.getInt(cursor.getColumnIndex(columnName));
@@ -365,8 +368,6 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
     public void drop() throws SQLException {
         db.execSQL("DROP TABLE IF EXISTS " + getTableName());
     }
-
-
 
     protected List<String> getAllColumnNames() {
         List<String> columns = new ArrayList<>();
@@ -410,5 +411,45 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> {
 
     protected List<T> queryWithOneValue(String query, String value) {
         return toItemList(queryWithOneValueDatabaseItems(query, value));
+    }
+
+    public void addDeleteListener(OnDeleteListener<T> deleteListener) {
+        onDeleteListeners.add(deleteListener);
+    }
+
+    public void addAddListener(OnAddListener<T> addListener) {
+        onAddListeners.add(addListener);
+    }
+
+    public void addUpdateListener(OnUpdateListener<T> updateListener) {
+        onUpdateListeners.add(updateListener);
+    }
+
+    public void removeDeleteListener(OnDeleteListener deleteListener) {
+        onDeleteListeners.remove(deleteListener);
+    }
+
+    public void removeAddListener(OnAddListener addListener) {
+        onAddListeners.remove(addListener);
+    }
+
+    public void removeUpdateListener(OnUpdateListener updateListener) {
+        onUpdateListeners.remove(updateListener);
+    }
+
+    protected interface StatementBinder {
+        void bind(SQLiteStatement statement, Map<String, Integer> columnsMap);
+    }
+
+    public interface OnDeleteListener<T> {
+        void onDelete(T item);
+    }
+
+    public interface OnUpdateListener<T> {
+        void onUpdate(T oldItem, T newItem);
+    }
+
+    public interface OnAddListener<T> {
+        void onAdd(T item);
     }
 }

@@ -17,6 +17,7 @@ import com.koenig.commonModel.finance.BankAccount;
 import com.koenig.commonModel.finance.Expenses;
 import com.koenig.commonModel.finance.StandingOrder;
 
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +133,7 @@ public class FinanceDatabase extends SQLiteOpenHelper
         pendingTable.updateStatus(status, id);
     }
 
-    public List<PendingOperation> getNonConfiremdPendingOperations() {
+    public List<PendingOperation> getNonConfirmedPendingOperations() {
         return pendingTable.getNonConfirmedOperations();
     }
 
@@ -227,5 +228,13 @@ public class FinanceDatabase extends SQLiteOpenHelper
 
     public void addBankAccount(BankAccount bankAccount) throws SQLException {
         bankAccountTable.addFrom(bankAccount, getUserId());
+    }
+
+    public List<Expenses> getAllExpensesSince(DateTime updateSince) throws SQLException {
+        return expensesTable.getAllSince(updateSince);
+    }
+
+    public ExpensesTable getExpensesTable() {
+        return expensesTable;
     }
 }

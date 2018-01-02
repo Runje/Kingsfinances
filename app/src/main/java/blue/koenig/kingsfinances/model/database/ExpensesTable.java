@@ -5,13 +5,17 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
+import com.koenig.commonModel.database.DatabaseItem;
 import com.koenig.commonModel.finance.BookkeepingEntry;
 import com.koenig.commonModel.finance.Expenses;
 
 import org.joda.time.DateTime;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -20,9 +24,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 
 public class ExpensesTable extends BookkeepingTable<Expenses> {
-    public final String NAME = "ExpensesTable";
     private static final String DATE = "date";
     private static final String STANDING_ORDER = "standing_order";
+    public final String NAME = "ExpensesTable";
     public ExpensesTable(SQLiteDatabase database, ReentrantLock lock) {
         super(database, lock);
     }
@@ -59,5 +63,26 @@ public class ExpensesTable extends BookkeepingTable<Expenses> {
     @Override
     public String getTableName() {
         return NAME;
+    }
+
+    public List<Expenses> getAllSince(DateTime updateSince) throws SQLException {
+        return runInLock(() -> {
+            ArrayList<DatabaseItem<Expenses>> items = new ArrayList<>();
+
+            String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + DATE + " >= ? AND " + COLUMN_DELETED + " != ?";
+
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{Long.toString(updateSince.getMillis()), TRUE_STRING});
+
+            if (cursor.moveToFirst()) {
+                do {
+                    DatabaseItem<Expenses> databaseItem = createDatabaseItemFromCursor(cursor);
+                    items.add(databaseItem);
+                } while (cursor.moveToNext());
+            }
+
+            cursor.close();
+
+            return toItemList(items);
+        });
     }
 }

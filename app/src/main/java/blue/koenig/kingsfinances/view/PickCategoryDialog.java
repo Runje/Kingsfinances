@@ -15,8 +15,6 @@ import android.widget.Toast;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 import blue.koenig.kingsfamilylibrary.view.TextValidator;
 import blue.koenig.kingsfinances.R;
 
@@ -39,6 +37,7 @@ public class PickCategoryDialog {
     public PickCategoryDialog(Context context, @NotNull PickCategoryInteractor listener) {
         this.context = context;
         this.listener = listener;
+        main = "";
     }
 
     public void show() {

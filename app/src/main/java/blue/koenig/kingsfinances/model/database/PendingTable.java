@@ -5,8 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
-import com.koenig.commonModel.Byteable;
-import com.koenig.commonModel.Item;
 import com.koenig.commonModel.Operation;
 
 import org.joda.time.DateTime;
@@ -91,7 +89,8 @@ public class PendingTable extends Table<PendingOperation> {
     }
 
     public List<PendingOperation> getNonConfirmedOperations() {
-        String query = COLUMN_STATUS + " != ?";
+        // oldest first
+        String query = COLUMN_STATUS + " != ? ORDER BY " + COLUMN_DATE;
         String value = PendingStatus.CONFIRMED.name();
         return queryWithOneValue(query, value);
     }

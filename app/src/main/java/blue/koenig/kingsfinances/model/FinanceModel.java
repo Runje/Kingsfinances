@@ -1,7 +1,9 @@
 package blue.koenig.kingsfinances.model;
 
 import android.content.Context;
+import android.graphics.Color;
 
+import com.koenig.commonModel.Byteable;
 import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Component;
 import com.koenig.commonModel.Item;
@@ -21,7 +23,9 @@ import com.koenig.communication.messages.UpdatesMessage;
 import com.koenig.communication.messages.finance.FinanceTextMessages;
 
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 
+import java.nio.ByteBuffer;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +36,9 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 import blue.koenig.kingsfinances.R;
+import blue.koenig.kingsfinances.model.calculation.Debts;
+import blue.koenig.kingsfinances.model.calculation.DebtsCalculator;
+import blue.koenig.kingsfinances.model.calculation.DebtsCalculatorService;
 import blue.koenig.kingsfinances.model.database.FinanceDatabase;
 import blue.koenig.kingsfinances.view.FinanceNullView;
 import blue.koenig.kingsfinances.view.FinanceView;
@@ -44,7 +51,9 @@ import blue.koenig.kingsfinances.view.PendingView;
 
 public class FinanceModel extends FamilyModel implements FinanceCategoryService.CategoryServiceListener {
 
+    private static final String DEBTS = "DEBTS";
     private final FinanceUserService userService;
+    private DebtsCalculator debtsCalculator;
     private FinanceDatabase database;
     private FinanceCategoryService categoryService;
     private PendingView pendingView;
@@ -60,6 +69,28 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
         try {
             database = new FinanceDatabase(context, userService);
             categoryService.update(database.getAllCategorys());
+            debtsCalculator = new DebtsCalculator(Period.months(1), database.getExpensesTable(), new DebtsCalculatorService() {
+                @Override
+                public List<Debts> getSavedSortedDebts() {
+                    ByteBuffer buffer = FamilyConfig.getBytesFromConfig(context, DEBTS);
+                    if (buffer == null) return new ArrayList<>();
+
+                    int size = buffer.getInt();
+                    List<Debts> debts = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        debts.add(new Debts(buffer));
+                    }
+
+                    return debts;
+                }
+
+                @Override
+                public void saveDebts(List<Debts> debtsList) {
+                    ByteBuffer buffer = ByteBuffer.allocate(Byteable.getBigListLength(debtsList));
+                    Byteable.writeBigList(debtsList, buffer);
+                    FamilyConfig.saveBytes(context, buffer.array(), DEBTS);
+                }
+            });
         } catch (SQLException e) {
             logger.error("Couldn't create database: " + e.getMessage());
         }
@@ -93,9 +124,7 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
             updateFamilymembers(members);
         }
 
-
-
-        List<PendingOperation> operations = database.getNonConfiremdPendingOperations();
+        List<PendingOperation> operations = database.getNonConfirmedPendingOperations();
         clearAUDSuccesMessages();
         for (PendingOperation operation : operations) {
             connection.sendFamilyMessage(new AUDMessage(Component.FINANCE,operation.getOperation()));
@@ -163,7 +192,12 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
 
             switch (itemType) {
                 case EXPENSES:
-                    updateAllExpenses();
+                    updateAllExpensesAndDebts();
+                    List<Expenses> expensesList = new ArrayList<>(items.size());
+                    for (DatabaseItem item : items) {
+                        expensesList.add((Expenses) item.getItem());
+                    }
+
                     break;
                 case STANDING_ORDER:
                     updateAllStandingOrders();
@@ -182,6 +216,7 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
             logger.error("Error while updating: " + ex.getMessage());
         }
     }
+
 
     private void updateAllCategorys() {
         try {
@@ -245,13 +280,15 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
 
     public void deleteExpenses(Expenses expenses) {
         makeDeleteOperation(expenses);
+
         try {
             database.deleteExpenses(expenses);
-            updateAllExpenses();
+            updateAllExpensesAndDebts();
         } catch (SQLException e) {
             logger.error("Error while deleting expenses");
         }
     }
+
 
     private void makeUpdateOperation(Item item) {
         makeOperation(Operator.UPDATE, item);
@@ -280,7 +317,7 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
         makeUpdateOperation(expenses);
         try {
             database.updateExpenses(expenses);
-            getFinanceView().showExpenses(database.getAllExpenses());
+            updateAllExpensesAndDebts();
         } catch (SQLException e) {
             logger.error("Error while updating expenses: " + e.getMessage());
         }
@@ -293,15 +330,17 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
     public void addExpenses(Expenses expenses) {
         try {
             makeAddOperation(expenses);
+
             database.addExpenses(expenses);
-            updateAllExpenses();
+            updateAllExpensesAndDebts();
         } catch (SQLException e) {
             logger.error("Error while adding expenses: " + e.getMessage());
         }
     }
 
-    private void updateAllExpenses() throws SQLException {
+    private void updateAllExpensesAndDebts() throws SQLException {
         getFinanceView().showExpenses(database.getAllExpenses());
+        getFinanceView().updateDebts(debtsCalculator.getDebts());
     }
 
     private void updateAllBankAccounts() throws SQLException {
@@ -340,12 +379,15 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
         this.pendingView = new NullPendingView();
     }
 
+
     public List<Expenses> getExpenses() {
+        // TODO: dauert viel zu lange, im Hintergrund ausführen oder hier zwischenspeichern und nur ab und zu aktualisieren
         try {
             return database.getAllExpenses();
         } catch (SQLException e) {
             logger.error("Couldn't get expenses: " + e.getMessage());
         }
+
 
         return new ArrayList<>();
     }
@@ -463,5 +505,21 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
         } catch (SQLException e) {
             logger.error("Couldn't add bankAccount: " + e.getMessage());
         }
+    }
+
+    public List<Debts> getDebts() {
+        List<Debts> debts = debtsCalculator.getDebts();
+        if (debts.size() == 0) {
+            logger.warn("Recalculating all debts!");
+            //return debtsCalculator.recalculateAll();
+        }
+
+        return debts;
+    }
+
+    public int getColorFor(User user) {
+        // TODO: make preferences
+        if (user.getName().equals("Thomas")) return Color.BLUE;
+        else return Color.MAGENTA;
     }
 }
