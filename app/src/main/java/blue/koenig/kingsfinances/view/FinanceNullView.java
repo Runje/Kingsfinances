@@ -9,7 +9,7 @@ import com.koenig.commonModel.finance.StandingOrder;
 
 import java.util.List;
 
-import blue.koenig.kingsfinances.model.calculation.Debts;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 
 /**
  * Created by Thomas on 19.10.2017.
@@ -62,7 +62,12 @@ public class FinanceNullView implements FinanceView {
     }
 
     @Override
-    public void updateDebts(List<Debts> debts) {
+    public void updateAssets(List<StatisticEntry> assets) {
+
+    }
+
+    @Override
+    public void updateDebts(List<StatisticEntry> debts) {
 
     }
 }

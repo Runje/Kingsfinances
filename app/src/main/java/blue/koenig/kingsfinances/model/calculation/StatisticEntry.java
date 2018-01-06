@@ -2,6 +2,7 @@ package blue.koenig.kingsfinances.model.calculation;
 
 import com.koenig.commonModel.Byteable;
 import com.koenig.commonModel.User;
+import com.koenig.commonModel.finance.Balance;
 import com.koenig.commonModel.finance.CostDistribution;
 import com.koenig.commonModel.finance.Costs;
 
@@ -9,50 +10,69 @@ import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by Thomas on 28.12.2017.
  */
 
-public class Debts extends Byteable {
+public class StatisticEntry extends Byteable {
     private DateTime date;
     /**
      * Negative value means debts and positive means credit
      */
-    private Map<User, Integer> debtsMap;
+    private Map<User, Integer> entryMap;
 
-    public Debts(ByteBuffer buffer) {
+    public StatisticEntry(ByteBuffer buffer) {
         this.date = byteToDateTime(buffer);
-        this.debtsMap = bytesToDebtsMap(buffer);
+        this.entryMap = bytesToEntryMap(buffer);
     }
 
-    public Debts() {
-        this.debtsMap = new HashMap<>();
+    public StatisticEntry() {
+        this.entryMap = new HashMap<>();
     }
 
-    public Debts(Debts debts) {
-        date = debts.getDate();
-        debtsMap = new HashMap<>(debts.debtsMap);
+    public StatisticEntry(StatisticEntry statisticEntry) {
+        date = statisticEntry.getDate();
+        entryMap = new HashMap<>(statisticEntry.entryMap);
     }
 
-    public Debts(DateTime date, CostDistribution costDistribution) {
+    public StatisticEntry(DateTime date, CostDistribution costDistribution) {
         this(date);
         addCostDistribution(costDistribution);
     }
 
-    public Debts(DateTime date) {
+    public StatisticEntry(DateTime date) {
         this();
         this.date = date;
     }
 
-    public Debts(DateTime date, Map<User, Integer> debts) {
+    public StatisticEntry(DateTime date, Map<User, Integer> entryMap) {
         this.date = date;
-        this.debtsMap = new HashMap<>(debts);
+        this.entryMap = new HashMap<>(entryMap);
     }
 
-    public static byte[] debtsMapToBytes(Map<User, Integer> map) {
-        ByteBuffer buffer = ByteBuffer.allocate(getDebtsMapLength(map));
+    public StatisticEntry(Balance balance, List<User> users) {
+        this(balance.getDate());
+        // distribute equally
+        int n = users.size();
+        int distributed = 0;
+        int value = balance.getBalance() / n;
+        for (int i = 0; i < n; i++) {
+            User user = users.get(i);
+            if (i == n - 1) {
+                // last one gets the rest
+                value = balance.getBalance() - distributed;
+            }
+
+            entryMap.put(user, value);
+            distributed += value;
+        }
+    }
+
+    public static byte[] entryMapToBytes(Map<User, Integer> map) {
+        ByteBuffer buffer = ByteBuffer.allocate(getEntryMapLength(map));
         buffer.putShort((short) map.size());
         for (Map.Entry<User, Integer> entry : map.entrySet()) {
             User user = entry.getKey();
@@ -64,7 +84,7 @@ public class Debts extends Byteable {
         return buffer.array();
     }
 
-    public static HashMap<User, Integer> bytesToDebtsMap(ByteBuffer buffer) {
+    public static HashMap<User, Integer> bytesToEntryMap(ByteBuffer buffer) {
         short size = buffer.getShort();
         HashMap<User, Integer> result = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
@@ -76,7 +96,7 @@ public class Debts extends Byteable {
         return result;
     }
 
-    private static short getDebtsMapLength(Map<User, Integer> map) {
+    private static short getEntryMapLength(Map<User, Integer> map) {
         short size = 2;
         for (Map.Entry<User, Integer> entry : map.entrySet()) {
             User user = entry.getKey();
@@ -104,50 +124,52 @@ public class Debts extends Byteable {
     private void addCostDistribution(CostDistribution costDistribution, boolean inverse) {
         Map<User, Costs> distribution = costDistribution.getDistribution();
         for (User user : distribution.keySet()) {
-            Integer integer = debtsMap.get(user);
+            Integer integer = entryMap.get(user);
             int oldDebts = integer == null ? 0 : integer;
             Costs costs = distribution.get(user);
             int newDebts = costs.Theory - costs.Real;
             int debts = inverse ? oldDebts - newDebts : oldDebts + newDebts;
-            debtsMap.put(user, debts);
+            entryMap.put(user, debts);
         }
     }
 
-    public int getDebtsFor(User user) {
-        Integer integer = debtsMap.get(user);
+    public int getEntryFor(User user) {
+        Integer integer = entryMap.get(user);
         return integer == null ? 0 : integer;
     }
 
-    public Map<User, Integer> getDebts() {
-        return debtsMap;
+    public Map<User, Integer> getEntryMap() {
+        return entryMap;
     }
 
     @Override
     public int getByteLength() {
-        return getDateLength() + getDebtsMapLength(debtsMap);
+        return getDateLength() + getEntryMapLength(entryMap);
     }
 
     @Override
     public void writeBytes(ByteBuffer buffer) {
         writeDateTime(date, buffer);
-        buffer.put(debtsMapToBytes(debtsMap));
+        buffer.put(entryMapToBytes(entryMap));
     }
 
-    public void addDebts(Debts debtsDelta) {
-        addDebts(debtsDelta, false);
+    public void addEntry(StatisticEntry statisticEntryDelta) {
+        addEntry(statisticEntryDelta, false);
     }
 
-    private void addDebts(Debts debtsDelta, boolean inverse) {
-        for (User user : debtsDelta.debtsMap.keySet()) {
-            Integer integer = debtsMap.get(user);
+    private void addEntry(StatisticEntry statisticEntryDelta, boolean inverse) {
+        for (User user : statisticEntryDelta.entryMap.keySet()) {
+            Integer integer = entryMap.get(user);
             int oldDebts = integer == null ? 0 : integer;
-            int deltaDebts = debtsDelta.debtsMap.get(user);
+            int deltaDebts = statisticEntryDelta.entryMap.get(user);
             int newDebts = inverse ? oldDebts - deltaDebts : oldDebts + deltaDebts;
-            debtsMap.put(user, newDebts);
+            entryMap.put(user, newDebts);
         }
     }
 
-    public void subtractDebts(Debts debts) {
-        addDebts(debts, true);
+    public void subtractEntry(StatisticEntry statisticEntry) {
+        addEntry(statisticEntry, true);
     }
+
+
 }

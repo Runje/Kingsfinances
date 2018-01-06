@@ -237,4 +237,8 @@ public class FinanceDatabase extends SQLiteOpenHelper
     public ExpensesTable getExpensesTable() {
         return expensesTable;
     }
+
+    public BankAccountTable getBankAccountTable() {
+        return bankAccountTable;
+    }
 }

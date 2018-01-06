@@ -148,7 +148,7 @@ public class BankAccountDialog {
 
 
         editBankName.setText(bankAccount.getBank());
-        editBalance.setText(Float.toString(bankAccount.getBalance()));
+        editBalance.setText(StringFormats.centsToCentString(bankAccount.getBalance()));
         editOwner.setText(StringFormats.usersToAbbreviationString(bankAccount.getOwners()));
         editAccountName.setText(bankAccount.getName());
         editDate.setText(bankAccount.getDateTime().toString("dd.MM.yy"));

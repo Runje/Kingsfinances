@@ -6,13 +6,13 @@ import java.util.List;
  * Created by Thomas on 28.12.2017.
  */
 
-public interface DebtsCalculatorService {
+public interface StatisticsCalculatorService {
     /**
      * Getting the saved debts, sorted in a manner that the first one is the oldest.
      *
      * @return sorted debts
      */
-    List<Debts> getSavedSortedDebts();
+    List<StatisticEntry> getSavedSortedDebts();
 
-    void saveDebts(List<Debts> debtsList);
+    void saveDebts(List<StatisticEntry> statisticEntryList);
 }

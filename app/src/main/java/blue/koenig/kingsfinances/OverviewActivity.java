@@ -25,7 +25,7 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity;
 import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.model.FinanceModel;
-import blue.koenig.kingsfinances.model.calculation.Debts;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import blue.koenig.kingsfinances.view.BankAccountDialog;
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter;
 import blue.koenig.kingsfinances.view.FinanceView;
@@ -60,6 +60,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels)
             {
+                logger.info("Page scrolled, position: " + position);
             }
 
             @Override
@@ -75,7 +76,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             @Override
             public void onPageScrollStateChanged(int state)
             {
-
+                logger.info("PageScrollStateChanged: " + state);
             }
         });
 
@@ -185,7 +186,17 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
     }
 
     @Override
-    public void updateDebts(List<Debts> debts) {
+    public void updateAssets(List<StatisticEntry> assets) {
+        AccountFragment accountFragment = pageAdapter.getAccountFragment();
+        if (accountFragment != null) {
+            runOnUiThread(() -> accountFragment.updateAssets(assets));
+        } else {
+            logger.error("Couldn't update accountFragment!");
+        }
+    }
+
+    @Override
+    public void updateDebts(List<StatisticEntry> debts) {
         ExpensesFragment expensesFragment = pageAdapter.getExpensesFragment();
         if (expensesFragment != null) {
             runOnUiThread(() -> expensesFragment.updateDebts(debts));

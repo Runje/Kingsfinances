@@ -13,24 +13,22 @@ import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Expenses;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
 import blue.koenig.kingsfamilylibrary.view.ViewUtils;
 import blue.koenig.kingsfinances.R;
-import blue.koenig.kingsfinances.model.calculation.Debts;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import blue.koenig.kingsfinances.view.ChartHelper;
 import blue.koenig.kingsfinances.view.FinanceViewUtils;
 import blue.koenig.kingsfinances.view.lists.ExpensesAdapter;
+
+import static blue.koenig.kingsfinances.view.ChartHelper.entrysToMonthXValues;
 
 
 /**
@@ -93,7 +91,7 @@ public class ExpensesFragment extends FinanceFragment
 
         //bar chart
         lineChart = view.findViewById(R.id.linechart);
-        List<Debts> debtsList = model.getDebts();
+        List<StatisticEntry> statisticEntryList = model.getDebts();
         lineChart.getAxisRight().setTextColor(Color.WHITE);
         lineChart.getAxisLeft().setTextColor(Color.WHITE);
         lineChart.getXAxis().setTextColor(Color.WHITE);
@@ -104,63 +102,10 @@ public class ExpensesFragment extends FinanceFragment
         lineChart.setGridBackgroundColor(Color.BLACK);
         lineChart.setVisibleXRangeMaximum(12);
 
-        updateLinechart(debtsList);
+        updateLinechart(statisticEntryList);
 
         initialized = true;
     }
-
-    private List<String> debtsToXValues(List<Debts> debtsList) {
-        ArrayList<String> xEntrys = new ArrayList<>(debtsList.size());
-        for (Debts debt : debtsList) {
-            String dateString = debt.getDate().toString("MM/yy");
-            xEntrys.add(dateString);
-        }
-
-        return xEntrys;
-
-    }
-
-    /**
-     * Return only debts from this user
-     *
-     * @param debts
-     * @return
-     */
-    private LineData debtsToLineData(List<Debts> debts) {
-        // One debts not possible
-        if (debts.size() <= 1) return new LineData();
-        Map<User, Integer> debtsMap = debts.get(1).getDebts();
-        List<Integer> colors = new ArrayList<>(debts.size());
-        ArrayList<ILineDataSet> dataSets = new ArrayList<>();
-        for (User user : debtsMap.keySet()) {
-            if (user.getId().equals(FamilyConfig.getUserId(getContext()))) {
-                ArrayList<Entry> userEntrys = new ArrayList<>(debts.size());
-                int i = 0;
-                for (Debts debt : debts) {
-                    int value = debt.getDebtsFor(user);
-                    userEntrys.add(new Entry(i, value / 100f));
-                    if (value < 0) {
-                        colors.add(Color.RED);
-                    } else colors.add(Color.GREEN);
-
-                    i++;
-                }
-                LineDataSet barDataSet = new LineDataSet(userEntrys, getContext().getString(R.string.debts_of, user.getName()));
-                //barDataSet.setColors(colors);
-                barDataSet.setColor(model.getColorFor(user));
-                //barDataSet.setBarBorderWidth(20);
-
-                barDataSet.setValueTextColor(Color.WHITE);
-                dataSets.add(barDataSet);
-            }
-        }
-
-        LineData lineData = new LineData(dataSets);
-        //lineData.setBarWidth(0.04f);
-
-        return lineData;
-    }
-
 
     public void updateExpenses(List<Expenses> expenses) {
         if (adapter == null) {
@@ -192,7 +137,7 @@ public class ExpensesFragment extends FinanceFragment
     }
 
 
-    public void updateDebts(List<Debts> debts) {
+    public void updateDebts(List<StatisticEntry> debts) {
         if (lineChart == null) {
             logger.error("Adapter is null");
             init(getView());
@@ -203,11 +148,11 @@ public class ExpensesFragment extends FinanceFragment
         }
     }
 
-    private synchronized void updateLinechart(List<Debts> debtsList) {
-        LineData lineData = debtsToLineData(debtsList);
+    private synchronized void updateLinechart(List<StatisticEntry> statisticEntryList) {
+        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, FamilyConfig.getUserId(getContext()), Color.GREEN);
         lineChart.setData(lineData);
 
-        List<String> xValues = debtsToXValues(debtsList);
+        List<String> xValues = entrysToMonthXValues(statisticEntryList);
         //convert x values to date string
         lineChart.getXAxis().setValueFormatter((value, axis) -> {
             int intValue = (int) value;
@@ -221,7 +166,7 @@ public class ExpensesFragment extends FinanceFragment
 
         // show last 12 month
         //lineChart.setVisibleXRangeMaximum(12);
-        lineChart.moveViewToX(Math.max(0, debtsList.size() - 12));
+        //lineChart.moveViewToX(Math.max(0, statisticEntryList.size() - 12));
         lineChart.invalidate();
     }
 }
