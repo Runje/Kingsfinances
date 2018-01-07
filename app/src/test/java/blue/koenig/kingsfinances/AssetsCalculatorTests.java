@@ -15,8 +15,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import blue.koenig.kingsfinances.model.calculation.AssetsCalculator;
-import blue.koenig.kingsfinances.model.calculation.AssetsCalculatorService;
+import blue.koenig.kingsfinances.features.statistics.AssetsCalculator;
+import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 
 import static blue.koenig.kingsfinances.TestHelper.getAssetsCalculatorService;

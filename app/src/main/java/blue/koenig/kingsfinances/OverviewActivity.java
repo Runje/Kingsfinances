@@ -60,7 +60,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels)
             {
-                logger.info("Page scrolled, position: " + position);
+                //logger.info("Page scrolled, position: " + position);
             }
 
             @Override

@@ -1,4 +1,4 @@
-package blue.koenig.kingsfinances.model.calculation;
+package blue.koenig.kingsfinances.features.statistics;
 
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Balance;
@@ -8,11 +8,18 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Months;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+
+import blue.koenig.kingsfinances.model.calculation.ItemSubject;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import io.reactivex.Observable;
+import io.reactivex.subjects.BehaviorSubject;
 
 /**
  * Created by Thomas on 03.01.2018.
@@ -23,15 +30,20 @@ public class AssetsCalculator {
     private static User ALL_USER = new User("ALL", "ALL", "A", new DateTime());
     private final DateTime startDate;
     private final DateTime endDate;
+    protected Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
     protected Period period;
     protected AssetsCalculatorService service;
     protected Map<BankAccount, List<StatisticEntry>> statisticEntryLists;
     protected ReentrantLock lock = new ReentrantLock();
+    private BehaviorSubject<List<StatisticEntry>> allAssets;
 
     public AssetsCalculator(Period period, ItemSubject<BankAccount> bankSubject, AssetsCalculatorService service) {
         this.period = period;
         this.service = service;
-        statisticEntryLists = service.getAllBankAccountStatistics();
+        statisticEntryLists = service.loadAllBankAccountStatistics();
+        List<StatisticEntry> allAssetsStartValue = statisticEntryLists.get(ALL_ASSETS);
+        if (allAssetsStartValue == null) allAssetsStartValue = new ArrayList<>();
+        allAssets = BehaviorSubject.createDefault(allAssetsStartValue);
         startDate = service.getStartDate();
         endDate = service.getEndDate();
         bankSubject.addAddListener(bankAccount -> addBankAccount(bankAccount));
@@ -101,6 +113,10 @@ public class AssetsCalculator {
         return lastBalance.getBalance() + daysUntil * (balance.getBalance() - lastBalance.getBalance()) / days;
     }
 
+    public Observable<List<StatisticEntry>> getAllAssets() {
+        return allAssets;
+    }
+
     private void addBankAccount(BankAccount bankAccount) {
         updateStatisticsFor(bankAccount);
 
@@ -149,6 +165,8 @@ public class AssetsCalculator {
         }
 
         statisticEntryLists.put(ALL_ASSETS, allEntries);
+        logger.info("On Next");
+        allAssets.onNext(allEntries);
     }
 
     private void updateBankAccount(BankAccount oldBankAccount, BankAccount newBankAccount) {

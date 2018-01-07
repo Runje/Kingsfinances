@@ -1,15 +1,15 @@
 package blue.koenig.kingsfinances.dagger;
 
 import javax.inject.Singleton;
-import blue.koenig.kingsfamilylibrary.dagger.FamilyAppComponent;
+
 import blue.koenig.kingsfamilylibrary.dagger.AppModule;
 import blue.koenig.kingsfamilylibrary.dagger.ConnectionModule;
+import blue.koenig.kingsfamilylibrary.dagger.FamilyAppComponent;
 import blue.koenig.kingsfamilylibrary.dagger.InstallationModule;
 import blue.koenig.kingsfinances.OverviewActivity;
 import blue.koenig.kingsfinances.view.BookkeepingItemActivity;
-import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
 import blue.koenig.kingsfinances.view.fragments.FinanceFragment;
-import blue.koenig.kingsfinances.view.fragments.PendingFragment;
+import blue.koenig.kingsfinances.view.fragments.StatisticsFragment;
 import dagger.Component;
 
 /**
@@ -23,4 +23,6 @@ public interface FinanceAppComponent extends FamilyAppComponent{
     void inject(FinanceFragment expensesFragment);
 
     void inject(BookkeepingItemActivity bookkeepingItemActivity);
+
+    void inject(StatisticsFragment statisticsFragment);
 }

@@ -15,6 +15,7 @@ import blue.koenig.kingsfinances.view.fragments.AccountFragment;
 import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
 import blue.koenig.kingsfinances.view.fragments.PendingFragment;
 import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
+import blue.koenig.kingsfinances.view.fragments.StatisticsFragment;
 
 /**
  * Created by Thomas on 20.08.2015.
@@ -53,6 +54,9 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
                 case 3:
                     fragments.put(position, new PendingFragment());
                     break;
+                case 4:
+                    fragments.put(position, new StatisticsFragment());
+                    break;
             }
         }
 
@@ -77,7 +81,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     @Override
     public int getCount()
     {
-        return 4;
+        return 5;
     }
 
     @Override
@@ -92,6 +96,8 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
             case 2:
                 return context.getResources().getString(R.string.bank_account);
             case 3:
+                return context.getResources().getString(R.string.statistics);
+            case 4:
                 return context.getResources().getString(R.string.statistics);
         }
 

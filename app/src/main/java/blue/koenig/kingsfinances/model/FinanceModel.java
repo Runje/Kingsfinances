@@ -28,9 +28,7 @@ import org.joda.time.Period;
 import java.nio.ByteBuffer;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection;
@@ -38,8 +36,7 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 import blue.koenig.kingsfinances.R;
-import blue.koenig.kingsfinances.model.calculation.AssetsCalculator;
-import blue.koenig.kingsfinances.model.calculation.AssetsCalculatorService;
+import blue.koenig.kingsfinances.features.statistics.AssetsCalculator;
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService;
@@ -56,25 +53,26 @@ import blue.koenig.kingsfinances.view.PendingView;
 public class FinanceModel extends FamilyModel implements FinanceCategoryService.CategoryServiceListener {
 
     private static final String DEBTS = "DEBTS";
-    private static final String ASSETS = "ASSETS";
-    private final FinanceUserService userService;
+
+    FinanceUserService userService;
+    FinanceDatabase database;
     private DebtsCalculator debtsCalculator;
-    private FinanceDatabase database;
     private FinanceCategoryService categoryService;
     private PendingView pendingView;
     private int succesMessages;
     private List<Expenses> allExpenses;
     private AssetsCalculator assetsCalculator;
 
-    public FinanceModel(ServerConnection connection, Context context, LoginHandler handler) {
+    public FinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator) {
         super(connection, context, handler);
+        this.database = database;
+        this.userService = service;
         pendingView = new NullPendingView();
+        this.assetsCalculator = assetsCalculator;
         categoryService = new FinanceCategoryService();
         categoryService.setListener(this);
-        userService = new FinanceUserService(loginHandler.getMembers());
 
         try {
-            database = new FinanceDatabase(context, userService);
             categoryService.update(database.getAllCategorys());
             debtsCalculator = new DebtsCalculator(Period.months(1), database.getExpensesTable(), new StatisticsCalculatorService() {
                 @Override
@@ -96,57 +94,6 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
                     ByteBuffer buffer = ByteBuffer.allocate(Byteable.getBigListLength(statisticEntryList));
                     Byteable.writeBigList(statisticEntryList, buffer);
                     FamilyConfig.saveBytes(context, buffer.array(), DEBTS);
-                }
-            });
-            assetsCalculator = new AssetsCalculator(Period.months(1), database.getBankAccountTable(), new AssetsCalculatorService() {
-                @Override
-                public Map<BankAccount, List<StatisticEntry>> getAllBankAccountStatistics() {
-                    ByteBuffer buffer = FamilyConfig.getBytesFromConfig(context, ASSETS);
-                    if (buffer == null) return new HashMap<>();
-
-                    int size = buffer.getInt();
-                    Map<BankAccount, List<StatisticEntry>> listMap = new HashMap<>(size);
-                    for (int i = 0; i < size; i++) {
-                        BankAccount bankAccount = new BankAccount(buffer);
-                        int entries = buffer.getInt();
-                        List<StatisticEntry> statistics = new ArrayList<>(entries);
-                        for (int j = 0; j < entries; j++) {
-                            statistics.add(new StatisticEntry(buffer));
-                        }
-
-                        listMap.put(bankAccount, statistics);
-                    }
-
-                    return listMap;
-                }
-
-                @Override
-                public DateTime getStartDate() {
-                    // TODO: preferences or somewhere
-                    return new DateTime(2015, 1, 1, 0, 0);
-                }
-
-                @Override
-                public DateTime getEndDate() {
-                    return DateTime.now();
-                }
-
-                @Override
-                public void save(Map<BankAccount, List<StatisticEntry>> statisticEntryLists) {
-                    int size = 4;
-                    for (BankAccount bankAccount : statisticEntryLists.keySet()) {
-                        size += bankAccount.getByteLength();
-                        size += Byteable.getBigListLength(statisticEntryLists.get(bankAccount));
-                    }
-
-                    ByteBuffer buffer = ByteBuffer.allocate(size);
-                    buffer.putInt(statisticEntryLists.size());
-                    for (BankAccount bankAccount : statisticEntryLists.keySet()) {
-                        bankAccount.writeBytes(buffer);
-                        Byteable.writeBigList(statisticEntryLists.get(bankAccount), buffer);
-                    }
-
-                    FamilyConfig.saveBytes(context, buffer.array(), ASSETS);
                 }
             });
         } catch (SQLException e) {

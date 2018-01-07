@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import blue.koenig.kingsfinances.model.calculation.AssetsCalculatorService;
+import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService;
 
@@ -53,7 +53,7 @@ public class TestHelper {
     public static AssetsCalculatorService getAssetsCalculatorService(Map<BankAccount, List<StatisticEntry>> map, DateTime start, DateTime end) {
         return new AssetsCalculatorService() {
             @Override
-            public Map<BankAccount, List<StatisticEntry>> getAllBankAccountStatistics() {
+            public Map<BankAccount, List<StatisticEntry>> loadAllBankAccountStatistics() {
                 return map;
             }
 

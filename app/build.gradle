@@ -44,6 +44,12 @@ dependencies {
     implementation group: 'net.iharder', name: 'base64', version: '2.3.9'
     implementation 'com.android.support:multidex:1.0.2'
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
+
+    // https://mvnrepository.com/artifact/io.reactivex/rxandroid
+    implementation group: 'io.reactivex.rxjava2', name: 'rxandroid', version: '2.0.1'
+// https://mvnrepository.com/artifact/io.reactivex.rxjava2/rxjava
+    implementation group: 'io.reactivex.rxjava2', name: 'rxjava', version: '2.1.8'
+
 }
 
 repositories {
