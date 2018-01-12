@@ -20,5 +20,7 @@ public interface AssetsCalculatorService {
 
     DateTime getEndDate();
 
+    String getOverallString();
+
     void save(Map<BankAccount, List<StatisticEntry>> statisticEntryLists);
 }

@@ -3,7 +3,6 @@ package blue.koenig.kingsfinances.model;
 import android.content.Context;
 import android.graphics.Color;
 
-import com.koenig.commonModel.Byteable;
 import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Component;
 import com.koenig.commonModel.Item;
@@ -25,7 +24,6 @@ import com.koenig.communication.messages.finance.FinanceTextMessages;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
-import java.nio.ByteBuffer;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +36,9 @@ import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator;
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator;
+import blue.koenig.kingsfinances.model.calculation.FinanceStatisticsCalculatorService;
+import blue.koenig.kingsfinances.model.calculation.IncomeCalculator;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
-import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService;
 import blue.koenig.kingsfinances.model.database.FinanceDatabase;
 import blue.koenig.kingsfinances.view.FinanceNullView;
 import blue.koenig.kingsfinances.view.FinanceView;
@@ -63,7 +62,7 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
     private List<Expenses> allExpenses;
     private AssetsCalculator assetsCalculator;
 
-    public FinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator) {
+    public FinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
         super(connection, context, handler);
         this.database = database;
         this.userService = service;
@@ -74,28 +73,7 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
 
         try {
             categoryService.update(database.getAllCategorys());
-            debtsCalculator = new DebtsCalculator(Period.months(1), database.getExpensesTable(), new StatisticsCalculatorService() {
-                @Override
-                public List<StatisticEntry> getSavedSortedDebts() {
-                    ByteBuffer buffer = FamilyConfig.getBytesFromConfig(context, DEBTS);
-                    if (buffer == null) return new ArrayList<>();
-
-                    int size = buffer.getInt();
-                    List<StatisticEntry> debts = new ArrayList<>(size);
-                    for (int i = 0; i < size; i++) {
-                        debts.add(new StatisticEntry(buffer));
-                    }
-
-                    return debts;
-                }
-
-                @Override
-                public void saveDebts(List<StatisticEntry> statisticEntryList) {
-                    ByteBuffer buffer = ByteBuffer.allocate(Byteable.getBigListLength(statisticEntryList));
-                    Byteable.writeBigList(statisticEntryList, buffer);
-                    FamilyConfig.saveBytes(context, buffer.array(), DEBTS);
-                }
-            });
+            debtsCalculator = new DebtsCalculator(Period.months(1), database.getExpensesTable(), new FinanceStatisticsCalculatorService(context, DEBTS));
         } catch (SQLException e) {
             logger.error("Couldn't create database: " + e.getMessage());
         }

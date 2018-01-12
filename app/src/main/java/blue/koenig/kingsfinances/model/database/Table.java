@@ -112,7 +112,10 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> implements 
     public void add(DatabaseItem<T> databaseItem) throws SQLException {
         runInLock(() -> {
             for (OnAddListener onAddListener : onAddListeners) {
-                onAddListener.onAdd(databaseItem.getItem());
+                // only add non deleted items to statistics
+                if (!databaseItem.isDeleted()) {
+                    onAddListener.onAdd(databaseItem.getItem());
+                }
             }
 
             db.insert(getTableName(), null, itemToValues(databaseItem));
@@ -154,6 +157,7 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> implements 
     @Override
     public void deleteFrom(String itemId, String userId) throws SQLException {
         for (OnDeleteListener onDeleteListener : onDeleteListeners) {
+            // ASSUMPTION: item was before in database else the statistics are corrupted!
             onDeleteListener.onDelete(getFromId(itemId));
         }
         List<String> columns = new ArrayList<>();
@@ -200,14 +204,22 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> implements 
     public void updateFromServer(List<DatabaseItem> items) throws SQLException {
         runTransaction(() -> {
             for (DatabaseItem<T> item : items) {
-                DatabaseItem<T> databaseItem = getDatabaseItemFromId(item.getId());
-                if (databaseItem == null) {
+                DatabaseItem<T> oldDatabaseItem = getDatabaseItemFromId(item.getId());
+                if (oldDatabaseItem == null) {
                     // new
                     add(item);
                     logger.info("Added new item: " + item.getName());
                 } else {
-                    for (OnUpdateListener onUpdateListener : onUpdateListeners) {
-                        onUpdateListener.onUpdate(databaseItem.getItem(), item.getItem());
+                    if (!oldDatabaseItem.isDeleted() && item.isDeleted()) {
+                        // delete
+                        for (OnDeleteListener onDeleteListener : onDeleteListeners) {
+                            onDeleteListener.onDelete(oldDatabaseItem.getItem());
+                        }
+                    } else if (!oldDatabaseItem.isDeleted() && !item.isDeleted()) {
+                        // regular update
+                        for (OnUpdateListener onUpdateListener : onUpdateListeners) {
+                            onUpdateListener.onUpdate(oldDatabaseItem.getItem(), item.getItem());
+                        }
                     }
                     // overwrite
                     overwrite(item);
@@ -283,6 +295,7 @@ public abstract class Table<T extends Item> extends DatabaseTable<T> implements 
 
     @Override
     public void updateFrom(T item, String userId) throws SQLException {
+        // ASSUMPTION: Updated item is not deleted!
         for (OnUpdateListener onUpdateListener : onUpdateListeners) {
             onUpdateListener.onUpdate(getFromId(item.getId()), item);
         }

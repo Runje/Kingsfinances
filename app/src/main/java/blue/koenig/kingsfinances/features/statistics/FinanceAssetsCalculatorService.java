@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
+import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 
 /**
@@ -59,6 +60,11 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
     @Override
     public DateTime getEndDate() {
         return DateTime.now();
+    }
+
+    @Override
+    public String getOverallString() {
+        return context.getResources().getString(R.string.overall);
     }
 
     @Override

@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.koenig.commonModel.User;
 
-import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import java.sql.SQLException;
@@ -21,6 +20,9 @@ import blue.koenig.kingsfinances.features.statistics.FinanceAssetsCalculatorServ
 import blue.koenig.kingsfinances.features.statistics.StatisticsPresenter;
 import blue.koenig.kingsfinances.model.FinanceModel;
 import blue.koenig.kingsfinances.model.FinanceUserService;
+import blue.koenig.kingsfinances.model.calculation.FinanceStatisticsCalculatorService;
+import blue.koenig.kingsfinances.model.calculation.IncomeCalculator;
+import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService;
 import blue.koenig.kingsfinances.model.database.FinanceDatabase;
 import dagger.Module;
 import dagger.Provides;
@@ -32,8 +34,8 @@ import dagger.Provides;
 public class ModelModule {
     @Provides
     @Singleton
-    FinanceModel provideFinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator) {
-        return new FinanceModel(connection, context, handler, database, service, assetsCalculator);
+    FinanceModel provideFinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
+        return new FinanceModel(connection, context, handler, database, service, assetsCalculator, incomeCalculator);
     }
 
     @Provides
@@ -57,15 +59,10 @@ public class ModelModule {
         return FamilyConfig.getFamilyMembers(context);
     }
 
-    @Provides
-    DateTime provideStartDate() {
-        // TODO:
-        return new DateTime(2015, 1, 1, 0, 0);
-    }
 
     @Provides
-    StatisticsPresenter provideStatisticsPresenter(AssetsCalculator assetsCalculator, DateTime startDate, Context context) {
-        return new StatisticsPresenter(assetsCalculator, startDate, context);
+    StatisticsPresenter provideStatisticsPresenter(AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
+        return new StatisticsPresenter(assetsCalculator, incomeCalculator);
     }
 
     @Provides
@@ -78,5 +75,17 @@ public class ModelModule {
     @Singleton
     AssetsCalculatorService provideAssetsCalculatorService(Context context) {
         return new FinanceAssetsCalculatorService(context);
+    }
+
+    @Provides
+    @Singleton
+    StatisticsCalculatorService provideIncomeFinanceStatisticsCalculatorService(Context context) {
+        return new FinanceStatisticsCalculatorService(context, "INCOME");
+    }
+
+    @Provides
+    @Singleton
+    IncomeCalculator provideIncomeCalculator(FinanceDatabase database, StatisticsCalculatorService service) {
+        return new IncomeCalculator(Period.months(1), database.getExpensesTable(), service);
     }
 }

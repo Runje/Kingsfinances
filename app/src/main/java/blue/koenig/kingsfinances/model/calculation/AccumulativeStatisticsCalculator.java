@@ -19,7 +19,7 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
         super(period, service);
         this.period = period;
         this.service = service;
-        statisticEntryList = service.getSavedSortedDebts();
+        statisticEntryList = service.getSavedSortedStatistics();
     }
 
     public static List<StatisticEntry> updateStatistics(StatisticEntry statisticEntryDelta, Period period, List<StatisticEntry> statisticEntryList) {

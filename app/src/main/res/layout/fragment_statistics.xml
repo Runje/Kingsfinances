@@ -4,17 +4,92 @@
     android:layout_height="match_parent"
     android:orientation="horizontal">
 
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/linechart"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/linechart"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/NormalText"
+                android:layout_width="@dimen/statistics_width"
+                android:layout_height="wrap_content"
+                android:text="@string/overall" />
+
+            <TextView
+                android:id="@+id/text_overall"
+                style="@style/NormalText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0"
+                android:textAlignment="viewEnd" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/NormalText"
+                android:layout_width="@dimen/statistics_width"
+                android:layout_height="wrap_content"
+                android:text="@string/monthly_win" />
+
+            <TextView
+                android:id="@+id/text_monthly"
+                style="@style/NormalText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0"
+                android:textAlignment="viewEnd" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/NormalText"
+                android:layout_width="@dimen/statistics_width"
+                android:layout_height="wrap_content"
+                android:text="@string/saving_rate" />
+
+            <TextView
+                android:id="@+id/text_saving_rate"
+                style="@style/NormalText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0"
+                android:textAlignment="viewEnd" />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
 
     <ListView
         android:id="@+id/yearList"
         android:layout_width="120dp"
         android:layout_height="match_parent"
         android:listSelector="@color/selected">
-
     </ListView>
 </LinearLayout>

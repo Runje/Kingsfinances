@@ -39,12 +39,12 @@ public class TestHelper {
     public static StatisticsCalculatorService getCalculatorService(List<StatisticEntry> statisticEntryList) {
         return new StatisticsCalculatorService() {
             @Override
-            public List<StatisticEntry> getSavedSortedDebts() {
+            public List<StatisticEntry> getSavedSortedStatistics() {
                 return statisticEntryList;
             }
 
             @Override
-            public void saveDebts(List<StatisticEntry> statisticEntryList) {
+            public void saveStatistics(List<StatisticEntry> statisticEntryList) {
 
             }
         };
@@ -65,6 +65,11 @@ public class TestHelper {
             @Override
             public DateTime getEndDate() {
                 return end;
+            }
+
+            @Override
+            public String getOverallString() {
+                return null;
             }
 
             @Override
@@ -97,5 +102,19 @@ public class TestHelper {
 
     public static StatisticEntry makeDebts(int debts, int year, int month, int day) {
         return makeDebts(getDay(year, month, day), debts);
+    }
+
+    public static StatisticsCalculatorService getStatisticsCalculatorService(List<StatisticEntry> list) {
+        return new StatisticsCalculatorService() {
+            @Override
+            public List<StatisticEntry> getSavedSortedStatistics() {
+                return list;
+            }
+
+            @Override
+            public void saveStatistics(List<StatisticEntry> statisticEntryList) {
+
+            }
+        };
     }
 }

@@ -133,6 +133,18 @@ public class StatisticEntry extends Byteable {
         }
     }
 
+    private void addTheoryCosts(CostDistribution costDistribution, boolean inverse) {
+        Map<User, Costs> distribution = costDistribution.getDistribution();
+        for (User user : distribution.keySet()) {
+            Integer integer = entryMap.get(user);
+            int oldDebts = integer == null ? 0 : integer;
+            Costs costs = distribution.get(user);
+            int newDebts = costs.Theory;
+            int debts = inverse ? oldDebts - newDebts : oldDebts + newDebts;
+            entryMap.put(user, debts);
+        }
+    }
+
     public int getEntryFor(User user) {
         Integer integer = entryMap.get(user);
         return integer == null ? 0 : integer;
@@ -172,4 +184,20 @@ public class StatisticEntry extends Byteable {
     }
 
 
+    public int getSum() {
+        int sum = 0;
+        for (User user : entryMap.keySet()) {
+            sum += entryMap.get(user);
+        }
+
+        return sum;
+    }
+
+    public void subtractTheoryCosts(CostDistribution costDistribution) {
+        addTheoryCosts(costDistribution, true);
+    }
+
+    public void addTheoryCosts(CostDistribution costDistribution) {
+        addTheoryCosts(costDistribution, false);
+    }
 }

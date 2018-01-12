@@ -21,7 +21,7 @@ public abstract class StatisticsCalculator {
     public StatisticsCalculator(Period period, StatisticsCalculatorService service) {
         this.period = period;
         this.service = service;
-        statisticEntryList = service.getSavedSortedDebts();
+        statisticEntryList = service.getSavedSortedStatistics();
     }
 
     @NonNull
@@ -32,7 +32,7 @@ public abstract class StatisticsCalculator {
     protected void updateStatistics(StatisticEntry statisticEntry) {
         lock.lock();
         statisticEntryList = calculateNewStatistics(statisticEntry, period, statisticEntryList);
-        service.saveDebts(statisticEntryList);
+        service.saveStatistics(statisticEntryList);
         lock.unlock();
     }
 

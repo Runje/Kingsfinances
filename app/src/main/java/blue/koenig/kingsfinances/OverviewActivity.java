@@ -232,6 +232,10 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             logger.info("Click on pending");
             pager.setCurrentItem(1);
             //fragment = new PendingFragment();
+        } else if (id == R.id.nav_statistics) {
+            logger.info("Click on statistics");
+            pager.setCurrentItem(4);
+            //fragment = new PendingFragment();
         } else {
             logger.error("Unknown navigation item");
         }

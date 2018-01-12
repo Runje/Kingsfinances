@@ -149,6 +149,7 @@ public class ExpensesFragment extends FinanceFragment
     }
 
     private synchronized void updateLinechart(List<StatisticEntry> statisticEntryList) {
+        // TODO: after long abstinence(probably destroy was called) and then resume it fails with a NPE on lineChart
         LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, FamilyConfig.getUserId(getContext()), Color.GREEN);
         lineChart.setData(lineData);
 

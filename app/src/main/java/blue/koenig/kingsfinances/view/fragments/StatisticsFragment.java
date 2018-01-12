@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.LineData;
+import com.koenig.StringFormats;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,9 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
     private LineChart lineChart;
     private ListView list;
     private ListAdapter<String> adapter;
+    private TextView savingRate;
+    private TextView monthly;
+    private TextView overall;
 
     @Override
     public void onAttach(Context context) {
@@ -72,6 +76,9 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
     }
 
     protected void init(View view) {
+        savingRate = view.findViewById(R.id.text_saving_rate);
+        overall = view.findViewById(R.id.text_overall);
+        monthly = view.findViewById(R.id.text_monthly);
         lineChart = view.findViewById(R.id.linechart);
         lineChart.getAxisRight().setTextColor(Color.WHITE);
         lineChart.getAxisLeft().setTextColor(Color.WHITE);
@@ -131,7 +138,11 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
 
     @Override
     public void render(StatisticsState state) {
-        updateLinechart(state.getAssets());
+        updateLinechart(state.getStatistics().getAssets());
         adapter.update(state.getYearsList());
+
+        monthly.setText(StringFormats.centsToEuroString(state.getStatistics().getMonthlyWin()) + " €");
+        overall.setText(StringFormats.centsToEuroString(state.getStatistics().getOverallWin()) + " €");
+        savingRate.setText(StringFormats.floatToPercentString(state.getSavingRate()) + " %");
     }
 }

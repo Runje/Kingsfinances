@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Months;
 import org.joda.time.Period;
+import org.joda.time.Years;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,15 +22,19 @@ import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 
+import static com.koenig.FamilyConstants.ALL_USER;
+
 /**
  * Created by Thomas on 03.01.2018.
  */
 
 public class AssetsCalculator {
-    private static BankAccount ALL_ASSETS = new BankAccount("ALL_ASSETS", "ALL_ASSETS", "ALL", new ArrayList<>(), new ArrayList<>());
-    private static User ALL_USER = new User("ALL", "ALL", "A", new DateTime());
+
+    private static BankAccount ALL_ASSETS = new BankAccount("ALL_ASSETS", "ALL_ASSETS", "ALL", ALL_USER, new ArrayList<>());
+
     private final DateTime startDate;
     private final DateTime endDate;
+    private final List<String> yearsList;
     protected Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
     protected Period period;
     protected AssetsCalculatorService service;
@@ -49,6 +54,7 @@ public class AssetsCalculator {
         bankSubject.addAddListener(bankAccount -> addBankAccount(bankAccount));
         bankSubject.addDeleteListener(bankAccount -> deleteBankAccount(bankAccount));
         bankSubject.addUpdateListener((oldBankAccount, newBankAccount) -> updateBankAccount(oldBankAccount, newBankAccount));
+        yearsList = generateYearsList();
     }
 
     public static List<StatisticEntry> calculateStatisticsOfBankAccount(BankAccount bankAccount, DateTime start, DateTime end, Period period) {
@@ -111,6 +117,46 @@ public class AssetsCalculator {
         int daysUntil = Days.daysBetween(lastBalance.getDate(), nextDate).getDays();
 
         return lastBalance.getBalance() + daysUntil * (balance.getBalance() - lastBalance.getBalance()) / days;
+    }
+
+    public List<String> getYearsList() {
+        return yearsList;
+    }
+
+    public AssetsStatistics calcStatisticsFor(DateTime startDate, DateTime endDate) {
+        List<StatisticEntry> allAssets = getEntrysForAll();
+        List<StatisticEntry> filtered = new ArrayList<>();
+
+        for (StatisticEntry statisticEntry : allAssets) {
+            DateTime statisticEntryDate = statisticEntry.getDate();
+            if (!statisticEntryDate.isBefore(startDate) && !statisticEntryDate.isAfter(endDate)) {
+                filtered.add(statisticEntry);
+            }
+        }
+        int overallWin = 0;
+        int monthlyWin = 0;
+        if (filtered.size() > 0) {
+            StatisticEntry last = filtered.get(filtered.size() - 1);
+            StatisticEntry first = filtered.get(0);
+            overallWin = last.getEntryFor(ALL_USER) - first.getEntryFor(ALL_USER);
+            monthlyWin = overallWin / Months.monthsBetween(first.getDate(), last.getDate()).getMonths();
+        }
+
+
+        return new AssetsStatistics(startDate, endDate, filtered, monthlyWin, overallWin);
+    }
+
+    private List<String> generateYearsList() {
+        int size = Years.yearsBetween(startDate, endDate).getYears() + 2;
+        ArrayList<String> list = new ArrayList<>(size);
+        list.add(service.getOverallString());
+        DateTime nextDate = startDate;
+        while (nextDate.isBefore(DateTime.now())) {
+            list.add(Integer.toString(nextDate.getYear()));
+            nextDate = nextDate.plus(Years.ONE);
+        }
+
+        return list;
     }
 
     public Observable<List<StatisticEntry>> getAllAssets() {

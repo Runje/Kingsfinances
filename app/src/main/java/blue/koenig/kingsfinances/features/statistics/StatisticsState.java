@@ -2,69 +2,57 @@ package blue.koenig.kingsfinances.features.statistics;
 
 import java.util.List;
 
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
-
 /**
  * Created by Thomas on 07.01.2018.
  */
 
 public class StatisticsState {
-    private final List<StatisticEntry> assets;
+    private final AssetsStatistics statistics;
     // between 0 and 1
     private final float savingRate;
 
-    private final float monthlyWin;
-
-    private final float allWin;
+    private final int position;
     private final List<String> yearsList;
 
-    public StatisticsState(List<StatisticEntry> assets, float savingRate, float monthlyWin, float allWin, List<String> yearsList) {
-        this.assets = assets;
+    public StatisticsState(AssetsStatistics statistics, float savingRate, List<String> yearsList, int position) {
+        this.statistics = statistics;
         this.savingRate = savingRate;
-        this.monthlyWin = monthlyWin;
-        this.allWin = allWin;
         this.yearsList = yearsList;
-    }
-
-    public List<StatisticEntry> getAssets() {
-        return assets;
+        this.position = position;
     }
 
     public float getSavingRate() {
         return savingRate;
     }
 
-    public float getMonthlyWin() {
-        return monthlyWin;
-    }
-
-    public float getAllWin() {
-        return allWin;
+    public int getPosition() {
+        return position;
     }
 
     public Builder toBuilder() {
-        return new Builder(assets, savingRate, monthlyWin, allWin, yearsList);
+        return new Builder(statistics, savingRate, yearsList, position);
     }
 
     public List<String> getYearsList() {
         return yearsList;
     }
 
+    public AssetsStatistics getStatistics() {
+        return statistics;
+    }
+
     public class Builder {
-        private List<StatisticEntry> assets;
+        private int position;
+        private AssetsStatistics statistics;
         // between 0 and 1
         private float savingRate;
-        private float monthlyWin;
-
-        private float allWin;
         private List<String> yearsList;
 
-        public Builder(List<StatisticEntry> assets, float savingRate, float monthlyWin, float allWin, List<String> yearsList) {
-            this.assets = assets;
+        public Builder(AssetsStatistics statistics, float savingRate, List<String> yearsList, int position) {
+            this.statistics = statistics;
             this.savingRate = savingRate;
-            this.monthlyWin = monthlyWin;
-            this.allWin = allWin;
             this.yearsList = yearsList;
+            this.position = position;
         }
 
         public Builder yearsList(List<String> yearsList) {
@@ -73,28 +61,24 @@ public class StatisticsState {
         }
 
         public StatisticsState build() {
-            return new StatisticsState(assets, savingRate, monthlyWin, allWin, yearsList);
+            return new StatisticsState(statistics, savingRate, yearsList, position);
         }
 
-        public Builder assets(List<StatisticEntry> assets) {
-            this.assets = assets;
-            return this;
-        }
-
-        public Builder savingRate(int savingRate) {
+        public Builder savingRate(float savingRate) {
             this.savingRate = savingRate;
             return this;
         }
 
-        public Builder allWin(int allWin) {
-            this.allWin = allWin;
+        public Builder position(int position) {
+            this.position = position;
             return this;
         }
 
-        public Builder monthlyWin(int monthlyWin) {
-            this.monthlyWin = monthlyWin;
+        public Builder statistics(AssetsStatistics statistics) {
+            this.statistics = statistics;
             return this;
         }
+
 
     }
 }

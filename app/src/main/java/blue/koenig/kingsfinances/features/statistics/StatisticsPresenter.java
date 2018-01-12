@@ -1,17 +1,16 @@
 package blue.koenig.kingsfinances.features.statistics;
 
 
-import android.content.Context;
+import com.koenig.FamilyConstants;
 
 import org.joda.time.DateTime;
 import org.joda.time.Years;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import blue.koenig.kingsfinances.R;
+import blue.koenig.kingsfinances.model.calculation.IncomeCalculator;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -21,40 +20,53 @@ import io.reactivex.disposables.Disposable;
  */
 
 public class StatisticsPresenter {
-    protected Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
+    protected static Logger logger = LoggerFactory.getLogger("StatisticsPresenter");
     StatisticsView view;
+
     AssetsCalculator assetsCalculator;
+    IncomeCalculator incomeCalculator;
     private StatisticsState state;
     private Disposable disposable;
 
-    public StatisticsPresenter(AssetsCalculator assetsCalculator, DateTime startDate, Context context) {
+    public StatisticsPresenter(AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
         this.assetsCalculator = assetsCalculator;
-
-        state = new StatisticsState(new ArrayList<>(), 0, 0, 0, generateYearsList(startDate, context));
+        this.incomeCalculator = incomeCalculator;
+        state = new StatisticsState(new AssetsStatistics(), 0, assetsCalculator.getYearsList(), 0);
     }
 
-    private List<String> generateYearsList(DateTime startDate, Context context) {
-        int size = Years.yearsBetween(startDate, DateTime.now()).getYears() + 2;
-        ArrayList<String> list = new ArrayList<>(size);
-        list.add(context.getResources().getString(R.string.overall));
-        while (startDate.isBefore(DateTime.now())) {
-            list.add(Integer.toString(startDate.getYear()));
-            startDate = startDate.plus(Years.ONE);
+    public static float calcSavingRate(DateTime startDate, DateTime endDate, int overallWin, List<StatisticEntry> incomes) {
+        StatisticEntry allSavings = new StatisticEntry(endDate);
+
+        StatisticEntry first = incomes.size() > 0 ? incomes.get(0) : null;
+        StatisticEntry last = null;
+        for (StatisticEntry income : incomes) {
+            if (!income.getDate().isAfter(startDate)) {
+                first = income;
+            } else if (!income.getDate().isAfter(endDate)) {
+                last = income;
+            }
         }
 
-        return list;
+        if (first != null && last != null) {
+            allSavings.addEntry(last);
+            allSavings.subtractEntry(first);
+        } else {
+            logger.error("first or last is null: " + first + ", last: " + last);
+        }
+
+        if (allSavings.getSum() == 0) {
+            return 0;
+        }
+
+
+        return overallWin / (float) allSavings.getSum();
     }
 
     public void attachView(StatisticsView view) {
         this.view = view;
         disposable = assetsCalculator.getAllAssets().observeOn(AndroidSchedulers.mainThread()).subscribe(
-                assets -> showAssets(assets), throwable -> logger.error("OnError: " + throwable.toString())
+                assets -> clickYear(state.getPosition()), throwable -> logger.error("OnError: " + throwable.toString())
         );
-    }
-
-    private void showAssets(List<StatisticEntry> assets) {
-        logger.info("Show assets");
-        changeStateTo(state.toBuilder().assets(assets).build());
     }
 
     private void changeStateTo(StatisticsState newState) {
@@ -68,23 +80,17 @@ public class StatisticsPresenter {
     }
 
     public void clickYear(int position) {
-        List<StatisticEntry> statisticEntries = assetsCalculator.getEntrysForAll();
+        DateTime beforeDate = new DateTime(0);
+        DateTime afterDate = FamilyConstants.UNLIMITED;
         if (position != 0) {
             // not overall
             int year = Integer.parseInt(state.getYearsList().get(position));
-            DateTime beforeDate = new DateTime(year, 1, 1, 0, 0);
-            DateTime afterDate = beforeDate.plus(Years.ONE);
-            List<StatisticEntry> filtered = new ArrayList<>();
-            for (StatisticEntry statisticEntry : statisticEntries) {
-                DateTime statisticEntryDate = statisticEntry.getDate();
-                if (!statisticEntryDate.isBefore(beforeDate) && !statisticEntryDate.isAfter(afterDate)) {
-                    filtered.add(statisticEntry);
-                }
-            }
-
-            statisticEntries = filtered;
+            beforeDate = new DateTime(year, 1, 1, 0, 0);
+            afterDate = beforeDate.plus(Years.ONE);
         }
 
-        changeStateTo(state.toBuilder().assets(statisticEntries).build());
+        AssetsStatistics statistics = assetsCalculator.calcStatisticsFor(beforeDate, afterDate);
+        float savingRate = calcSavingRate(statistics.getStartDate(), statistics.getEndDate(), statistics.getOverallWin(), incomeCalculator.getEntrys());
+        changeStateTo(state.toBuilder().statistics(statistics).savingRate(savingRate).build());
     }
 }
