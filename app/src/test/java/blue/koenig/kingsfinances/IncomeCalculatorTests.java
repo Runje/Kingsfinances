@@ -51,6 +51,8 @@ public class IncomeCalculatorTests {
         Assert.assertEquals(0.5f, savingRate);
     }
 
+    // TODO: make tests for update deleted items through server update
+
     @Test
     public void addOneYear() {
         TestSubject<Expenses> itemSubject = new TestSubject();

@@ -42,11 +42,14 @@ public class ChartHelper {
                 ArrayList<Entry> userEntrys = new ArrayList<>(debts.size());
                 int i = 0;
                 for (StatisticEntry debt : debts) {
-                    int value = debt.getEntryFor(user);
-                    userEntrys.add(new Entry(i, value / 100f));
-                    if (value < 0) {
-                        colors.add(Color.RED);
-                    } else colors.add(Color.GREEN);
+                    Integer entryForNullabe = debt.getEntryForNullabe(user);
+                    if (entryForNullabe != null) {
+                        int value = entryForNullabe;
+                        userEntrys.add(new Entry(i, value / 100f));
+                        if (value < 0) {
+                            colors.add(Color.RED);
+                        } else colors.add(Color.GREEN);
+                    }
 
                     i++;
                 }
@@ -77,8 +80,11 @@ public class ChartHelper {
             int i = 0;
             ArrayList<Entry> userEntrys = new ArrayList<>(entries.size());
             for (StatisticEntry debt : entries) {
-                int value = debt.getEntryFor(user);
-                userEntrys.add(new Entry(i, value / 100f));
+                Integer entryForNullabe = debt.getEntryForNullabe(user);
+                if (entryForNullabe != null) {
+                    int value = entryForNullabe;
+                    userEntrys.add(new Entry(i, value / 100f));
+                }
                 i++;
             }
             LineDataSet barDataSet = new LineDataSet(userEntrys, user.getName());

@@ -107,7 +107,7 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
     }
 
     private void updateLinechart(List<StatisticEntry> statisticEntryList) {
-        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN});
+        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN, Color.GRAY});
         lineChart.setData(lineData);
 
         List<String> xValues = entrysToMonthXValues(statisticEntryList);

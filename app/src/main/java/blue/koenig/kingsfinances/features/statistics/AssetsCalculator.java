@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,7 +32,8 @@ import static com.koenig.FamilyConstants.ALL_USER;
 public class AssetsCalculator {
 
     private static BankAccount ALL_ASSETS = new BankAccount("ALL_ASSETS", "ALL_ASSETS", "ALL", ALL_USER, new ArrayList<>());
-
+    private static User FORECAST_USER = new User("FORECAST", "FORECAST", "F", new DateTime());
+    private static BankAccount FORECAST = new BankAccount("FORECAST", "FORECAST", "FORECAST", FORECAST_USER, new ArrayList<>());
     private final DateTime startDate;
     private final DateTime endDate;
     private final List<String> yearsList;
@@ -142,6 +144,25 @@ public class AssetsCalculator {
             monthlyWin = overallWin / Months.monthsBetween(first.getDate(), last.getDate()).getMonths();
         }
 
+        // add forecast to filtered if it is the actual year
+        if (DateTime.now().getYear() == startDate.getYear()) {
+            List<StatisticEntry> forecast = getEntrysForForecast();
+            if (forecast != null) {
+                for (int i = 0; i < forecast.size(); i++) {
+                    StatisticEntry entry = forecast.get(i);
+                    if (i == 0 && filtered.size() > 0) {
+                        StatisticEntry lastFiltered = filtered.get(filtered.size() - 1);
+                        assert entry.getDate().equals(lastFiltered);
+                        // first entry is overlapping, add to entry
+                        lastFiltered.putEntry(FORECAST_USER, entry.getEntryFor(FORECAST_USER));
+                    } else {
+                        // new entry
+                        filtered.add(entry);
+                    }
+                }
+            }
+        }
+
 
         return new AssetsStatistics(startDate, endDate, filtered, monthlyWin, overallWin);
     }
@@ -172,14 +193,45 @@ public class AssetsCalculator {
         lock.lock();
         statisticEntryLists.put(bankAccount, calculateStatisticsOfBankAccount(bankAccount, startDate, endDate, period));
         updateAllAssets();
+        updateForecast();
         service.save(statisticEntryLists);
         lock.unlock();
     }
+
+    private void updateForecast() {
+        List<StatisticEntry> all = getEntrysForAll();
+        StatisticEntry lastEntry = all.get(all.size() - 1);
+        DateTime lastDate = lastEntry.getDate().plusYears(1).withMonthOfYear(1);
+        int numberEntrys = Months.monthsBetween(lastEntry.getDate(), lastDate).getMonths() + 1;
+        List<StatisticEntry> forecast = new ArrayList<>(numberEntrys);
+        int sum = lastEntry.getEntryFor(ALL_USER);
+        Map<User, Integer> entryMap = new HashMap<>(1);
+        entryMap.put(FORECAST_USER, sum);
+        forecast.add(new StatisticEntry(lastEntry.getDate(), entryMap));
+
+        // get average win of last 12 month
+        StatisticEntry overallWin = new StatisticEntry(lastEntry);
+        overallWin.subtractEntry(all.get(Math.max(0, all.size() - 12)));
+        int averageWin = overallWin.getSum() / 12;
+
+        for (int i = 1; i < numberEntrys; i++) {
+            int prognose = sum + averageWin * i;
+            Map<User, Integer> map = new HashMap<>(1);
+            map.put(FORECAST_USER, prognose);
+            forecast.add(new StatisticEntry(lastEntry.getDate().plus(Months.months(i)), map));
+        }
+
+        statisticEntryLists.put(FORECAST, forecast);
+
+    }
+
+
 
     private void deleteBankAccount(BankAccount bankAccount) {
         lock.lock();
         statisticEntryLists.remove(bankAccount);
         updateAllAssets();
+        updateForecast();
         service.save(statisticEntryLists);
         lock.unlock();
     }
@@ -187,7 +239,7 @@ public class AssetsCalculator {
     private void updateAllAssets() {
         List<StatisticEntry> allEntries = new ArrayList<>();
         for (BankAccount bankAccount : statisticEntryLists.keySet()) {
-            if (bankAccount.equals(ALL_ASSETS)) continue;
+            if (bankAccount.equals(ALL_ASSETS) || bankAccount.equals(FORECAST)) continue;
             List<StatisticEntry> entries = statisticEntryLists.get(bankAccount);
             for (int i = 0; i < entries.size(); i++) {
                 StatisticEntry entry = entries.get(i);
@@ -225,6 +277,12 @@ public class AssetsCalculator {
 
     public List<StatisticEntry> getEntrysForAll() {
         List<StatisticEntry> entries = statisticEntryLists.get(ALL_ASSETS);
+        if (entries == null) return new ArrayList<>();
+        return entries;
+    }
+
+    public List<StatisticEntry> getEntrysForForecast() {
+        List<StatisticEntry> entries = statisticEntryLists.get(FORECAST);
         if (entries == null) return new ArrayList<>();
         return entries;
     }

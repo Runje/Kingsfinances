@@ -150,6 +150,10 @@ public class StatisticEntry extends Byteable {
         return integer == null ? 0 : integer;
     }
 
+    public Integer getEntryForNullabe(User user) {
+        return entryMap.get(user);
+    }
+
     public Map<User, Integer> getEntryMap() {
         return entryMap;
     }
@@ -199,5 +203,9 @@ public class StatisticEntry extends Byteable {
 
     public void addTheoryCosts(CostDistribution costDistribution) {
         addTheoryCosts(costDistribution, false);
+    }
+
+    public void putEntry(User user, int value) {
+        entryMap.put(user, value);
     }
 }
