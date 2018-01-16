@@ -82,7 +82,10 @@ public class StatisticsPresenter {
     public void clickYear(int position) {
         DateTime beforeDate = new DateTime(0);
         DateTime afterDate = FamilyConstants.UNLIMITED;
-        if (position != 0) {
+        List<StatisticEntry> entrysForFutureForecast = null;
+        if (position == 1) {
+            entrysForFutureForecast = assetsCalculator.getEntrysForFutureForecast();
+        } else if (position != 0) {
             // not overall
             int year = Integer.parseInt(state.getYearsList().get(position));
             beforeDate = new DateTime(year, 1, 1, 0, 0);
@@ -91,6 +94,7 @@ public class StatisticsPresenter {
 
         AssetsStatistics statistics = assetsCalculator.calcStatisticsFor(beforeDate, afterDate);
         float savingRate = calcSavingRate(statistics.getStartDate(), statistics.getEndDate(), statistics.getOverallWin(), incomeCalculator.getEntrys());
-        changeStateTo(state.toBuilder().statistics(statistics).savingRate(savingRate).build());
+        AssetsStatistics statisticsToShow = entrysForFutureForecast != null ? new AssetsStatistics(statistics.getStartDate(), statistics.getEndDate(), entrysForFutureForecast, statistics.getMonthlyWin(), statistics.getOverallWin()) : statistics;
+        changeStateTo(state.toBuilder().statistics(statisticsToShow).savingRate(savingRate).build());
     }
 }

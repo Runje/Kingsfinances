@@ -76,6 +76,11 @@ public class TestHelper {
             public void save(Map<BankAccount, List<StatisticEntry>> statisticEntryLists) {
 
             }
+
+            @Override
+            public String getFutureString() {
+                return null;
+            }
         };
     }
 

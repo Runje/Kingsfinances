@@ -84,4 +84,9 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
 
         FamilyConfig.saveBytes(context, buffer.array(), ASSETS);
     }
+
+    @Override
+    public String getFutureString() {
+        return context.getString(R.string.future);
+    }
 }

@@ -23,4 +23,6 @@ public interface AssetsCalculatorService {
     String getOverallString();
 
     void save(Map<BankAccount, List<StatisticEntry>> statisticEntryLists);
+
+    String getFutureString();
 }

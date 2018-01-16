@@ -134,4 +134,5 @@
     <string name="debts_of">Schulden von %s</string>
     <string name="monthly_win">Monatl. Gewinn</string>
     <string name="saving_rate">Sparrate</string>
+    <string name="future">Zukunft</string>
 </resources>

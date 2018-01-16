@@ -1,5 +1,6 @@
 package blue.koenig.kingsfinances.features.statistics;
 
+import com.google.common.collect.Lists;
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Balance;
 import com.koenig.commonModel.finance.BankAccount;
@@ -32,8 +33,9 @@ import static com.koenig.FamilyConstants.ALL_USER;
 public class AssetsCalculator {
 
     private static BankAccount ALL_ASSETS = new BankAccount("ALL_ASSETS", "ALL_ASSETS", "ALL", ALL_USER, new ArrayList<>());
-    private static User FORECAST_USER = new User("FORECAST", "FORECAST", "F", new DateTime());
-    private static BankAccount FORECAST = new BankAccount("FORECAST", "FORECAST", "FORECAST", FORECAST_USER, new ArrayList<>());
+    private static User FORECAST_USER = new User("YEAR_FORECAST", "YEAR_FORECAST", "F", new DateTime());
+    private static BankAccount YEAR_FORECAST = new BankAccount("YEAR_FORECAST", "YEAR_FORECAST", "YEAR_FORECAST", FORECAST_USER, new ArrayList<>());
+    private static BankAccount FUTURE_FORECAST = new BankAccount("FUTURE_FORECAST", "FUTURE_FORECAST", "FUTURE_FORECAST", FORECAST_USER, new ArrayList<>());
     private final DateTime startDate;
     private final DateTime endDate;
     private final List<String> yearsList;
@@ -168,12 +170,10 @@ public class AssetsCalculator {
     }
 
     private List<String> generateYearsList() {
-        int size = Years.yearsBetween(startDate, endDate).getYears() + 2;
-        ArrayList<String> list = new ArrayList<>(size);
-        list.add(service.getOverallString());
+        ArrayList<String> list = Lists.newArrayList(service.getOverallString(), service.getFutureString());
         DateTime nextDate = startDate;
         while (nextDate.isBefore(DateTime.now())) {
-            list.add(Integer.toString(nextDate.getYear()));
+            list.add(2, Integer.toString(nextDate.getYear()));
             nextDate = nextDate.plus(Years.ONE);
         }
 
@@ -221,7 +221,18 @@ public class AssetsCalculator {
             forecast.add(new StatisticEntry(lastEntry.getDate().plus(Months.months(i)), map));
         }
 
-        statisticEntryLists.put(FORECAST, forecast);
+        statisticEntryLists.put(YEAR_FORECAST, forecast);
+
+        int years = 20;
+        List<StatisticEntry> futureForecast = new ArrayList<>(years);
+        for (int i = 0; i < years; i++) {
+            int prognose = sum + overallWin.getSum() * i;
+            Map<User, Integer> map = new HashMap<>(1);
+            map.put(FORECAST_USER, prognose);
+            futureForecast.add(new StatisticEntry(lastEntry.getDate().plus(Years.years(i)), map));
+        }
+
+        statisticEntryLists.put(FUTURE_FORECAST, futureForecast);
 
     }
 
@@ -239,7 +250,8 @@ public class AssetsCalculator {
     private void updateAllAssets() {
         List<StatisticEntry> allEntries = new ArrayList<>();
         for (BankAccount bankAccount : statisticEntryLists.keySet()) {
-            if (bankAccount.equals(ALL_ASSETS) || bankAccount.equals(FORECAST)) continue;
+            if (bankAccount.equals(ALL_ASSETS) || bankAccount.equals(YEAR_FORECAST) || bankAccount.equals(FUTURE_FORECAST))
+                continue;
             List<StatisticEntry> entries = statisticEntryLists.get(bankAccount);
             for (int i = 0; i < entries.size(); i++) {
                 StatisticEntry entry = entries.get(i);
@@ -282,7 +294,13 @@ public class AssetsCalculator {
     }
 
     public List<StatisticEntry> getEntrysForForecast() {
-        List<StatisticEntry> entries = statisticEntryLists.get(FORECAST);
+        List<StatisticEntry> entries = statisticEntryLists.get(YEAR_FORECAST);
+        if (entries == null) return new ArrayList<>();
+        return entries;
+    }
+
+    public List<StatisticEntry> getEntrysForFutureForecast() {
+        List<StatisticEntry> entries = statisticEntryLists.get(FUTURE_FORECAST);
         if (entries == null) return new ArrayList<>();
         return entries;
     }
