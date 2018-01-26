@@ -40,6 +40,7 @@ public class FinanceDatabase extends SQLiteOpenHelper
     private final StandingOrderTable standingOrderTable;
     private final CategoryTable categoryTable;
     private final BankAccountTable bankAccountTable;
+    private final GoalTable goalTable;
     protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     protected ReentrantLock lock = new ReentrantLock();
     List<Table> tables = new ArrayList<>();
@@ -61,12 +62,14 @@ public class FinanceDatabase extends SQLiteOpenHelper
         expensesTable = new ExpensesTable(getWritableDatabase(), lock);
         standingOrderTable = new StandingOrderTable(getWritableDatabase(), lock);
         categoryTable = new CategoryTable(getWritableDatabase(), lock);
+        goalTable = new GoalTable(getWritableDatabase(), lock);
         bankAccountTable = new BankAccountTable(getWritableDatabase(), userService, lock);
         tables.add(pendingTable);
         tables.add(expensesTable);
         tables.add(standingOrderTable);
         tables.add(categoryTable);
         tables.add(bankAccountTable);
+        tables.add(goalTable);
         createAllTables();
         //pendingTable.drop();
         //pendingTable.create();
@@ -240,5 +243,9 @@ public class FinanceDatabase extends SQLiteOpenHelper
 
     public BankAccountTable getBankAccountTable() {
         return bankAccountTable;
+    }
+
+    public GoalTable getGoalTable() {
+        return goalTable;
     }
 }

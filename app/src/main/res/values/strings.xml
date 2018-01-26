@@ -40,7 +40,7 @@
     <string name="debts">Schulden</string>
     <string name="this_month">Diesen Monat</string>
     <string name="this_year">Dieses Jahr</string>
-    <string name="winning">Gewinn</string>
+    <string name="winnings">Gewinn</string>
     <string name="error_db_import">Fehler beim Importieren der Datenbank</string>
     <string name="success_db_import">Datenbank wurde erfolgreich importiert</string>
     <string name="success_db_export">Datenbank wurde erfolgreich exportiert</string>
@@ -135,4 +135,7 @@
     <string name="monthly_win">Monatl. Gewinn</string>
     <string name="saving_rate">Sparrate</string>
     <string name="future">Zukunft</string>
+    <string name="year">Jahr</string>
+    <string name="month">Monat</string>
+    <string name="goal">Ziel</string>
 </resources>

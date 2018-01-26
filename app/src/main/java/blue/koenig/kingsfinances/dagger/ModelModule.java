@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.koenig.commonModel.User;
 
+import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import java.sql.SQLException;
@@ -14,6 +15,10 @@ import javax.inject.Singleton;
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
+import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator;
+import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculatorService;
+import blue.koenig.kingsfinances.features.category_statistics.CategoryStatisticsPresenter;
+import blue.koenig.kingsfinances.features.category_statistics.FinanceCategoryCalculatorService;
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator;
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService;
 import blue.koenig.kingsfinances.features.statistics.FinanceAssetsCalculatorService;
@@ -34,8 +39,8 @@ import dagger.Provides;
 public class ModelModule {
     @Provides
     @Singleton
-    FinanceModel provideFinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
-        return new FinanceModel(connection, context, handler, database, service, assetsCalculator, incomeCalculator);
+    FinanceModel provideFinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator, CategoryCalculator categoryCalculator) {
+        return new FinanceModel(connection, context, handler, database, service, assetsCalculator, incomeCalculator, categoryCalculator);
     }
 
     @Provides
@@ -74,7 +79,7 @@ public class ModelModule {
     @Provides
     @Singleton
     AssetsCalculatorService provideAssetsCalculatorService(Context context) {
-        return new FinanceAssetsCalculatorService(context);
+        return new FinanceAssetsCalculatorService(context, FamilyConfig.getStartDate(context));
     }
 
     @Provides
@@ -87,5 +92,22 @@ public class ModelModule {
     @Singleton
     IncomeCalculator provideIncomeCalculator(FinanceDatabase database, StatisticsCalculatorService service) {
         return new IncomeCalculator(Period.months(1), database.getExpensesTable(), service);
+    }
+
+    @Provides
+    @Singleton
+    CategoryCalculator provideCategoryCalculator(FinanceDatabase database, CategoryCalculatorService service) {
+        return new CategoryCalculator(Period.months(1), database.getExpensesTable(), service);
+    }
+
+    @Provides
+    CategoryCalculatorService provideCategoryCalculatorService(Context context, FinanceDatabase database) {
+        DateTime startDate = FamilyConfig.getStartDate(context);
+        return new FinanceCategoryCalculatorService(context, startDate, database.getGoalTable());
+    }
+
+    @Provides
+    CategoryStatisticsPresenter provideCategoryStatisticsPresenter(CategoryCalculator calculator, FinanceDatabase database, Context context) {
+        return new CategoryStatisticsPresenter(calculator, database.getGoalTable(), context);
     }
 }

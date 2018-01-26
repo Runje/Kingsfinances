@@ -36,6 +36,7 @@ public abstract class StatisticsCalculator {
         lock.unlock();
     }
 
+
     protected abstract List<StatisticEntry> calculateNewStatistics(StatisticEntry statisticEntry, Period period, List<StatisticEntry> statisticEntryList);
 
     public List<StatisticEntry> getEntrys() {

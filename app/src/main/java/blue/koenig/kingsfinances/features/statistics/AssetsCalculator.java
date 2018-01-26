@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import blue.koenig.kingsfinances.model.StatisticsUtils;
 import blue.koenig.kingsfinances.model.calculation.ItemSubject;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import io.reactivex.Observable;
@@ -171,12 +172,7 @@ public class AssetsCalculator {
 
     private List<String> generateYearsList() {
         ArrayList<String> list = Lists.newArrayList(service.getOverallString(), service.getFutureString());
-        DateTime nextDate = startDate;
-        while (nextDate.isBefore(DateTime.now())) {
-            list.add(2, Integer.toString(nextDate.getYear()));
-            nextDate = nextDate.plus(Years.ONE);
-        }
-
+        list.addAll(StatisticsUtils.yearsList(startDate, DateTime.now()));
         return list;
     }
 

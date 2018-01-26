@@ -105,6 +105,12 @@ public class StatisticEntry extends Byteable {
         return size;
     }
 
+    public static StatisticEntry fromTheoryCosts(DateTime dateTime, CostDistribution costDistribution) {
+        StatisticEntry entry = new StatisticEntry(dateTime);
+        entry.addTheoryCosts(costDistribution);
+        return entry;
+    }
+
     public DateTime getDate() {
         return date;
     }
@@ -186,7 +192,6 @@ public class StatisticEntry extends Byteable {
     public void subtractEntry(StatisticEntry statisticEntry) {
         addEntry(statisticEntry, true);
     }
-
 
     public int getSum() {
         int sum = 0;

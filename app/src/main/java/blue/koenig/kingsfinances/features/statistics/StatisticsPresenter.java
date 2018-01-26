@@ -15,6 +15,8 @@ import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 
+import static blue.koenig.kingsfinances.model.StatisticsUtils.calcDifferenceInPeriod;
+
 /**
  * Created by Thomas on 07.01.2018.
  */
@@ -34,26 +36,10 @@ public class StatisticsPresenter {
         state = new StatisticsState(new AssetsStatistics(), 0, assetsCalculator.getYearsList(), 0);
     }
 
+
     public static float calcSavingRate(DateTime startDate, DateTime endDate, int overallWin, List<StatisticEntry> incomes) {
-        StatisticEntry allSavings = new StatisticEntry(endDate);
 
-        StatisticEntry first = incomes.size() > 0 ? incomes.get(0) : null;
-        StatisticEntry last = null;
-        for (StatisticEntry income : incomes) {
-            if (!income.getDate().isAfter(startDate)) {
-                first = income;
-            } else if (!income.getDate().isAfter(endDate)) {
-                last = income;
-            }
-        }
-
-        if (first != null && last != null) {
-            allSavings.addEntry(last);
-            allSavings.subtractEntry(first);
-        } else {
-            logger.error("first or last is null: " + first + ", last: " + last);
-        }
-
+        StatisticEntry allSavings = calcDifferenceInPeriod(startDate, endDate, incomes);
         if (allSavings.getSum() == 0) {
             return 0;
         }

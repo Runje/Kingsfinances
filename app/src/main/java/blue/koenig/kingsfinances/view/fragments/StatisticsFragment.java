@@ -91,7 +91,7 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
         list = view.findViewById(R.id.yearList);
         adapter = new ListAdapter<String>() {
             @Override
-            protected void initView(View convertView, String item) {
+            protected void updateView(View convertView, String item, int pos) {
                 ((TextView) (convertView.findViewById(android.R.id.text1))).setText(item);
             }
 

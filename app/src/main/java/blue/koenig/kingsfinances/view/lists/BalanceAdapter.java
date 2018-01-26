@@ -25,7 +25,7 @@ public class BalanceAdapter extends ListAdapter<Balance> {
     }
 
     @Override
-    protected void initView(View convertView, Balance balance) {
+    protected void updateView(View convertView, Balance balance, int pos) {
         final ImageButton delete = convertView.findViewById(R.id.button_delete);
         delete.setOnClickListener(view -> {
             if (listener != null) listener.onDelete(balance);

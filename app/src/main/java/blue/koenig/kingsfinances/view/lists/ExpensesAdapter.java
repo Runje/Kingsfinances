@@ -5,8 +5,6 @@ import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -16,8 +14,6 @@ import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Costs;
 import com.koenig.commonModel.finance.Expenses;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -30,8 +26,8 @@ import blue.koenig.kingsfinances.R;
 public class ExpensesAdapter extends ListAdapter<Expenses>
 {
     private final boolean bigWidth;
-    private HashMap<User, Integer> usersId;
     protected ExpensesInteractListener listener;
+    private HashMap<User, Integer> usersId;
     private List<User> users;
 
     public ExpensesAdapter(List<Expenses> expenses, boolean bigWidth, ExpensesInteractListener listener, List<User> users)
@@ -52,7 +48,7 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
     }
 
     @Override
-    protected void initView(View convertView, Expenses ex) {
+    protected void updateView(View convertView, Expenses ex, int pos) {
         Context context = convertView.getContext();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         convertView.setLongClickable(true);

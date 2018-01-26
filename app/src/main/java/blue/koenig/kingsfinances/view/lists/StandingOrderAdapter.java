@@ -1,18 +1,13 @@
 package blue.koenig.kingsfinances.view.lists;
 
-import android.app.Activity;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.koenig.StringFormats;
 import com.koenig.commonModel.User;
-import com.koenig.commonModel.finance.Costs;
-import com.koenig.commonModel.finance.Expenses;
 import com.koenig.commonModel.finance.StandingOrder;
 
 import java.util.Comparator;
@@ -26,8 +21,8 @@ import blue.koenig.kingsfinances.R;
  */
 public class StandingOrderAdapter extends ListAdapter<StandingOrder>
 {
-    private HashMap<User, Integer> usersId;
     protected StandingOrderInteractListener listener;
+    private HashMap<User, Integer> usersId;
     private List<User> users;
 
     public StandingOrderAdapter(List<StandingOrder> standingOrders, StandingOrderInteractListener listener, List<User> users)
@@ -47,7 +42,7 @@ public class StandingOrderAdapter extends ListAdapter<StandingOrder>
     }
 
     @Override
-    protected void initView(View convertView, StandingOrder ex) {
+    protected void updateView(View convertView, StandingOrder ex, int pos) {
         Context context = convertView.getContext();
         convertView.setLongClickable(true);
 

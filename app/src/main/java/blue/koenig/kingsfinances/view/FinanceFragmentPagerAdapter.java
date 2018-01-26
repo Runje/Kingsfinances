@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.view.fragments.AccountFragment;
+import blue.koenig.kingsfinances.view.fragments.CategoryStatisticsFragment;
 import blue.koenig.kingsfinances.view.fragments.ExpensesFragment;
 import blue.koenig.kingsfinances.view.fragments.PendingFragment;
 import blue.koenig.kingsfinances.view.fragments.StandingOrderFragment;
@@ -57,6 +58,9 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
                 case 4:
                     fragments.put(position, new StatisticsFragment());
                     break;
+                case 5:
+                    fragments.put(position, new CategoryStatisticsFragment());
+                    break;
             }
         }
 
@@ -81,7 +85,7 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
     @Override
     public int getCount()
     {
-        return 5;
+        return 6;
     }
 
     @Override
@@ -98,6 +102,8 @@ public class FinanceFragmentPagerAdapter extends FragmentPagerAdapter
             case 3:
                 return context.getResources().getString(R.string.statistics);
             case 4:
+                return context.getResources().getString(R.string.statistics);
+            case 5:
                 return context.getResources().getString(R.string.statistics);
         }
 

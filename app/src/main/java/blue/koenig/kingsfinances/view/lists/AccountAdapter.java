@@ -24,7 +24,7 @@ public class AccountAdapter extends ListAdapter<BankAccount> {
     }
 
     @Override
-    protected void initView(View convertView, BankAccount account) {
+    protected void updateView(View convertView, BankAccount account, int pos) {
         final ImageButton delete = convertView.findViewById(R.id.button_delete);
         delete.setOnClickListener(view -> {
             if (listener != null) listener.onDelete(account);

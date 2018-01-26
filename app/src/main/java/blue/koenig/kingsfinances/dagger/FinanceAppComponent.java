@@ -8,6 +8,7 @@ import blue.koenig.kingsfamilylibrary.dagger.FamilyAppComponent;
 import blue.koenig.kingsfamilylibrary.dagger.InstallationModule;
 import blue.koenig.kingsfinances.OverviewActivity;
 import blue.koenig.kingsfinances.view.BookkeepingItemActivity;
+import blue.koenig.kingsfinances.view.fragments.CategoryStatisticsFragment;
 import blue.koenig.kingsfinances.view.fragments.FinanceFragment;
 import blue.koenig.kingsfinances.view.fragments.StatisticsFragment;
 import dagger.Component;
@@ -25,4 +26,7 @@ public interface FinanceAppComponent extends FamilyAppComponent{
     void inject(BookkeepingItemActivity bookkeepingItemActivity);
 
     void inject(StatisticsFragment statisticsFragment);
+
+    void inject(CategoryStatisticsFragment categoryStatisticsFragment);
+
 }

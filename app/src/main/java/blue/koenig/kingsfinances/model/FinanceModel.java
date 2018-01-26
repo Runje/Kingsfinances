@@ -34,6 +34,7 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel;
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView;
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler;
 import blue.koenig.kingsfinances.R;
+import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator;
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator;
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator;
 import blue.koenig.kingsfinances.model.calculation.FinanceStatisticsCalculatorService;
@@ -62,7 +63,8 @@ public class FinanceModel extends FamilyModel implements FinanceCategoryService.
     private List<Expenses> allExpenses;
     private AssetsCalculator assetsCalculator;
 
-    public FinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
+    // TODO: Income Calculator as input that its tracking all changes from beginning. Put somewhere else but make sure it is tracking from start!
+    public FinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator, CategoryCalculator categoryCalculator) {
         super(connection, context, handler);
         this.database = database;
         this.userService = service;

@@ -25,9 +25,11 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
     private static final String ASSETS = "ASSETS";
 
     Context context;
+    private DateTime startDate;
 
-    public FinanceAssetsCalculatorService(Context context) {
+    public FinanceAssetsCalculatorService(Context context, DateTime startDate) {
         this.context = context;
+        this.startDate = startDate;
     }
 
     @Override
@@ -54,7 +56,7 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
     @Override
     public DateTime getStartDate() {
         // TODO: preferences or somewhere
-        return new DateTime(2015, 1, 1, 0, 0);
+        return startDate;
     }
 
     @Override
