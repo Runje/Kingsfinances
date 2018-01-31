@@ -15,6 +15,7 @@ import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.LineData;
 import com.koenig.StringFormats;
+import com.koenig.commonModel.User;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,8 +107,8 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
         });
     }
 
-    private void updateLinechart(List<StatisticEntry> statisticEntryList) {
-        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN, Color.GRAY});
+    private void updateLinechart(List<StatisticEntry> statisticEntryList, List<User> users) {
+        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN, Color.GRAY, Color.WHITE}, users);
         lineChart.setData(lineData);
 
         List<String> xValues = entrysToMonthXValues(statisticEntryList);
@@ -138,7 +139,7 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
 
     @Override
     public void render(StatisticsState state) {
-        updateLinechart(state.getStatistics().getAssets());
+        updateLinechart(state.getStatistics().getAssets(), state.getUsers());
         adapter.update(state.getYearsList());
 
         monthly.setText(StringFormats.centsToEuroString(state.getStatistics().getMonthlyWin()) + " €");

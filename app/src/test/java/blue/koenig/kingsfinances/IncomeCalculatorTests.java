@@ -47,7 +47,7 @@ public class IncomeCalculatorTests {
 
         assertIncomeList(0, getDay(2017, 1, 1), 0, 0, entrys);
         assertIncomeList(1, getDay(2017, 2, 1), 900, 0, entrys);
-        float savingRate = StatisticsPresenter.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 450, entrys);
+        float savingRate = StatisticsPresenter.Companion.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 450, entrys);
         Assert.assertEquals(0.5f, savingRate);
     }
 
@@ -87,7 +87,7 @@ public class IncomeCalculatorTests {
         assertIncomeList(10, getDay(2017, 11, 1), 3700, 0, entrys);
         assertIncomeList(11, getDay(2017, 12, 1), 4100, 0, entrys);
         assertIncomeList(12, getDay(2018, 1, 1), 4500, 0, entrys);
-        float savingRate = StatisticsPresenter.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 450, entrys);
+        float savingRate = StatisticsPresenter.Companion.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 450, entrys);
         Assert.assertEquals(0.1f, savingRate);
     }
 
@@ -130,9 +130,9 @@ public class IncomeCalculatorTests {
          assertIncomeList(10, getDay(2017, 11, 1), 3700, 0,entrys);
          assertIncomeList(11, getDay(2017, 12, 1), 4100, 0,entrys);
          assertIncomeList(12, getDay(2018, 1, 1), 4500, 0,entrys);**/
-        float savingRate = StatisticsPresenter.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 330, entrys);
-        float savingRate2 = StatisticsPresenter.calcSavingRate(getDay(2016, 1, 1), getDay(2017, 1, 1), 200, entrys);
-        float savingRate3 = StatisticsPresenter.calcSavingRate(getDay(2018, 1, 1), getDay(2019, 1, 1), 200, entrys);
+        float savingRate = StatisticsPresenter.Companion.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 330, entrys);
+        float savingRate2 = StatisticsPresenter.Companion.calcSavingRate(getDay(2016, 1, 1), getDay(2017, 1, 1), 200, entrys);
+        float savingRate3 = StatisticsPresenter.Companion.calcSavingRate(getDay(2018, 1, 1), getDay(2019, 1, 1), 200, entrys);
         Assert.assertEquals(0.1f, savingRate);
         Assert.assertEquals(1f, savingRate2);
         Assert.assertEquals(0.5f, savingRate3);
@@ -145,7 +145,7 @@ public class IncomeCalculatorTests {
         entries.add(createStatisticsEntry(getDay(2017, 6, 1), 100, 100));
         entries.add(createStatisticsEntry(getDay(2017, 7, 1), 200, 200));
 
-        float savingRate = StatisticsPresenter.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 100, entries);
+        float savingRate = StatisticsPresenter.Companion.calcSavingRate(getDay(2017, 1, 1), getDay(2018, 1, 1), 100, entries);
         Assert.assertEquals(0.5f, savingRate);
     }
 

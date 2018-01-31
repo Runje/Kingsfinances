@@ -9,25 +9,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
-import com.koenig.commonModel.User;
-import com.koenig.commonModel.finance.Expenses;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.koenig.commonModel.Item;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
-import blue.koenig.kingsfamilylibrary.view.EditDialog;
 import blue.koenig.kingsfinances.R;
-import blue.koenig.kingsfinances.dagger.FinanceApplication;
-import blue.koenig.kingsfinances.model.FinanceModel;
 import blue.koenig.kingsfinances.model.PendingOperation;
-import blue.koenig.kingsfinances.view.EditExpensesDialog;
 import blue.koenig.kingsfinances.view.PendingView;
-import blue.koenig.kingsfinances.view.lists.ExpensesAdapter;
 import blue.koenig.kingsfinances.view.lists.PendingAdapter;
 
 
@@ -97,7 +86,7 @@ public class PendingFragment extends FinanceFragment implements PendingView
     }
 
     @Override
-    public void update(List<PendingOperation> pendingOperations) {
+    public void update(List<PendingOperation<? extends Item>> pendingOperations) {
         getActivity().runOnUiThread(() -> adapter.update(pendingOperations));
     }
 }

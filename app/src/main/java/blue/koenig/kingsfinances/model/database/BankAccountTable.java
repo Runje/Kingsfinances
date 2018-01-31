@@ -50,7 +50,7 @@ public class BankAccountTable extends Table<BankAccount> {
 
     @Override
     protected BankAccount getItem(Cursor cursor) {
-        String name = getString(cursor, COLUMN_NAME);
+        String name = getString(cursor, Companion.getCOLUMN_NAME());
         String bank = getString(cursor, BANK);
         List<Balance> balances = getBalances(cursor, BALANCES);
         List<User> users = getUsers(userService, getString(cursor, OWNERS));

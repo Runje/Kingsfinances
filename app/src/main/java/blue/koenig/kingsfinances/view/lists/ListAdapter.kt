@@ -47,16 +47,16 @@ abstract class ListAdapter<T> @JvmOverloads constructor(var items: List<T> = Arr
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        var convertView = convertView
+        var resultView = convertView
         val item = items[position]
-        if (convertView == null) {
+        if (resultView == null) {
             val inflater = parent.context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            convertView = inflater.inflate(itemLayout, null)
-            initView(convertView, item, position)
+            resultView = inflater.inflate(itemLayout, null)
+            initView(resultView, item, position)
         }
 
-        updateView(convertView!!, item, position)
-        return convertView
+        updateView(resultView!!, item, position)
+        return resultView
     }
 
     protected open fun initView(convertView: View, item: T, position: Int) {}

@@ -69,14 +69,13 @@ public class ChartHelper {
         return lineData;
     }
 
-    public static LineData entrysToLineData(List<StatisticEntry> entries, int[] colors) {
+    public static LineData entrysToLineData(List<StatisticEntry> entries, int[] colors, List<User> users) {
         // One entries not possible
         if (entries.size() <= 1) return new LineData();
-        Map<User, Integer> debtsMap = entries.get(1).getEntryMap();
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
 
         int userCount = 0;
-        for (User user : debtsMap.keySet()) {
+        for (User user : users) {
             int i = 0;
             ArrayList<Entry> userEntrys = new ArrayList<>(entries.size());
             for (StatisticEntry debt : entries) {
@@ -90,7 +89,7 @@ public class ChartHelper {
             LineDataSet barDataSet = new LineDataSet(userEntrys, user.getName());
             barDataSet.setColor(colors[userCount % colors.length]);
             barDataSet.setValueTextColor(Color.WHITE);
-            dataSets.add(barDataSet);
+            if (barDataSet.getEntryCount() > 0) dataSets.add(barDataSet);
             userCount++;
         }
 

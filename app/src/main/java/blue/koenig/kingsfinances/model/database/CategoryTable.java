@@ -8,17 +8,11 @@ import android.database.sqlite.SQLiteStatement;
 import com.koenig.commonModel.Category;
 import com.koenig.commonModel.Operation;
 
-import org.joda.time.DateTime;
-
 import java.nio.ByteBuffer;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-
-import blue.koenig.kingsfinances.model.PendingOperation;
-import blue.koenig.kingsfinances.model.PendingStatus;
 
 /**
  * Created by Thomas on 25.11.2017.
@@ -34,7 +28,7 @@ public class CategoryTable extends Table<Category> {
 
     @Override
     protected void setItem(ContentValues values, Category item) {
-        values.put(SUBS, buildStringList(item.getSubs()));
+        values.put(SUBS, Companion.buildStringList(item.getSubs()));
     }
 
     @Override
@@ -45,7 +39,7 @@ public class CategoryTable extends Table<Category> {
     @Override
     protected Category getItem(Cursor cursor) {
         List<String> subs = getStringList(cursor, SUBS);
-        String name = getString(cursor, COLUMN_NAME);
+        String name = getString(cursor, Companion.getCOLUMN_NAME());
         return new Category(name, subs);
     }
 
@@ -68,7 +62,7 @@ public class CategoryTable extends Table<Category> {
 
     @Override
     protected void bindItem(SQLiteStatement statement, Map<String, Integer> map, Category item) {
-        statement.bindString(map.get(SUBS), buildStringList(item.getSubs()));
+        statement.bindString(map.get(SUBS), Companion.buildStringList(item.getSubs()));
     }
 
 }

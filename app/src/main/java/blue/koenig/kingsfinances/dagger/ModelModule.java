@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.koenig.commonModel.User;
 
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -60,14 +61,15 @@ public class ModelModule {
     }
 
     @Provides
+    @NotNull
     List<User> provideFamilyMembers(Context context) {
         return FamilyConfig.getFamilyMembers(context);
     }
 
 
     @Provides
-    StatisticsPresenter provideStatisticsPresenter(AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator) {
-        return new StatisticsPresenter(assetsCalculator, incomeCalculator);
+    StatisticsPresenter provideStatisticsPresenter(AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator, FinanceDatabase database, List<User> members) {
+        return new StatisticsPresenter(assetsCalculator, incomeCalculator, database.getGoalTable(), members);
     }
 
     @Provides
@@ -107,7 +109,7 @@ public class ModelModule {
     }
 
     @Provides
-    CategoryStatisticsPresenter provideCategoryStatisticsPresenter(CategoryCalculator calculator, FinanceDatabase database, Context context) {
-        return new CategoryStatisticsPresenter(calculator, database.getGoalTable(), context);
+    CategoryStatisticsPresenter provideCategoryStatisticsPresenter(CategoryCalculator calculator, FinanceDatabase database, Context context, ServerConnection connection) {
+        return new CategoryStatisticsPresenter(calculator, database.getGoalTable(), context, database.getPendingTable(), connection);
     }
 }

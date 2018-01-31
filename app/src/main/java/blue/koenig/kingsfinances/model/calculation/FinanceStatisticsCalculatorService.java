@@ -40,8 +40,8 @@ public class FinanceStatisticsCalculatorService implements StatisticsCalculatorS
 
     @Override
     public void saveStatistics(List<StatisticEntry> statisticEntryList) {
-        ByteBuffer buffer = ByteBuffer.allocate(Byteable.getBigListLength(statisticEntryList));
-        Byteable.writeBigList(statisticEntryList, buffer);
+        ByteBuffer buffer = ByteBuffer.allocate(Byteable.Companion.getBigListLength(statisticEntryList));
+        Byteable.Companion.writeBigList(statisticEntryList, buffer);
         FamilyConfig.saveBytes(context, buffer.array(), key);
     }
 }

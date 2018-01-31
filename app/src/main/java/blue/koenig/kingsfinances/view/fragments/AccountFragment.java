@@ -13,11 +13,14 @@ import android.widget.ListView;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.LineData;
+import com.koenig.FamilyConstants;
+import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Balance;
 import com.koenig.commonModel.finance.BankAccount;
 
 import java.util.List;
 
+import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog;
 import blue.koenig.kingsfinances.R;
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
@@ -35,11 +38,14 @@ import static blue.koenig.kingsfinances.view.ChartHelper.entrysToMonthXValues;
 public class AccountFragment extends FinanceFragment {
     private AccountAdapter adapter;
     private LineChart lineChart;
+    private List<User> statUsers;
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         logger.info("Attaching account fragment");
+        statUsers = FamilyConfig.getFamilyMembers(getContext());
+        statUsers.add(FamilyConstants.ALL_USER);
         //model.attachPendingView(this);
     }
 
@@ -67,6 +73,7 @@ public class AccountFragment extends FinanceFragment {
 
     @Override
     protected void init(View view) {
+
         ListView listView = view.findViewById(R.id.list_accounts);
         adapter = new AccountAdapter(model.getBankAccounts(), new AccountAdapter.AccountInteractListener() {
             @Override
@@ -109,7 +116,7 @@ public class AccountFragment extends FinanceFragment {
     }
 
     private void updateLinechart(List<StatisticEntry> statisticEntryList) {
-        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN});
+        LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN, Color.GRAY, Color.WHITE}, statUsers);
         lineChart.setData(lineData);
 
         List<String> xValues = entrysToMonthXValues(statisticEntryList);

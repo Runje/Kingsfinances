@@ -1,5 +1,8 @@
 package blue.koenig.kingsfinances.model.calculation;
 
+import android.util.Log;
+
+import com.koenig.FamilyConstants;
 import com.koenig.commonModel.Byteable;
 import com.koenig.commonModel.User;
 import com.koenig.commonModel.finance.Balance;
@@ -25,7 +28,7 @@ public class StatisticEntry extends Byteable {
     private Map<User, Integer> entryMap;
 
     public StatisticEntry(ByteBuffer buffer) {
-        this.date = byteToDateTime(buffer);
+        this.date = Companion.byteToDateTime(buffer);
         this.entryMap = bytesToEntryMap(buffer);
     }
 
@@ -166,12 +169,12 @@ public class StatisticEntry extends Byteable {
 
     @Override
     public int getByteLength() {
-        return getDateLength() + getEntryMapLength(entryMap);
+        return Companion.getDateLength() + getEntryMapLength(entryMap);
     }
 
     @Override
     public void writeBytes(ByteBuffer buffer) {
-        writeDateTime(date, buffer);
+        Companion.writeDateTime(date, buffer);
         buffer.put(entryMapToBytes(entryMap));
     }
 
@@ -196,6 +199,9 @@ public class StatisticEntry extends Byteable {
     public int getSum() {
         int sum = 0;
         for (User user : entryMap.keySet()) {
+            if (user.equals(FamilyConstants.ALL_USER)) {
+                Log.d("Statistic Entry", "Summing with ALL_USER!!!");
+            }
             sum += entryMap.get(user);
         }
 

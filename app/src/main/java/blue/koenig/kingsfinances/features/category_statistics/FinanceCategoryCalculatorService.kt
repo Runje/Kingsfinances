@@ -42,14 +42,14 @@ class FinanceCategoryCalculatorService(private val context: Context, private val
         var size = 4
         for (category in categoryMap.keys) {
             size += Byteable.getStringLength(category)
-            size += Byteable.getBigListLength(categoryMap[category])
+            size += Byteable.getBigListLength(categoryMap[category]!!)
         }
 
         val buffer = ByteBuffer.allocate(size)
         buffer.putInt(categoryMap.size)
         for (category in categoryMap.keys) {
             Byteable.writeString(category, buffer)
-            Byteable.writeBigList(categoryMap[category], buffer)
+            Byteable.writeBigList(categoryMap[category]!!, buffer)
         }
 
         FamilyConfig.saveBytes(context, buffer.array(), key)

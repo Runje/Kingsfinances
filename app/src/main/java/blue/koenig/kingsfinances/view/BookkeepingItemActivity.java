@@ -1,7 +1,5 @@
 package blue.koenig.kingsfinances.view;
 
-import android.app.Activity;
-import android.graphics.ColorSpace;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -9,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,12 +23,11 @@ import com.koenig.commonModel.finance.StandingOrder;
 import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig;
 import blue.koenig.kingsfamilylibrary.view.TextValidator;
 import blue.koenig.kingsfamilylibrary.view.ViewUtils;
 import blue.koenig.kingsfinances.LocalizedStrings;
@@ -49,14 +45,13 @@ public class BookkeepingItemActivity extends AppCompatActivity {
     public static final String EXPENSES = "EXPENSES";
     public static final String STANDINGORDER = "STANDINGORDER";
     public static final String ITEM = "ITEM";
+    @Inject
+    FinanceModel model;
     private boolean isExpenses = false;
     private CostDistributionView costDistributionView;
     private Expenses expenses;
     private BookkeepingEntry bookkeepingItem;
     private StandingOrder standingOrder;
-
-    @Inject
-    FinanceModel model;
     private CategoryService categoryService;
     private Button confirmButton;
     private boolean isEdit;
@@ -92,7 +87,7 @@ public class BookkeepingItemActivity extends AppCompatActivity {
                 expenses = new Expenses("", "", "", 0, new CostDistribution(), DateTime.now(),"");
                 bookkeepingItem = expenses;
             } else {
-                standingOrder = new StandingOrder("", "", "", 0, new CostDistribution(), DateTime.now(), FamilyConstants.UNLIMITED, Frequency.Monthly, 1, new ArrayList<>());
+                standingOrder = new StandingOrder("", "", "", 0, new CostDistribution(), DateTime.now(), FamilyConstants.UNLIMITED, Frequency.Monthly, 1, new HashMap<>());
                 bookkeepingItem = standingOrder;
             }
         }

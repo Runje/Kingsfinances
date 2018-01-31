@@ -91,7 +91,7 @@ public class DatabaseTests {
         ByteBuffer buffer = expensesUpdatesMessage.getBuffer();
         buffer.position(4);
         UpdatesMessage updatesMessage = (UpdatesMessage) Parser.parse(buffer);
-        FinanceModel.update(financeDatabase, updatesMessage.getItems());
+        FinanceModel.Companion.update(financeDatabase, updatesMessage.getItems());
         List<Expenses> allExpenses = financeDatabase.getAllExpenses();
         assertEquals(0, allExpenses.size());
 
@@ -102,7 +102,7 @@ public class DatabaseTests {
         buffer = expensesUpdatesMessage.getBuffer();
         buffer.position(4);
         updatesMessage = (UpdatesMessage) Parser.parse(buffer);
-        FinanceModel.update(financeDatabase, updatesMessage.getItems());
+        FinanceModel.Companion.update(financeDatabase, updatesMessage.getItems());
         allExpenses = financeDatabase.getAllExpenses();
         assertEquals(1, allExpenses.size());
 
@@ -111,7 +111,7 @@ public class DatabaseTests {
         databaseItem.setDeleted(true);
         List<DatabaseItem> databaseItems = new ArrayList<>(1);
         databaseItems.add(databaseItem);
-        FinanceModel.update(financeDatabase,  databaseItems);
+        FinanceModel.Companion.update(financeDatabase, databaseItems);
 
         allExpenses = financeDatabase.getAllExpenses();
         assertEquals(0, allExpenses.size());

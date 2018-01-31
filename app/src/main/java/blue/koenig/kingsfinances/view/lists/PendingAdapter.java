@@ -4,6 +4,8 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.koenig.commonModel.Item;
+
 import java.util.Comparator;
 import java.util.List;
 
@@ -17,7 +19,7 @@ import blue.koenig.kingsfinances.model.PendingStatus;
 public class PendingAdapter extends ListAdapter<PendingOperation> {
     protected PendingInteractListener listener;
 
-    public PendingAdapter(List<PendingOperation> pendingOperations, PendingInteractListener listener)
+    public PendingAdapter(List<PendingOperation<? extends Item>> pendingOperations, PendingInteractListener listener)
     {
         super(pendingOperations);
         this.listener = listener;

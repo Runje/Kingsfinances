@@ -66,12 +66,12 @@ public class ExpensesTable extends BookkeepingTable<Expenses> {
     }
 
     public List<Expenses> getAllSince(DateTime updateSince) throws SQLException {
-        return runInLock(() -> {
+        return runInLockWithResult(() -> {
             ArrayList<DatabaseItem<Expenses>> items = new ArrayList<>();
 
-            String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + DATE + " >= ? AND " + COLUMN_DELETED + " != ?";
+            String selectQuery = "SELECT * FROM " + getTableName() + " WHERE " + DATE + " >= ? AND " + Companion.getCOLUMN_DELETED() + " != ?";
 
-            Cursor cursor = db.rawQuery(selectQuery, new String[]{Long.toString(updateSince.getMillis()), TRUE_STRING});
+            Cursor cursor = getDb().rawQuery(selectQuery, new String[]{Long.toString(updateSince.getMillis()), Companion.getTRUE_STRING()});
 
             if (cursor.moveToFirst()) {
                 do {

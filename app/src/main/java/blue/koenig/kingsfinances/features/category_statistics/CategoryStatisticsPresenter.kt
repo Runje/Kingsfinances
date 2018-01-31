@@ -2,9 +2,13 @@ package blue.koenig.kingsfinances.features.category_statistics
 
 import android.content.Context
 import blue.koenig.kingsfamilylibrary.model.FamilyConfig
+import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
 import blue.koenig.kingsfinances.model.database.GoalTable
+import blue.koenig.kingsfinances.model.database.PendingTable
 import com.google.common.collect.Lists
 import com.koenig.FamilyConstants
+import com.koenig.commonModel.Component
+import com.koenig.communication.messages.AUDMessage
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -19,7 +23,7 @@ import org.slf4j.LoggerFactory
  * Created by Thomas on 16.01.2018.
  */
 
-public class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalculator, private val goalTable: GoalTable, private val context: Context) {
+class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalculator, private val goalTable: GoalTable, private val context: Context, private val pendingTable: PendingTable, private val connection: ServerConnection) {
     private var state: CategoryStatisticsState
     private var disposable: Disposable? = null
     private var view: CategoryStatisticsView? = null
@@ -45,7 +49,12 @@ public class CategoryStatisticsPresenter(private val categoryCalculator: Categor
             val year: Int = getYear()
             val goal: Int = calcYearGoal(catGoal.goal)
             // TODO: make goals for each user
-            goalTable.saveGoal(catGoal.category, goal, year, statisticsUserId = FamilyConstants.ALL_USER.id, editFromUserId = FamilyConfig.getUserId(context))
+            val updatedGoal = goalTable.saveGoal(catGoal.category, goal, year, statisticsUserId = FamilyConstants.ALL_USER.id, editFromUserId = FamilyConfig.getUserId(context))
+
+            // add to pending operations
+            val operation = pendingTable.addUpdate(updatedGoal, FamilyConfig.getUserId(context))
+            // send to server
+            connection.sendFamilyMessage(AUDMessage(Component.FINANCE, operation))
             logger.info("Saved new goal: " + goal)
         }
 

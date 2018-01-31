@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
-import com.koenig.commonModel.Item;
 import com.koenig.commonModel.finance.BookkeepingEntry;
 import com.koenig.commonModel.finance.CostDistribution;
 
@@ -20,7 +19,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Created by Thomas on 29.11.2017.
  */
 
-abstract class BookkeepingTable<T extends BookkeepingEntry> extends Table<T> {
+abstract public class BookkeepingTable<T extends BookkeepingEntry> extends Table<T> {
     private static final String CATEGORY = "category";
     private static final String SUBCATEGORY = "sub_category";
     private static final String COSTS = "costs";
@@ -66,7 +65,7 @@ abstract class BookkeepingTable<T extends BookkeepingEntry> extends Table<T> {
 
     @Override
     protected T getItem(Cursor cursor) {
-        String name = getString(cursor, COLUMN_NAME);
+        String name = getString(cursor, Companion.getCOLUMN_NAME());
         String category = getString(cursor, CATEGORY);
         String subcategory = getString(cursor, SUBCATEGORY);
         int costs = getInt(cursor, COSTS);

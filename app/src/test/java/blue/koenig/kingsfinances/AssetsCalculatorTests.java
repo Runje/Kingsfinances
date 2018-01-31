@@ -32,7 +32,7 @@ public class AssetsCalculatorTests {
 
     @Test
     public void linearEstimation() {
-        Assert.assertEquals(15, AssetsCalculator.calcLinearEstimation(new Balance(10, getDay(17, 1, 31)), new Balance(20, getDay(17, 2, 2)), getDay(17, 2, 1)));
+        Assert.assertEquals(15, AssetsCalculator.Companion.calcLinearEstimation(new Balance(10, getDay(17, 1, 31)), new Balance(20, getDay(17, 2, 2)), getDay(17, 2, 1)));
     }
 
     @Test
@@ -93,7 +93,7 @@ public class AssetsCalculatorTests {
         BankAccount bankAccountThomas = createBankAccountThomas(getDay(17, 1, 2), new int[]{10, 20, 30, -50});
         DateTime start = getDay(17, 1, 1);
         DateTime end = getDay(17, 5, 1);
-        List<StatisticEntry> statisticEntryList = AssetsCalculator.calculateStatisticsOfBankAccount(bankAccountThomas, start, end, Period.months(1));
+        List<StatisticEntry> statisticEntryList = AssetsCalculator.Companion.calculateStatisticsOfBankAccount(bankAccountThomas, start, end, Period.months(1));
         Map<BankAccount, List<StatisticEntry>> listMap = new HashMap<>(1);
         listMap.put(bankAccountThomas, statisticEntryList);
         AssetsCalculator assetsCalculator = new AssetsCalculator(Period.months(1), itemSubject,

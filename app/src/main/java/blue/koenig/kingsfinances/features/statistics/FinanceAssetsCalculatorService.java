@@ -74,14 +74,14 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
         int size = 4;
         for (BankAccount bankAccount : statisticEntryLists.keySet()) {
             size += bankAccount.getByteLength();
-            size += Byteable.getBigListLength(statisticEntryLists.get(bankAccount));
+            size += Byteable.Companion.getBigListLength(statisticEntryLists.get(bankAccount));
         }
 
         ByteBuffer buffer = ByteBuffer.allocate(size);
         buffer.putInt(statisticEntryLists.size());
         for (BankAccount bankAccount : statisticEntryLists.keySet()) {
             bankAccount.writeBytes(buffer);
-            Byteable.writeBigList(statisticEntryLists.get(bankAccount), buffer);
+            Byteable.Companion.writeBigList(statisticEntryLists.get(bankAccount), buffer);
         }
 
         FamilyConfig.saveBytes(context, buffer.array(), ASSETS);
