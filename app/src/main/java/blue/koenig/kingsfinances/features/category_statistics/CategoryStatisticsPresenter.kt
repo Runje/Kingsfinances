@@ -118,7 +118,7 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
             }
         }
 
-        return categoryCalculator.getCategoryStatistics(startDate, endDate).filter { value -> value.winnings != 0 || value.goal != 0 }.sortedBy { value -> value.winnings }
+        return categoryCalculator.getCategoryStatistics(startDate, endDate).sortedBy { value -> value.winnings }
     }
 
 

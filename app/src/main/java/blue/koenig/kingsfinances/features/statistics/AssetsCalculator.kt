@@ -123,6 +123,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
     }
 
     private fun updateForecast() {
+        if (entrysForAll.isEmpty()) return
         val all = entrysForAll
         val lastEntry = all[all.size - 1]
         val lastDate = lastEntry.date.plusYears(1).withMonthOfYear(1)
@@ -206,8 +207,8 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         updateStatisticsFor(newBankAccount)
     }
 
-    fun getEntrysFor(bankAccount: BankAccount): List<StatisticEntry> {
-        return statisticEntryLists[bankAccount]!!
+    fun getEntrysFor(bankAccount: BankAccount): List<StatisticEntry>? {
+        return statisticEntryLists[bankAccount]
     }
 
     companion object {
@@ -283,6 +284,6 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
     }
 
     fun getStartValueFor(user: User?): Int {
-        return getEntrysFor(ALL_ASSETS).first().getEntryFor(user)
+        return getEntrysFor(ALL_ASSETS)?.first()?.getEntryFor(user) ?: 0
     }
 }
