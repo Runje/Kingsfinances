@@ -34,7 +34,7 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
 
     @Override
     public Map<BankAccount, List<StatisticEntry>> loadAllBankAccountStatistics() {
-        ByteBuffer buffer = FamilyConfig.getBytesFromConfig(context, ASSETS);
+        ByteBuffer buffer = FamilyConfig.INSTANCE.getBytesFromConfig(context, ASSETS);
         if (buffer == null) return new HashMap<>();
 
         int size = buffer.getInt();
@@ -84,7 +84,7 @@ public class FinanceAssetsCalculatorService implements AssetsCalculatorService {
             Byteable.Companion.writeBigList(statisticEntryLists.get(bankAccount), buffer);
         }
 
-        FamilyConfig.saveBytes(context, buffer.array(), ASSETS);
+        FamilyConfig.INSTANCE.saveBytes(context, buffer.array(), ASSETS);
     }
 
     @Override

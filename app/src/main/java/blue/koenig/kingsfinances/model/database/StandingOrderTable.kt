@@ -9,6 +9,7 @@ import com.koenig.commonModel.Frequency
 import com.koenig.commonModel.finance.BookkeepingEntry
 import com.koenig.commonModel.finance.StandingOrder
 import org.joda.time.DateTime
+import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 
@@ -61,6 +62,13 @@ class StandingOrderTable(database: SQLiteDatabase, lock: ReentrantLock) : Bookke
 
     override fun getBookkeepingColumnNames(): Collection<String> {
         return Arrays.asList(FIRST_DATE, END_DATE, FREQUENCY, FREQUENCY_FACTOR, EXECUTED_EXPENSES)
+    }
+
+    @Throws(SQLException::class)
+    fun addExpensesToStandingOrders(standingOrderId: String, expensesId: String, dateTime: DateTime) {
+        val standingOrder = getFromId(standingOrderId)!!
+        standingOrder.executedExpenses.set(dateTime, expensesId)
+        update(standingOrderId, mutableListOf(EXECUTED_EXPENSES), { statement, columnsMap -> statement.bindBlob(columnsMap[EXECUTED_EXPENSES]!!, Byteable.getBytes(standingOrder.executedExpenses)) })
     }
 
     companion object {

@@ -9,6 +9,7 @@ import blue.koenig.kingsfamilylibrary.view.family.FamilyView
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler
 import blue.koenig.kingsfinances.R
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
+import blue.koenig.kingsfinances.features.standing_orders.StandingOrderExecutor
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.FinanceStatisticsCalculatorService
@@ -30,26 +31,43 @@ import com.koenig.communication.messages.AskForUpdatesMessage
 import com.koenig.communication.messages.FamilyMessage
 import com.koenig.communication.messages.UpdatesMessage
 import com.koenig.communication.messages.finance.FinanceTextMessages
+import io.reactivex.Observable
+import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
 import org.joda.time.Period
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by Thomas on 18.10.2017.
  */
 
 class FinanceModel// TODO: Income Calculator as input that its tracking all changes from beginning. Put somewhere else but make sure it is tracking from start!
-(connection: ServerConnection, context: Context, handler: LoginHandler, internal var database: FinanceDatabase, internal var userService: FinanceUserService, private val assetsCalculator: AssetsCalculator, incomeCalculator: IncomeCalculator, categoryCalculator: CategoryCalculator) : FamilyModel(connection, context, handler), FinanceCategoryService.CategoryServiceListener {
+(connection: ServerConnection, context: Context, handler: LoginHandler, internal var database: FinanceDatabase, internal var userService: FinanceUserService, private val assetsCalculator: AssetsCalculator, incomeCalculator: IncomeCalculator, categoryCalculator: CategoryCalculator, val standingOrderExecutor: StandingOrderExecutor) : FamilyModel(connection, context, handler), FinanceCategoryService.CategoryServiceListener {
     private var debtsCalculator: DebtsCalculator? = null
     private val categoryService: FinanceCategoryService
     private var pendingView: PendingView? = null
     private var succesMessages: Int = 0
     private var allExpenses: List<Expenses>? = null
-
+    private var updateMessages: Int = 0
     private val financeView: FinanceView
         get() = view as FinanceView
+
+    init {
+        // start executing standing orders after while because at the beginning is so much work done
+        Observable.timer(20, TimeUnit.SECONDS).observeOn(Schedulers.computation()).subscribe {
+            logger.info("Executing standing orders...")
+            standingOrderExecutor.executeForAll()
+            if (standingOrderExecutor.consistencyCheck()) {
+                logger.info("Consistency Check for standing orders passed")
+            } else {
+                logger.error("Consistency Check for standing orders failed")
+                view.showText("Consistency Check for standing orders failed")
+            }
+        }
+    }
 
     val pendingOperations: List<PendingOperation<out Item>>
         get() {
@@ -144,7 +162,22 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
 
         // ask for update after sent my changes!
         waitForSuccessMessages(operations.size)
+        updateMessages = 0
         askForAllUpdates()
+        //waitForFinishUpdates()
+
+    }
+
+    private fun waitForFinishUpdates() {
+        var i = 0
+        val timeOutInS = 10
+        val intervall = 100
+        while (i < 1000 * timeOutInS / intervall) {
+            if (updateMessages >= 5) return
+            Thread.sleep(intervall.toLong())
+            i++
+        }
+
     }
 
     private fun waitForSuccessMessages(size: Int) {
@@ -185,11 +218,13 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         userService.setUser(members)
     }
 
+
     public override fun onReceiveFinanceMessage(message: FamilyMessage) {
         when (message.name) {
             UpdatesMessage.NAME -> {
                 val updatesMessage = message as UpdatesMessage<*>
                 update(updatesMessage.items)
+                updateMessages++
             }
             else -> logger.error("Unknown Message: " + message.name)
         }

@@ -2,6 +2,7 @@ package blue.koenig.kingsfinances
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
+import blue.koenig.kingsfamilylibrary.model.FamilyConfig
 import blue.koenig.kingsfinances.model.FinanceModel
 import blue.koenig.kingsfinances.model.PendingOperation
 import blue.koenig.kingsfinances.model.PendingStatus
@@ -30,9 +31,9 @@ import java.util.*
  * @see [Testing documentation](http://d.android.com/tools/testing)
  */
 @RunWith(AndroidJUnit4::class)
-class DatabaseTests {
+open class DatabaseTests {
 
-    private var financeDatabase: FinanceDatabase? = null
+    protected lateinit var financeDatabase: FinanceDatabase
 
     @Before
     @Throws(SQLException::class)
@@ -40,10 +41,13 @@ class DatabaseTests {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
 
+        // initialize userid
+        FamilyConfig.getUserId(appContext)
+
         assertEquals("blue.koenig.kingsfinances", appContext.packageName)
 
         financeDatabase = FinanceDatabase(appContext, "TestDatabase.sqlite", UserService { _ -> FamilyConstants.ALL_USER })
-        financeDatabase!!.deleteAllEntrys()
+        financeDatabase.deleteAllEntrys()
     }
 
     @Test
@@ -56,20 +60,20 @@ class DatabaseTests {
         val id = pendingOperation.id
 
         // insert
-        financeDatabase!!.addPendingOperation(pendingOperation)
-        val pendingOperationFromId = financeDatabase!!.getPendingOperationFromId(id)
+        financeDatabase.addPendingOperation(pendingOperation)
+        val pendingOperationFromId = financeDatabase.getPendingOperationFromId(id)
         assertEquals(pendingOperationFromId!!.id, pendingOperation.id)
 
         // update
         val userId = "THOMAS"
         pendingOperation.copy(status = PendingStatus.CONFIRMED)
-        financeDatabase!!.updatePendingOperation(pendingOperation, userId)
-        val updatedOperation = financeDatabase!!.getPendingOperationFromId(id)
+        financeDatabase.updatePendingOperation(pendingOperation, userId)
+        val updatedOperation = financeDatabase.getPendingOperationFromId(id)
         assertEquals(pendingOperation.status, updatedOperation!!.status)
 
         // delete
-        financeDatabase!!.deletePendingOperation(id)
-        val allPendingOperation = financeDatabase!!.allPendingOperation
+        financeDatabase.deletePendingOperation(id)
+        val allPendingOperation = financeDatabase.allPendingOperation
         for (operation1 in allPendingOperation) {
             assertTrue(operation1.id !== id)
         }
@@ -88,8 +92,8 @@ class DatabaseTests {
         var buffer = expensesUpdatesMessage.buffer
         buffer.position(4)
         var updatesMessage: UpdatesMessage<*> = Parser.parse(buffer) as UpdatesMessage<*>
-        FinanceModel.update(financeDatabase!!, updatesMessage.items)
-        var allExpenses = financeDatabase!!.allExpenses
+        FinanceModel.update(financeDatabase, updatesMessage.items)
+        var allExpenses = financeDatabase.allExpenses
         assertEquals(0, allExpenses.size.toLong())
 
         expensesUpdatesMessage = UpdatesMessage(items)
@@ -99,8 +103,8 @@ class DatabaseTests {
         buffer = expensesUpdatesMessage.buffer
         buffer.position(4)
         updatesMessage = Parser.parse(buffer) as UpdatesMessage<*>
-        FinanceModel.update(financeDatabase!!, updatesMessage.items)
-        allExpenses = financeDatabase!!.allExpenses
+        FinanceModel.update(financeDatabase, updatesMessage.items)
+        allExpenses = financeDatabase.allExpenses
         assertEquals(1, allExpenses.size.toLong())
 
 
@@ -108,9 +112,9 @@ class DatabaseTests {
         databaseItem.isDeleted = true
         val databaseItems = ArrayList<DatabaseItem<*>>(1)
         databaseItems.add(databaseItem)
-        FinanceModel.update(financeDatabase!!, databaseItems)
+        FinanceModel.update(financeDatabase, databaseItems)
 
-        allExpenses = financeDatabase!!.allExpenses
+        allExpenses = financeDatabase.allExpenses
         assertEquals(0, allExpenses.size.toLong())
 
     }

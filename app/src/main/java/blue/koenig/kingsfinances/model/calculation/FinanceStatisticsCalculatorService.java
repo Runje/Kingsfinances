@@ -26,7 +26,7 @@ public class FinanceStatisticsCalculatorService implements StatisticsCalculatorS
 
     @Override
     public List<StatisticEntry> getSavedSortedStatistics() {
-        ByteBuffer buffer = FamilyConfig.getBytesFromConfig(context, key);
+        ByteBuffer buffer = FamilyConfig.INSTANCE.getBytesFromConfig(context, key);
         if (buffer == null) return new ArrayList<>();
 
         int size = buffer.getInt();
@@ -42,6 +42,6 @@ public class FinanceStatisticsCalculatorService implements StatisticsCalculatorS
     public void saveStatistics(List<StatisticEntry> statisticEntryList) {
         ByteBuffer buffer = ByteBuffer.allocate(Byteable.Companion.getBigListLength(statisticEntryList));
         Byteable.Companion.writeBigList(statisticEntryList, buffer);
-        FamilyConfig.saveBytes(context, buffer.array(), key);
+        FamilyConfig.INSTANCE.saveBytes(context, buffer.array(), key);
     }
 }

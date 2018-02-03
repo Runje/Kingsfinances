@@ -29,8 +29,8 @@ import java.util.concurrent.locks.ReentrantLock
 class FinanceDatabase @Throws(SQLException::class)
 constructor(private val context: Context, name: String, factory: SQLiteDatabase.CursorFactory?, version: Int, userService: UserService) : SQLiteOpenHelper(context, name, factory, version) {
     val expensesTable: ExpensesTable
-    private val standingOrderTable: StandingOrderTable
-    private val categoryTable: CategoryTable
+    val standingOrderTable: StandingOrderTable
+    val categoryTable: CategoryTable
     val bankAccountTable: BankAccountTable
     val goalTable: GoalTable
     protected var logger = LoggerFactory.getLogger(this.javaClass.simpleName)

@@ -63,7 +63,7 @@ class PendingTable(database: SQLiteDatabase, lock: ReentrantLock) : Table<Pendin
     fun updateStatus(status: PendingStatus, id: String) {
         val columns = ArrayList<String>(1)
         columns.add(COLUMN_STATUS)
-        update(id, columns) { statement, columnsMap -> statement.bindString(columnsMap[COLUMN_STATUS]!!, status.name) }
+        update(id, columns, { statement, columnsMap -> statement.bindString(columnsMap[COLUMN_STATUS]!!, status.name) })
     }
 
 

@@ -49,7 +49,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // TODO: move to base class
-        connectionStatus = (TextView) findViewById(R.id.connectionStatus);
+        setConnectionStatus((TextView) findViewById(R.id.connectionStatus));
         fab = findViewById(R.id.fab_add);
         fab.setOnClickListener(ignored -> clickFab());
         pageAdapter = new FinanceFragmentPagerAdapter(this, getSupportFragmentManager());
@@ -66,7 +66,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             @Override
             public void onPageSelected(int position)
             {
-                logger.info("Page Selected: " + position);
+                getLogger().info("Page Selected: " + position);
 
                 //getSupportActionBar().setSelectedNavigationItem(position);
                 getFinanceModel().onTabSelected(position);
@@ -76,7 +76,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             @Override
             public void onPageScrollStateChanged(int state)
             {
-                logger.info("PageScrollStateChanged: " + state);
+                getLogger().info("PageScrollStateChanged: " + state);
             }
         });
 
@@ -114,20 +114,20 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             });
             bankAccountDialog.showAdd();
         } else {
-            logger.error("FAB should not be visible!");
+            getLogger().error("FAB should not be visible!");
         }
     }
 
     private FinanceModel getFinanceModel() {
-        return (FinanceModel) model;
+        return (FinanceModel) getModel();
     }
     @Override
     protected FamilyModel createModel() {
-        return model;
+        return getModel();
     }
     @Inject
     protected void provideModel(FinanceModel model) {
-        this.model = model;
+        this.setModel(model);
     }
 
 
@@ -137,7 +137,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         if (expensesFragment != null) {
             runOnUiThread(() -> expensesFragment.updateExpenses(expenses));
         } else {
-            logger.error("Couldn't update expensesFragment!");
+            getLogger().error("Couldn't update expensesFragment!");
         }
 
     }
@@ -148,14 +148,14 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
             // Expenses list view
             ExpensesFragment expensesFragment = pageAdapter.getExpensesFragment();
             if (expensesFragment == null) {
-                logger.error("Couldn't set members to expenses fragment!");
+                getLogger().error("Couldn't set members to expenses fragment!");
             } else {
                 expensesFragment.updateFamilyMembers(members);
             }
 
             StandingOrderFragment standingOrderFragment = pageAdapter.getStandingOrderFragment();
             if (standingOrderFragment == null) {
-                logger.error("Couldn't set members to expenses fragment!");
+                getLogger().error("Couldn't set members to expenses fragment!");
             } else {
                 standingOrderFragment.updateFamilyMembers(members);
             }
@@ -171,7 +171,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         if (standingOrderFragment != null) {
             runOnUiThread(() -> standingOrderFragment.update(standingOrders));
         } else {
-            logger.error("Couldn't update standingOrderFragment!");
+            getLogger().error("Couldn't update standingOrderFragment!");
         }
     }
 
@@ -181,7 +181,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         if (accountFragment != null) {
             runOnUiThread(() -> accountFragment.update(bankAccounts));
         } else {
-            logger.error("Couldn't update accountFragment!");
+            getLogger().error("Couldn't update accountFragment!");
         }
     }
 
@@ -191,7 +191,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         if (accountFragment != null) {
             runOnUiThread(() -> accountFragment.updateAssets(assets));
         } else {
-            logger.error("Couldn't update accountFragment!");
+            getLogger().error("Couldn't update accountFragment!");
         }
     }
 
@@ -201,7 +201,7 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         if (expensesFragment != null) {
             runOnUiThread(() -> expensesFragment.updateDebts(debts));
         } else {
-            logger.error("Couldn't update debts!");
+            getLogger().error("Couldn't update debts!");
         }
     }
 
@@ -225,19 +225,19 @@ public class OverviewActivity extends FamilyActivity implements FinanceView, Nav
         Fragment fragment = null;
         if (id == R.id.nav_expenses) {
             // Handle the camera action
-            logger.info("Click on expenses");
+            getLogger().info("Click on expenses");
             pager.setCurrentItem(0);
             //fragment = new ExpensesFragment();
         } else if (id == R.id.nav_pending) {
-            logger.info("Click on pending");
+            getLogger().info("Click on pending");
             pager.setCurrentItem(1);
             //fragment = new PendingFragment();
         } else if (id == R.id.nav_statistics) {
-            logger.info("Click on statistics");
+            getLogger().info("Click on statistics");
             pager.setCurrentItem(4);
             //fragment = new PendingFragment();
         } else {
-            logger.error("Unknown navigation item");
+            getLogger().error("Unknown navigation item");
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         // Insert the fragment by replacing any existing fragment

@@ -20,6 +20,7 @@ import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculatorService;
 import blue.koenig.kingsfinances.features.category_statistics.CategoryStatisticsPresenter;
 import blue.koenig.kingsfinances.features.category_statistics.FinanceCategoryCalculatorService;
+import blue.koenig.kingsfinances.features.standing_orders.StandingOrderExecutor;
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator;
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService;
 import blue.koenig.kingsfinances.features.statistics.FinanceAssetsCalculatorService;
@@ -40,8 +41,8 @@ import dagger.Provides;
 public class ModelModule {
     @Provides
     @Singleton
-    FinanceModel provideFinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator, CategoryCalculator categoryCalculator) {
-        return new FinanceModel(connection, context, handler, database, service, assetsCalculator, incomeCalculator, categoryCalculator);
+    FinanceModel provideFinanceModel(ServerConnection connection, Context context, LoginHandler handler, FinanceDatabase database, FinanceUserService service, AssetsCalculator assetsCalculator, IncomeCalculator incomeCalculator, CategoryCalculator categoryCalculator, StandingOrderExecutor standingOrderExecutor) {
+        return new FinanceModel(connection, context, handler, database, service, assetsCalculator, incomeCalculator, categoryCalculator, standingOrderExecutor);
     }
 
     @Provides
@@ -63,7 +64,7 @@ public class ModelModule {
     @Provides
     @NotNull
     List<User> provideFamilyMembers(Context context) {
-        return FamilyConfig.getFamilyMembers(context);
+        return FamilyConfig.INSTANCE.getFamilyMembers(context);
     }
 
 
@@ -81,7 +82,7 @@ public class ModelModule {
     @Provides
     @Singleton
     AssetsCalculatorService provideAssetsCalculatorService(Context context) {
-        return new FinanceAssetsCalculatorService(context, FamilyConfig.getStartDate(context));
+        return new FinanceAssetsCalculatorService(context, FamilyConfig.INSTANCE.getStartDate(context));
     }
 
     @Provides
@@ -104,12 +105,17 @@ public class ModelModule {
 
     @Provides
     CategoryCalculatorService provideCategoryCalculatorService(Context context, FinanceDatabase database) {
-        DateTime startDate = FamilyConfig.getStartDate(context);
+        DateTime startDate = FamilyConfig.INSTANCE.getStartDate(context);
         return new FinanceCategoryCalculatorService(context, startDate, database.getGoalTable());
     }
 
     @Provides
     CategoryStatisticsPresenter provideCategoryStatisticsPresenter(CategoryCalculator calculator, FinanceDatabase database, Context context, ServerConnection connection) {
         return new CategoryStatisticsPresenter(calculator, database.getGoalTable(), context, database.getPendingTable(), connection);
+    }
+
+    @Provides
+    StandingOrderExecutor provideStandingOrderExecutor(FinanceDatabase database) {
+        return new StandingOrderExecutor(database.getStandingOrderTable(), database.getExpensesTable());
     }
 }

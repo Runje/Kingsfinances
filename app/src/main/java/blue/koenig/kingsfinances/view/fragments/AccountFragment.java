@@ -44,7 +44,7 @@ public class AccountFragment extends FinanceFragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         logger.info("Attaching account fragment");
-        statUsers = FamilyConfig.getFamilyMembers(getContext());
+        statUsers = FamilyConfig.INSTANCE.getFamilyMembers(getContext());
         statUsers.add(FamilyConstants.ALL_USER);
         //model.attachPendingView(this);
     }
