@@ -88,6 +88,7 @@ class GoalTextWatcher(val textView: TextView, var item: CategoryStatistics, val 
         // validate
         val value = s.toString().toFloatOrNull()
         value?.let {
+            @Suppress("DEPRECATION")
             textView.setTextColor(textView.context.resources.getColor(R.color.normalText))
             val intValue = (value * 100).toInt()
             if (item.goal != intValue) {

@@ -52,7 +52,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         endDate = service.endDate
         bankSubject.addAddListener({ bankAccount -> addBankAccount(bankAccount!!) })
         bankSubject.addDeleteListener({ bankAccount -> deleteBankAccount(bankAccount!!) })
-        bankSubject.addUpdateListener({ oldBankAccount, newBankAccount -> updateBankAccount(oldBankAccount!!, newBankAccount!!) })
+        bankSubject.addUpdateListener({ oldBankAccount, newBankAccount -> updateBankAccount(newBankAccount!!) })
         yearsList = generateYearsList()
     }
 
@@ -78,22 +78,19 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         // add forecast to filtered if it is the actual year
         if (DateTime.now().year == startDate.year) {
             val forecast = entrysForForecast
-            if (forecast != null) {
-                for (i in forecast.indices) {
-                    val entry = forecast[i]
-                    if (i == 0 && filtered.size > 0) {
-                        val lastFiltered = filtered[filtered.size - 1]
-                        check(entry.date == lastFiltered.date)
-                        // first entry is overlapping, add to entry
-                        lastFiltered.putEntry(FORECAST_USER, entry.getEntryFor(FORECAST_USER))
-                    } else {
-                        // new entry
-                        filtered.add(entry)
-                    }
+            for (i in forecast.indices) {
+                val entry = forecast[i]
+                if (i == 0 && filtered.size > 0) {
+                    val lastFiltered = filtered[filtered.size - 1]
+                    check(entry.date == lastFiltered.date)
+                    // first entry is overlapping, add to entry
+                    lastFiltered.putEntry(FORECAST_USER, entry.getEntryFor(FORECAST_USER))
+                } else {
+                    // new entry
+                    filtered.add(entry)
                 }
             }
         }
-
 
         return AssetsStatistics(startDate, endDate, filtered.toList(), monthlyWin, overallWin)
     }
@@ -203,7 +200,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         allAssets.onNext(allEntries)
     }
 
-    private fun updateBankAccount(oldBankAccount: BankAccount, newBankAccount: BankAccount) {
+    private fun updateBankAccount(newBankAccount: BankAccount) {
         updateStatisticsFor(newBankAccount)
     }
 
@@ -219,16 +216,16 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         var FUTURE_FORECAST = BankAccount("FUTURE_FORECAST", "FUTURE_FORECAST", "FUTURE_FORECAST", FORECAST_USER, ArrayList())
 
         fun calculateStatisticsOfBankAccount(bankAccount: BankAccount, start: DateTime, end: DateTime, period: Period): List<StatisticEntry> {
-            var start = start
-            var end = end
-            start = if (start.dayOfMonth().get() == 1) start else start.withDayOfMonth(1)
-            end = if (end.dayOfMonth().get() == 1) end else end.plus(Months.ONE).withDayOfMonth(1)
-            val entries = ArrayList<StatisticEntry>(Months.monthsBetween(start, end).months + 1)
+            var startDate = start
+            var endDate = end
+            startDate = if (startDate.dayOfMonth().get() == 1) startDate else startDate.withDayOfMonth(1)
+            endDate = if (endDate.dayOfMonth().get() == 1) endDate else endDate.plus(Months.ONE).withDayOfMonth(1)
+            val entries = ArrayList<StatisticEntry>(Months.monthsBetween(startDate, endDate).months + 1)
             // balances are sorted with newest at top
             val balances = bankAccount.balances
-            var nextDate = start
+            var nextDate = startDate
             if (balances.size == 0) {
-                while (!nextDate.isAfter(end)) {
+                while (!nextDate.isAfter(endDate)) {
                     entries.add(StatisticEntry(nextDate))
                     nextDate = nextDate.plus(period)
                 }
@@ -265,7 +262,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
             }
 
             // add value of last balance until end
-            while (!nextDate.isAfter(end)) {
+            while (!nextDate.isAfter(endDate)) {
                 val statisticEntry = StatisticEntry(nextDate)
                 statisticEntry.addEntry(StatisticEntry(lastBalance, bankAccount.owners))
                 entries.add(statisticEntry)

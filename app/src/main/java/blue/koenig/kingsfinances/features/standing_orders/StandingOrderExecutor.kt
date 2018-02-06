@@ -24,7 +24,8 @@ class StandingOrderExecutor(private val standingOrderTable: StandingOrderTable, 
     }
 
     private fun executeOrdersFor(order: StandingOrder) {
-        val dates = order.getExecutionDatesUntil(DateTime.now())
+        val until = if (DateTime.now().isBefore(order.endDate)) DateTime.now() else order.endDate
+        val dates = order.getExecutionDatesUntil(until)
         dates.forEach {
             if (order.executedExpenses[it] == null) {
                 logger.info("Executing $order at $it")

@@ -12,7 +12,6 @@ import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.standing_orders.StandingOrderExecutor
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
-import blue.koenig.kingsfinances.model.calculation.FinanceStatisticsCalculatorService
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry
 import blue.koenig.kingsfinances.model.database.FinanceDatabase
@@ -34,7 +33,6 @@ import com.koenig.communication.messages.finance.FinanceTextMessages
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
-import org.joda.time.Period
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
 import java.util.*
@@ -44,9 +42,9 @@ import java.util.concurrent.TimeUnit
  * Created by Thomas on 18.10.2017.
  */
 
-class FinanceModel// TODO: Income Calculator as input that its tracking all changes from beginning. Put somewhere else but make sure it is tracking from start!
-(connection: ServerConnection, context: Context, handler: LoginHandler, internal var database: FinanceDatabase, internal var userService: FinanceUserService, private val assetsCalculator: AssetsCalculator, incomeCalculator: IncomeCalculator, categoryCalculator: CategoryCalculator, val standingOrderExecutor: StandingOrderExecutor) : FamilyModel(connection, context, handler), FinanceCategoryService.CategoryServiceListener {
-    private var debtsCalculator: DebtsCalculator? = null
+class FinanceModel// TODO: Income Calculator as input that its tracking all changes from beginning. Put somewhere else but make sure it is tracking from startLoggedIn!
+(connection: ServerConnection, context: Context, handler: LoginHandler, internal var database: FinanceDatabase, internal var userService: FinanceUserService, private val assetsCalculator: AssetsCalculator, incomeCalculator: IncomeCalculator, categoryCalculator: CategoryCalculator, val standingOrderExecutor: StandingOrderExecutor, val debtsCalculator: DebtsCalculator) : FamilyModel(connection, context, handler), FinanceCategoryService.CategoryServiceListener {
+
     private val categoryService: FinanceCategoryService
     private var pendingView: PendingView? = null
     private var succesMessages: Int = 0
@@ -55,7 +53,8 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
     private val financeView: FinanceView
         get() = view as FinanceView
 
-    init {
+    override fun start() {
+        logger.info("Start")
         // start executing standing orders after while because at the beginning is so much work done
         Observable.timer(20, TimeUnit.SECONDS).observeOn(Schedulers.computation()).subscribe {
             logger.info("Executing standing orders...")
@@ -81,10 +80,10 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         }
 
 
-    // TODO: dauert viel zu lange, im Hintergrund ausführen oder hier zwischenspeichern und nur ab und zu aktualisieren
+    // TODO: dauert viel zu lange, im Hintergrund ausführen oder hier zwischenspeichern und nur ab und zu aktualisieren, oder nur die ersten 100 zurückliefern
     val expenses: List<Expenses>?
         get() {
-            if (allExpenses != null) return allExpenses
+            //if (allExpenses != null) return allExpenses
             try {
                 allExpenses = database.allExpenses
                 return allExpenses
@@ -121,7 +120,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
     //return debtsCalculator.recalculateAll();
     val debts: List<StatisticEntry>
         get() {
-            val debts = debtsCalculator!!.entrys
+            val debts = debtsCalculator.entrys
             if (debts.size == 0) {
                 logger.warn("Recalculating all debts!")
             }
@@ -139,14 +138,14 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
 
         try {
             categoryService.update(database.allCategorys)
-            debtsCalculator = DebtsCalculator(Period.months(1), database.expensesTable, FinanceStatisticsCalculatorService(context, DEBTS))
+
         } catch (e: SQLException) {
             logger.error("Couldn't create database: " + e.message)
         }
 
     }
 
-    public override fun start() {
+    public override fun startLoggedIn() {
         logger.info("Start")
         val members = loginHandler.members
         if (members != null) {
@@ -381,9 +380,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
 
     @Throws(SQLException::class)
     private fun updateAllExpensesAndDebts() {
-        allExpenses = database.allExpenses
-        financeView.showExpenses(allExpenses)
-        financeView.updateDebts(debtsCalculator!!.entrys)
+        // TODO: notify expenses changed through database
     }
 
     @Throws(SQLException::class)
@@ -531,9 +528,9 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
 
     companion object {
 
-        private val DEBTS = "DEBTS"
         private val clogger = LoggerFactory.getLogger("FinanceModel")
 
+        @Suppress("UNCHECKED_CAST")
         @Throws(SQLException::class)
         fun update(database: FinanceDatabase, items: List<DatabaseItem<*>>) {
             if (items.isEmpty()) return
@@ -549,4 +546,5 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
             }
         }
     }
+
 }

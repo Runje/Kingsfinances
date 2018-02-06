@@ -37,7 +37,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
     fun attachView(view: StatisticsView) {
         this.view = view
         disposable = assetsCalculator.allAssets.observeOn(AndroidSchedulers.mainThread()).subscribe(
-                { assets -> clickYear(state.position) }
+                { clickYear(state.position) }
         ) { throwable -> logger.error("OnError: " + throwable.toString()) }
     }
 
@@ -86,13 +86,13 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
             }
         } else {
             // goals beginning later
-            val startIndex = statistics.assets.indexOfFirst { statisticEntry ->
+            val offset = statistics.assets.indexOfFirst { statisticEntry ->
                 goals[0].date?.equals(statisticEntry.date) ?: false
             }
-            if (startIndex != -1) {
-                for (i in 0 until min(goals.size, statistics.assets.size - startIndex)) {
-                    check(statistics.assets[i + startIndex].date.equals(goals[i].date)) { "dates are not aligned" }
-                    statistics.assets[i + startIndex].addEntry(goals[i])
+            if (offset != -1) {
+                for (i in 0 until min(goals.size, statistics.assets.size - offset)) {
+                    check(statistics.assets[i + offset].date.equals(goals[i].date)) { "dates are not aligned" }
+                    statistics.assets[i + offset].addEntry(goals[i])
                 }
             }
         }

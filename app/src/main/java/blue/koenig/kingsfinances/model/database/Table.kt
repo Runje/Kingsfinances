@@ -420,16 +420,16 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
         return toItemList(queryWithOneValueDatabaseItems(query, value))
     }
 
-    override fun addDeleteListener(deleteListener: OnDeleteListener<T>) {
-        onDeleteListeners.add(deleteListener)
+    override fun addDeleteListener(listener: OnDeleteListener<T>) {
+        onDeleteListeners.add(listener)
     }
 
-    override fun addAddListener(addListener: OnAddListener<T>) {
-        onAddListeners.add(addListener)
+    override fun addAddListener(listener: OnAddListener<T>) {
+        onAddListeners.add(listener)
     }
 
-    override fun addUpdateListener(updateListener: OnUpdateListener<T>) {
-        onUpdateListeners.add(updateListener)
+    override fun addUpdateListener(listener: OnUpdateListener<T>) {
+        onUpdateListeners.add(listener)
     }
 
     fun removeDeleteListener(deleteListener: OnDeleteListener<T>) {

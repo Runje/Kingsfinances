@@ -35,7 +35,7 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
     fun attachView(view: CategoryStatisticsView) {
         this.view = view
         disposable = categoryCalculator.allStatistics.observeOn(AndroidSchedulers.mainThread()).subscribe(
-                { statistics -> changeSelection(state.yearsSelection, state.monthsSelection) }
+                { changeSelection(state.yearsSelection, state.monthsSelection) }
         ) { throwable -> logger.error("OnError: " + throwable.toString()) }
 
         view.monthSelection.observeOn(AndroidSchedulers.mainThread()).subscribe { pos ->
