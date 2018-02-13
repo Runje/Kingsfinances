@@ -26,7 +26,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
     protected var logger = LoggerFactory.getLogger(javaClass.simpleName)
     protected var statisticEntryLists: MutableMap<BankAccount, List<StatisticEntry>>
     protected var lock = ReentrantLock()
-    public val allAssets: BehaviorSubject<List<StatisticEntry>>
+    val allAssets: BehaviorSubject<List<StatisticEntry>>
 
     val entrysForAll: List<StatisticEntry>
         get() {
@@ -52,7 +52,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         endDate = service.endDate
         bankSubject.addAddListener({ bankAccount -> addBankAccount(bankAccount!!) })
         bankSubject.addDeleteListener({ bankAccount -> deleteBankAccount(bankAccount!!) })
-        bankSubject.addUpdateListener({ oldBankAccount, newBankAccount -> updateBankAccount(newBankAccount!!) })
+        bankSubject.addUpdateListener({ _, newBankAccount -> updateBankAccount(newBankAccount!!) })
         yearsList = generateYearsList()
     }
 

@@ -30,6 +30,7 @@ import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Expenses
 import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 
 
 /**
@@ -39,13 +40,23 @@ import io.reactivex.Observable
 class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresenter>(), ExpensesView {
     override var onRefresh: Observable<Any> = Observable.never()
 
+    val publishOnDelete: PublishSubject<Expenses> = PublishSubject.create()
+    override var onDelete: Observable<Expenses> = publishOnDelete
+
     private var state = ExpensesState()
     override fun render(state: ExpensesState) {
-        renderIsLoading(state.isLoading)
-        renderMembersLayout(state.familyMembers)
-        renderList(state.expenses)
-        renderDebts(state.debts)
+        if (view != null) {
+            renderIsLoading(state.isLoading)
+            renderMembersLayout(state.familyMembers)
+            renderList(state.expenses)
+            renderDebts(state.debts)
+            renderUpdatesAvailable(state.hasChanged)
+        }
         this.state = state
+    }
+
+    private fun renderUpdatesAvailable(hasChanged: Boolean) {
+        updatesAvailable.visibility = if (hasChanged) View.VISIBLE else View.GONE
     }
 
     private fun renderDebts(debts: List<StatisticEntry>) {
@@ -84,7 +95,7 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
 
                 adapter = ExpensesAdapter(arrayListOf(), bigWidth, object : ExpensesAdapter.ExpensesInteractListener {
                     override fun onDelete(expenses: Expenses) {
-                        DeleteDialog(activity, expenses.name, expenses) { e -> /*model.deleteExpenses(e)*/ }.show()
+                        DeleteDialog(activity, expenses.name, expenses) { e -> publishOnDelete.onNext(e) }.show()
                     }
 
                     override fun onEdit(expenses: Expenses) {
@@ -112,23 +123,19 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
         return view
     }
 
-    fun updateExpenses(expenses: List<Expenses>?) {
-        if (adapter == null) {
-            logger.error("Adapter is null")
-            init(view)
-        }
-
-        if (adapter != null) {
-            adapter!!.update(expenses!!)
-        }
+    fun updateExpenses(expenses: List<Expenses>) {
+        adapter!!.update(expenses)
     }
 
 
     private var refreshLayout: SwipeRefreshLayout? = null
 
-    fun init(view: View?) {
+    private lateinit var updatesAvailable: TextView
+
+    fun init(view: View) {
+        updatesAvailable = view.findViewById<TextView>(R.id.textUpdateAvailable)
         //bar chart
-        lineChart = view!!.findViewById(R.id.linechart)
+        lineChart = view.findViewById(R.id.linechart)
         lineChart!!.axisRight.textColor = Color.WHITE
         lineChart!!.axisLeft.textColor = Color.WHITE
         lineChart!!.xAxis.textColor = Color.WHITE
@@ -144,11 +151,6 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
 
 
     fun updateDebts(debts: List<StatisticEntry>) {
-        if (lineChart == null) {
-            logger.error("Adapter is null")
-            init(view)
-        }
-
         if (lineChart != null) {
             updateLinechart(debts)
         }
@@ -180,6 +182,41 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
 
     fun showLoading(loading: Boolean) {
         refreshLayout?.isRefreshing = loading
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        logger.info("OnDestroyView")
+        // reset state to trigger init layout next start
+        state = ExpensesState()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        logger.info("OnStop")
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        logger.info("OnCreate")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        logger.info("OnDestory")
+
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        logger.info("OnDetach")
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        logger.info("OnStart")
+
     }
 
     override fun onAttach(context: Context?) {

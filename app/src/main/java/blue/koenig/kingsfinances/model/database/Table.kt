@@ -24,6 +24,7 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
     protected var onAddListeners: MutableList<OnAddListener<T>> = ArrayList()
     protected var onUpdateListeners: MutableList<OnUpdateListener<T>> = ArrayList()
 
+
     val allDeletedItems: List<T>
         @Throws(SQLException::class)
         get() = toItemList(allDeleted)
@@ -132,7 +133,7 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
             for (onAddListener in onAddListeners) {
                 // only add non deleted items to statistics
                 if (!databaseItem.isDeleted) {
-                    onAddListener.onAdd(databaseItem.getItem())
+                    onAddListener.onAdd(databaseItem.item)
                 }
             }
 
@@ -171,7 +172,7 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
 
 
     @Throws(SQLException::class)
-    override fun deleteFrom(itemId: String, userId: String) {
+    fun deleteFrom(itemId: String, userId: String) {
         for (onDeleteListener in onDeleteListeners) {
             // ASSUMPTION: item was before in database else the statistics are corrupted!
             onDeleteListener.onDelete(getFromId(itemId))
@@ -189,6 +190,8 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
         }
 
         update(itemId, columns, binder)
+
+        hasChanged.onNext(true)
     }
 
     @Throws(SQLException::class)
@@ -250,12 +253,12 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
                     if (!oldDatabaseItem.isDeleted && item.isDeleted) {
                         // delete
                         for (onDeleteListener in onDeleteListeners) {
-                            onDeleteListener.onDelete(oldDatabaseItem.getItem())
+                            onDeleteListener.onDelete(oldDatabaseItem.item)
                         }
                     } else if (!oldDatabaseItem.isDeleted && !item.isDeleted) {
                         // regular update
                         for (onUpdateListener in onUpdateListeners) {
-                            onUpdateListener.onUpdate(oldDatabaseItem.getItem(), item.getItem())
+                            onUpdateListener.onUpdate(oldDatabaseItem.item, item.item)
                         }
                     }
                     // overwrite
@@ -263,6 +266,8 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
                     logger.info("Overwritten item: " + item.name)
                 }
             }
+
+            hasChanged.onNext(true)
         })
     }
 
@@ -300,7 +305,7 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
     }
 
     @Throws(SQLException::class)
-    override fun updateFrom(item: T, userId: String) {
+    fun updateFrom(item: T, userId: String) {
         // ASSUMPTION: Updated item is not deleted!
         for (onUpdateListener in onUpdateListeners) {
             onUpdateListener.onUpdate(getFromId(item.id)!!, item)
@@ -319,6 +324,7 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
             bindItem(statement, map, item)
         })
 
+        hasChanged.onNext(true)
     }
 
     protected abstract fun bindItem(statement: SQLiteStatement, map: Map<String, Int>, item: T)

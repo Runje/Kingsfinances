@@ -9,7 +9,7 @@ import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.category_statistics.CategoryStatisticsPresenter
 import blue.koenig.kingsfinances.features.category_statistics.FinanceCategoryCalculatorService
 import blue.koenig.kingsfinances.features.expenses.ExpensesPresenter
-import blue.koenig.kingsfinances.features.standing_orders.StandingOrderExecutor
+import blue.koenig.kingsfinances.features.pending_operations.OperationExecutor
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService
 import blue.koenig.kingsfinances.features.statistics.FinanceAssetsCalculatorService
@@ -20,10 +20,16 @@ import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.FinanceStatisticsCalculatorService
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
 import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService
-import blue.koenig.kingsfinances.model.database.FinanceDatabase
+import blue.koenig.kingsfinances.model.database.*
+import com.koenig.commonModel.Repository.BankAccountRepository
+import com.koenig.commonModel.Repository.ExpensesRepository
+import com.koenig.commonModel.Repository.GoalRepository
+import com.koenig.commonModel.Repository.StandingOrderRepository
 import com.koenig.commonModel.User
+import com.koenig.commonModel.finance.features.StandingOrderExecutor
 import dagger.Module
 import dagger.Provides
+import io.reactivex.Observable
 import org.joda.time.Period
 import javax.inject.Singleton
 
@@ -61,7 +67,7 @@ class ModelModule {
     }
 
     @Provides
-    internal fun provideExpensesPresenter(context: Context, connection: ServerConnection, database: FinanceDatabase, debtsCalculator: DebtsCalculator): ExpensesPresenter = ExpensesPresenter(database.expensesTable, provideFamilyMembers(context), connection, context, debtsCalculator)
+    internal fun provideExpensesPresenter(context: Context, connection: ServerConnection, expensesRepository: ExpensesRepository, debtsCalculator: DebtsCalculator, operationExecutor: OperationExecutor): ExpensesPresenter = ExpensesPresenter(expensesRepository, provideFamilyMembers(context), connection, context, debtsCalculator, operationExecutor)
 
     @Provides
     @Singleton
@@ -109,7 +115,25 @@ class ModelModule {
     }
 
     @Provides
-    internal fun provideStandingOrderExecutor(database: FinanceDatabase): StandingOrderExecutor {
-        return StandingOrderExecutor(database.standingOrderTable, database.expensesTable)
+    internal fun provideStandingOrderExecutor(standingOrderRepository: StandingOrderRepository, expensesRepository: ExpensesRepository): StandingOrderExecutor {
+        return StandingOrderExecutor(standingOrderRepository = standingOrderRepository, expensesTable = expensesRepository)
     }
+
+    @Provides
+    fun provideOperationExecutor(database: FinanceDatabase, connection: ServerConnection) = OperationExecutor(connection, database.pendingTable)
+
+    @Provides
+    fun provideExpensesRepository(database: FinanceDatabase, userIdObservable: Observable<String>): ExpensesRepository = ExpensesDbRepository(database.expensesTable, userIdObservable)
+
+    @Provides
+    fun provideStandingOrderRepository(database: FinanceDatabase, userIdObservable: Observable<String>): StandingOrderRepository = StandingOrderDbRepository(database.standingOrderTable, userIdObservable)
+
+    @Provides
+    fun provideGoalRepository(database: FinanceDatabase, userIdObservable: Observable<String>): GoalRepository = GoalDbRepository(database.goalTable, userIdObservable)
+
+    @Provides
+    fun provideBankAccountRepository(database: FinanceDatabase, userIdObservable: Observable<String>): BankAccountRepository = BankAccountDbRepository(database.bankAccountTable, userIdObservable)
+
+    @Provides
+    fun provideUserIdObservable(): Observable<String> = FamilyConfig.userIdObservable
 }

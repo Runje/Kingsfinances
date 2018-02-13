@@ -6,58 +6,80 @@ import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
 import blue.koenig.kingsfinances.features.FamilyPresenter
 import blue.koenig.kingsfinances.features.FamilyState
 import blue.koenig.kingsfinances.features.FamilyView
+import blue.koenig.kingsfinances.features.pending_operations.OperationExecutor
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.StatisticEntry
-import blue.koenig.kingsfinances.model.database.ExpensesTable
 import com.koenig.commonModel.ItemType
+import com.koenig.commonModel.Repository.ExpensesRepository
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Expenses
 import com.koenig.communication.messages.AskForUpdatesMessage
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import java.util.concurrent.TimeUnit
 
 /**
  * Created by Thomas on 04.02.2018.
  */
-class ExpensesPresenter(val expensesTable: ExpensesTable, familyMembers: List<User>, val connection: ServerConnection, val context: Context, val debtsCalculator: DebtsCalculator) : FamilyPresenter<ExpensesState, ExpensesView>() {
+class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMembers: List<User>, val connection: ServerConnection, val context: Context, val debtsCalculator: DebtsCalculator, val operationExecutor: OperationExecutor) : FamilyPresenter<ExpensesState, ExpensesView>() {
 
     init {
         state = ExpensesState(familyMembers = familyMembers)
 
         // TODO: listen to changes of family members!
-        // TODO: listen to changes of expenses (Make expensesRepository)
+        expensesRepository.hasChanged.observeOn(AndroidSchedulers.mainThread()).subscribe { update(state.copy(hasChanged = it)) }
+
+        // udpates from server are reflected in the expensesRepository
 
 
     }
 
-    private var disposable: Disposable? = null
 
     override fun start() {
-        disposable = view?.onRefresh?.subscribe {
-            update(state.copy(isLoading = true))
 
-            Observable.fromCallable {
-                // TODO: make server requestor which handles it, requestor.askForExpenses()
-                connection.sendFamilyMessage(AskForUpdatesMessage.askForExpenses(FamilyConfig.getLastSyncDate(context, ItemType.EXPENSES.name)))
-            }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
-                update(state.copy(expenses = expensesTable.allItems, debts = debtsCalculator.entrys))
-            }
+        // subscribe to events from view
+        view?.let {
+            disposables.add(it.onRefresh.subscribe {
+                update(state.copy(isLoading = true))
 
-            // disable timer after timeout of 3s
-            Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe {
-                update(state.copy(isLoading = false))
-            }
+                lateinit var items: List<Expenses>
+                Observable.fromCallable {
+                    // TODO: make server requestor which handles it, requestor.askForExpenses()
+                    // TODO: make answerTo ID in msg header to check for answer!
+                    connection.sendFamilyMessage(AskForUpdatesMessage.askForExpenses(FamilyConfig.getLastSyncDate(context, ItemType.EXPENSES.name)))
+                    items = expensesRepository.allItems
+                }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
+                    update(state.copy(expenses = items, debts = debtsCalculator.entrys, hasChanged = false))
+                }
+
+                // disable timer after timeout of 3s, TODO: if not connected immediately come back
+                Observable.timer(3, TimeUnit.SECONDS).observeOn(AndroidSchedulers.mainThread()).subscribe {
+                    update(state.copy(isLoading = false))
+                }
+            })
+
+            disposables.add(it.onDelete.subscribe {
+                update(state.copy(isLoading = true))
+                lateinit var items: List<Expenses>
+                Observable.fromCallable {
+                    // make pending operation and delete expenses
+                    operationExecutor.deleteItem(it, expensesRepository)
+                    items = expensesRepository.allItems
+                }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
+                    update(state.copy(expenses = items, debts = debtsCalculator.entrys, hasChanged = false, isLoading = false))
+                }
+            })
         }
+
 
         Observable.fromCallable { update(state.copy(isLoading = true)) }.subscribeOn(AndroidSchedulers.mainThread()).subscribe()
 
         lateinit var items: List<Expenses>
         lateinit var debts: List<StatisticEntry>
         Observable.fromCallable {
-            items = expensesTable.allItems
+            logger.info("Calling all items")
+            items = expensesRepository.allItems
             debts = debtsCalculator.entrys
         }.subscribeOn(Schedulers.computation()).observeOn(AndroidSchedulers.mainThread()).subscribe {
             update(state.copy(expenses = items, debts = debts, isLoading = false))
@@ -65,12 +87,12 @@ class ExpensesPresenter(val expensesTable: ExpensesTable, familyMembers: List<Us
     }
 
     override fun stop() {
-        disposable?.dispose()
     }
 }
 
 interface ExpensesView : FamilyView<ExpensesState> {
-    var onRefresh: Observable<Any>
+    val onRefresh: Observable<Any>
+    val onDelete: Observable<Expenses>
 }
 
-data class ExpensesState(val expenses: List<Expenses> = emptyList(), val isLoading: Boolean = false, val debts: List<StatisticEntry> = emptyList(), val familyMembers: List<User> = emptyList()) : FamilyState
+data class ExpensesState(val expenses: List<Expenses> = emptyList(), val isLoading: Boolean = false, val debts: List<StatisticEntry> = emptyList(), val familyMembers: List<User> = emptyList(), val hasChanged: Boolean = false) : FamilyState

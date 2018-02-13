@@ -9,6 +9,14 @@
         android:layout_width="match_parent"
         android:layout_height="100dp" />
 
+    <TextView
+        android:id="@+id/textUpdateAvailable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/update_available"
+        android:textColor="@color/red"
+        android:visibility="gone" />
+
     <include
         layout="@layout/expenses_header"
         android:layout_width="match_parent"

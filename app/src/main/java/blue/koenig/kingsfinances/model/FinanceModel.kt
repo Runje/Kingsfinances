@@ -9,7 +9,6 @@ import blue.koenig.kingsfamilylibrary.view.family.FamilyView
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler
 import blue.koenig.kingsfinances.R
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
-import blue.koenig.kingsfinances.features.standing_orders.StandingOrderExecutor
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
@@ -25,6 +24,7 @@ import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
 import com.koenig.commonModel.finance.Expenses
 import com.koenig.commonModel.finance.StandingOrder
+import com.koenig.commonModel.finance.features.StandingOrderExecutor
 import com.koenig.communication.messages.AUDMessage
 import com.koenig.communication.messages.AskForUpdatesMessage
 import com.koenig.communication.messages.FamilyMessage
@@ -48,7 +48,6 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
     private val categoryService: FinanceCategoryService
     private var pendingView: PendingView? = null
     private var succesMessages: Int = 0
-    private var allExpenses: List<Expenses>? = null
     private var updateMessages: Int = 0
     private val financeView: FinanceView
         get() = view as FinanceView
@@ -57,14 +56,18 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         logger.info("Start")
         // start executing standing orders after while because at the beginning is so much work done
         Observable.timer(20, TimeUnit.SECONDS).observeOn(Schedulers.computation()).subscribe {
-            logger.info("Executing standing orders...")
-            standingOrderExecutor.executeForAll()
-            if (standingOrderExecutor.consistencyCheck()) {
-                logger.info("Consistency Check for standing orders passed")
-            } else {
-                logger.error("Consistency Check for standing orders failed")
-                view.showText("Consistency Check for standing orders failed")
-            }
+            executeStandingOrders()
+        }
+    }
+
+    private fun executeStandingOrders() {
+        logger.info("Executing standing orders...")
+        standingOrderExecutor.executeForAll()
+        if (standingOrderExecutor.consistencyCheck()) {
+            logger.info("Consistency Check for standing orders passed")
+        } else {
+            logger.error("Consistency Check for standing orders failed")
+            view.showText("Consistency Check for standing orders failed")
         }
     }
 
@@ -80,20 +83,6 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         }
 
 
-    // TODO: dauert viel zu lange, im Hintergrund ausführen oder hier zwischenspeichern und nur ab und zu aktualisieren, oder nur die ersten 100 zurückliefern
-    val expenses: List<Expenses>?
-        get() {
-            //if (allExpenses != null) return allExpenses
-            try {
-                allExpenses = database.allExpenses
-                return allExpenses
-            } catch (e: SQLException) {
-                logger.error("Couldn't get expenses: " + e.message)
-            }
-
-
-            return ArrayList()
-        }
 
     val standingOrders: List<StandingOrder>
         get() {
@@ -445,6 +434,9 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
             makeAddOperation(standingOrder)
             database.addStandingOrder(standingOrder)
             updateAllStandingOrders()
+            Observable.timer(1, TimeUnit.SECONDS).observeOn(Schedulers.computation()).subscribe {
+                executeStandingOrders()
+            }
         } catch (e: SQLException) {
             logger.error("Error while adding standingOrder: " + e.message)
         }
@@ -456,6 +448,9 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         try {
             database.updateStandingOrder(standingOrder)
             updateAllStandingOrders()
+            Observable.timer(1, TimeUnit.SECONDS).observeOn(Schedulers.computation()).subscribe {
+                executeStandingOrders()
+            }
         } catch (e: SQLException) {
             logger.error("Error while updating standingOrder: " + e.message)
         }

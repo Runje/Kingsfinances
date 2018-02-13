@@ -139,4 +139,5 @@
     <string name="month">Monat</string>
     <string name="goal">Ziel</string>
     <string name="menu_refresh">Aktualisieren</string>
+    <string name="update_available">Updates verfügbar</string>
 </resources>

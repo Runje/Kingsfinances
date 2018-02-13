@@ -1,10 +1,10 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.features.standing_orders.getExecutionDatesUntil
 import com.koenig.FamilyConstants
 import com.koenig.commonModel.Frequency
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.StandingOrder
+import com.koenig.commonModel.finance.features.getExecutionDatesUntil
 import junit.framework.Assert
 import org.joda.time.DateTime
 import org.joda.time.Period
