@@ -15,7 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class StatisticsCalculator {
     protected Period period;
     protected StatisticsCalculatorService service;
-    protected List<StatisticEntry> statisticEntryList;
+    protected List<StatisticEntryDeprecated> statisticEntryList;
     protected ReentrantLock lock = new ReentrantLock();
 
     public StatisticsCalculator(Period period, StatisticsCalculatorService service) {
@@ -29,7 +29,7 @@ public abstract class StatisticsCalculator {
         return date.dayOfMonth().get() == 1 ? date.minus(Period.months(1)) : date.withDayOfMonth(1);
     }
 
-    protected void updateStatistics(StatisticEntry statisticEntry) {
+    protected void updateStatistics(StatisticEntryDeprecated statisticEntry) {
         lock.lock();
         statisticEntryList = calculateNewStatistics(statisticEntry, period, statisticEntryList);
         service.saveStatistics(statisticEntryList);
@@ -37,9 +37,9 @@ public abstract class StatisticsCalculator {
     }
 
 
-    protected abstract List<StatisticEntry> calculateNewStatistics(StatisticEntry statisticEntry, Period period, List<StatisticEntry> statisticEntryList);
+    protected abstract List<StatisticEntryDeprecated> calculateNewStatistics(StatisticEntryDeprecated statisticEntry, Period period, List<StatisticEntryDeprecated> statisticEntryList);
 
-    public List<StatisticEntry> getEntrys() {
+    public List<StatisticEntryDeprecated> getEntrys() {
         return statisticEntryList;
     }
 }

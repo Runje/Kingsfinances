@@ -1,14 +1,14 @@
 package blue.koenig.kingsfinances.features.expenses
 
-import android.content.Context
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
 import blue.koenig.kingsfinances.features.FamilyPresenter
 import blue.koenig.kingsfinances.features.FamilyState
 import blue.koenig.kingsfinances.features.FamilyView
 import blue.koenig.kingsfinances.features.pending_operations.OperationExecutor
+import blue.koenig.kingsfinances.model.FinanceConfig
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
+import com.koenig.FamilyConstants
 import com.koenig.commonModel.ItemType
 import com.koenig.commonModel.Repository.ExpensesRepository
 import com.koenig.commonModel.User
@@ -22,22 +22,19 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by Thomas on 04.02.2018.
  */
-class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMembers: List<User>, val connection: ServerConnection, val context: Context, val debtsCalculator: DebtsCalculator, val operationExecutor: OperationExecutor) : FamilyPresenter<ExpensesState, ExpensesView>() {
+class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMembers: List<User>, val connection: ServerConnection, val config: FinanceConfig, val debtsCalculator: DebtsCalculator, val operationExecutor: OperationExecutor) : FamilyPresenter<ExpensesState, ExpensesView>() {
 
     init {
-        state = ExpensesState(familyMembers = familyMembers)
+        state = ExpensesState(familyMembers = familyMembers, userId = config.userId)
 
-        // TODO: listen to changes of family members!
+        // TODO: listen to changes of family members and userId!
         expensesRepository.hasChanged.observeOn(AndroidSchedulers.mainThread()).subscribe { update(state.copy(hasChanged = it)) }
 
         // udpates from server are reflected in the expensesRepository
-
-
     }
 
 
     override fun start() {
-
         // subscribe to events from view
         view?.let {
             disposables.add(it.onRefresh.subscribe {
@@ -47,7 +44,7 @@ class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMember
                 Observable.fromCallable {
                     // TODO: make server requestor which handles it, requestor.askForExpenses()
                     // TODO: make answerTo ID in msg header to check for answer!
-                    connection.sendFamilyMessage(AskForUpdatesMessage.askForExpenses(FamilyConfig.getLastSyncDate(context, ItemType.EXPENSES.name)))
+                    connection.sendFamilyMessage(AskForUpdatesMessage.askForExpenses(config.getLastSyncDate(ItemType.EXPENSES.name)))
                     items = expensesRepository.allItems
                 }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
                     update(state.copy(expenses = items, debts = debtsCalculator.entrys, hasChanged = false))
@@ -76,7 +73,7 @@ class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMember
         Observable.fromCallable { update(state.copy(isLoading = true)) }.subscribeOn(AndroidSchedulers.mainThread()).subscribe()
 
         lateinit var items: List<Expenses>
-        lateinit var debts: List<StatisticEntry>
+        lateinit var debts: List<StatisticEntryDeprecated>
         Observable.fromCallable {
             logger.info("Calling all items")
             items = expensesRepository.allItems
@@ -95,4 +92,4 @@ interface ExpensesView : FamilyView<ExpensesState> {
     val onDelete: Observable<Expenses>
 }
 
-data class ExpensesState(val expenses: List<Expenses> = emptyList(), val isLoading: Boolean = false, val debts: List<StatisticEntry> = emptyList(), val familyMembers: List<User> = emptyList(), val hasChanged: Boolean = false) : FamilyState
+data class ExpensesState(val expenses: List<Expenses> = emptyList(), val isLoading: Boolean = false, val debts: List<StatisticEntryDeprecated> = emptyList(), val familyMembers: List<User> = emptyList(), val hasChanged: Boolean = false, val userId: String = FamilyConstants.NO_ID) : FamilyState

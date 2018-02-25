@@ -19,9 +19,9 @@ class IncomeCalculator(period: Period, expensesTable: ItemSubject<Expenses>, ser
     private fun updateExpenses(oldItem: Expenses, newItem: Expenses) {
         if (newItem.date == oldItem.date) {
             if (oldItem.costs > 0 || newItem.costs > 0) {
-                val statisticEntry = StatisticEntry(newItem.date)
-                statisticEntry.addTheoryCosts(newItem.getCostDistribution())
-                statisticEntry.subtractTheoryCosts(oldItem.getCostDistribution())
+                val statisticEntry = StatisticEntryDeprecated(newItem.date)
+                statisticEntry.addTheoryCosts(newItem.costDistribution)
+                statisticEntry.subtractTheoryCosts(oldItem.costDistribution)
                 updateStatistics(statisticEntry)
             }
         } else {
@@ -33,16 +33,16 @@ class IncomeCalculator(period: Period, expensesTable: ItemSubject<Expenses>, ser
 
     private fun deleteExpenses(item: Expenses) {
         if (item.costs > 0) {
-            val statisticEntry = StatisticEntry(item.date)
-            statisticEntry.subtractTheoryCosts(item.getCostDistribution())
+            val statisticEntry = StatisticEntryDeprecated(item.date)
+            statisticEntry.subtractTheoryCosts(item.costDistribution)
             updateStatistics(statisticEntry)
         }
     }
 
     private fun addExpenses(item: Expenses) {
         if (item.costs > 0) {
-            val statisticEntry = StatisticEntry(item.date)
-            statisticEntry.addTheoryCosts(item.getCostDistribution())
+            val statisticEntry = StatisticEntryDeprecated(item.date)
+            statisticEntry.addTheoryCosts(item.costDistribution)
             updateStatistics(statisticEntry)
         }
     }

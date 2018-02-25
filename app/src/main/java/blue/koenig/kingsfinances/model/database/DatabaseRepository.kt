@@ -48,7 +48,11 @@ abstract class DbRepository<T : Item>(protected val table: Table<T>, userIdObser
     }
 }
 
-class ExpensesDbRepository(expensesTable: ExpensesTable, userIdObservable: Observable<String>) : DbRepository<Expenses>(expensesTable, userIdObservable), ExpensesRepository
+class ExpensesDbRepository(private val expensesTable: ExpensesTable, userIdObservable: Observable<String>) : DbRepository<Expenses>(expensesTable, userIdObservable), ExpensesRepository {
+    override val compensations: Map<DateTime, Expenses>
+        get() = expensesTable.compensations
+}
+
 class StandingOrderDbRepository(val standingOrderTable: StandingOrderTable, userIdObservable: Observable<String>) : DbRepository<StandingOrder>(standingOrderTable, userIdObservable), StandingOrderRepository {
     // TODO: move to other file
     override fun addExpensesToStandingOrders(standingOrderId: String, expensesId: String, dateTime: DateTime) {

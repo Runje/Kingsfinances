@@ -83,10 +83,10 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
 
         });
 
-        TextView name = (TextView) convertView.findViewById(R.id.text_name);
-        TextView category = (TextView) convertView.findViewById(R.id.text_category);
-        TextView costs = (TextView) convertView.findViewById(R.id.text_costs);
-        TextView date = (TextView) convertView.findViewById(R.id.text_date);
+        TextView name = convertView.findViewById(R.id.text_name);
+        TextView category = convertView.findViewById(R.id.text_category);
+        TextView costs = convertView.findViewById(R.id.text_costs);
+        TextView date = convertView.findViewById(R.id.text_date);
 
 
         if (bigWidth) {
@@ -95,9 +95,9 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
                 TextView costView = convertView.findViewById(usersId.get(user));
                 costView.setText(costsFor.toEuroString());
                 int colorRes;
-                if (costsFor.Theory > 0) {
+                if (costsFor.getTheory() > 0) {
                     colorRes = R.color.positive_highlight;
-                } else if (costsFor.Theory < 0) {
+                } else if (costsFor.getTheory() < 0) {
                     colorRes = R.color.negative_highlight;
                 } else {
                     colorRes = R.color.normalText;

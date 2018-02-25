@@ -29,7 +29,7 @@ import blue.koenig.kingsfinances.dagger.FinanceApplication;
 import blue.koenig.kingsfinances.features.statistics.StatisticsPresenter;
 import blue.koenig.kingsfinances.features.statistics.StatisticsState;
 import blue.koenig.kingsfinances.features.statistics.StatisticsView;
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 import blue.koenig.kingsfinances.view.ChartHelper;
 import blue.koenig.kingsfinances.view.lists.ListAdapter;
 
@@ -107,7 +107,7 @@ public class StatisticsFragment extends Fragment implements StatisticsView {
         });
     }
 
-    private void updateLinechart(List<StatisticEntry> statisticEntryList, List<User> users) {
+    private void updateLinechart(List<StatisticEntryDeprecated> statisticEntryList, List<User> users) {
         LineData lineData = ChartHelper.entrysToLineData(statisticEntryList, new int[]{Color.BLUE, Color.RED, Color.GREEN, Color.GRAY, Color.WHITE}, users);
         lineChart.setData(lineData);
 

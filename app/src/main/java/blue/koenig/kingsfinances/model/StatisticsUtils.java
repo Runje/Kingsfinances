@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 
 /**
  * Created by Thomas on 20.01.2018.
@@ -41,20 +41,20 @@ public class StatisticsUtils {
         return months;
     }
 
-    public static StatisticEntry calcDifferenceInPeriod(DateTime startDate, DateTime endDate, List<StatisticEntry> entrys) {
+    public static StatisticEntryDeprecated calcDifferenceInPeriod(DateTime startDate, DateTime endDate, List<StatisticEntryDeprecated> entrys) {
         assert startDate.getDayOfMonth() == 1;
         assert endDate.getDayOfMonth() == 1;
-        StatisticEntry allSavings = new StatisticEntry(endDate);
+        StatisticEntryDeprecated allSavings = new StatisticEntryDeprecated(endDate);
 
 
-        StatisticEntry first = entrys.size() > 0 ? entrys.get(0) : null;
+        StatisticEntryDeprecated first = entrys.size() > 0 ? entrys.get(0) : null;
 
         if (first == null || first.getDate().withTimeAtStartOfDay().isAfter(endDate.withTimeAtStartOfDay())) {
             return allSavings;
         }
 
-        StatisticEntry last = entrys.size() > 0 ? entrys.get(entrys.size() - 1) : null;
-        for (StatisticEntry entry : entrys) {
+        StatisticEntryDeprecated last = entrys.size() > 0 ? entrys.get(entrys.size() - 1) : null;
+        for (StatisticEntryDeprecated entry : entrys) {
             if (!entry.getDate().withTimeAtStartOfDay().isAfter(startDate.withTimeAtStartOfDay())) {
                 // it is nearer at the start date
                 first = entry;

@@ -7,7 +7,7 @@ import com.koenig.commonModel.finance.StandingOrder;
 import java.util.List;
 
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView;
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 
 /**
  * Created by Thomas on 18.10.2017.
@@ -21,6 +21,6 @@ public interface FinanceView extends FamilyView {
 
     void updateBankAccounts(List<BankAccount> bankAccounts);
 
-    void updateAssets(List<StatisticEntry> assets);
+    void updateAssets(List<StatisticEntryDeprecated> assets);
 
 }

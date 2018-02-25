@@ -1,39 +1,42 @@
 package blue.koenig.kingsfinances.features.category_statistics
 
 import blue.koenig.kingsfinances.model.StatisticsUtils
-import blue.koenig.kingsfinances.model.calculation.AccumulativeStatisticsCalculator
-import blue.koenig.kingsfinances.model.calculation.ItemSubject
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.*
 import com.google.common.collect.Lists
 import com.koenig.commonModel.finance.Expenses
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import org.joda.time.DateTime
 import org.joda.time.Period
+import org.joda.time.YearMonth
+import org.joda.time.Years
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Created by Thomas on 28.12.2017.
  */
-
+// Only save delta statistics and calculate the rest
 class CategoryCalculator(protected var period: Period, expensesTable: ItemSubject<Expenses>, protected var service: CategoryCalculatorService) {
-    private val categoryMapAsObservable: BehaviorSubject<Map<String, List<StatisticEntry>>>
+    private val deltaCategoryMapForAllObservable: BehaviorSubject<Map<YearMonth, MonthStatistic>> = BehaviorSubject.createDefault(HashMap())
+    val allCategory = "ALL_CATEGORYS"
     val yearsList: List<String>
     val monthsList: List<String>
-    protected var lock = ReentrantLock()
-    private val categoryMap: MutableMap<String, List<StatisticEntry>>
+    private var lock = ReentrantLock()
+
+    private val deltaCategoryMap: MutableMap<String, MutableMap<YearMonth, MonthStatistic>> = service.deltaCategoryMap
+
+    private val absoluteCategoryMap: MutableMap<String, MutableMap<YearMonth, MonthStatistic>> = service.absoluteCategoryMap
+
     val startDate: DateTime
 
-    val allStatistics: Observable<Map<String, List<StatisticEntry>>>
-        get() = categoryMapAsObservable.hide()
+    val deltaStatisticsForAll: Observable<Map<YearMonth, MonthStatistic>>
+        get() = deltaCategoryMapForAllObservable.hide()
 
     val overallString: String
         get() = service.overallString
 
     init {
-        categoryMap = service.categoryMap
-        categoryMapAsObservable = BehaviorSubject.createDefault(HashMap())
         yearsList = generateYearsList()
         monthsList = generateMonthsList()
         startDate = service.startDate
@@ -43,42 +46,101 @@ class CategoryCalculator(protected var period: Period, expensesTable: ItemSubjec
     }
 
     private fun updateExpenses(oldItem: Expenses, newItem: Expenses) {
-        if (newItem.date == oldItem.date && newItem.category == oldItem.category) {
-            val statisticEntry = StatisticEntry.fromTheoryCosts(newItem.date, newItem.getCostDistribution())
-            statisticEntry.subtractEntry(StatisticEntry.fromTheoryCosts(oldItem.date, oldItem.getCostDistribution()))
-            updateStatistics(statisticEntry, newItem.category)
-        } else {
-            // if date has changed, delete old one and add new item
-            deleteExpenses(oldItem)
-            addExpenses(newItem)
-        }
+        deleteExpenses(oldItem)
+        addExpenses(newItem)
     }
 
     private fun deleteExpenses(item: Expenses) {
-        val statisticEntry = StatisticEntry(item.date)
-        statisticEntry.subtractTheoryCosts(item.getCostDistribution())
-        updateStatistics(statisticEntry, item.category)
+        val statisticEntry = StatisticEntryDeprecated(item.date)
+        statisticEntry.subtractTheoryCosts(item.costDistribution)
+        updateStatistics(MonthStatistic.fromCostDistributionTakeTheory(item.date.yearMonth, item.costDistribution, negative = true), item.category)
     }
 
-    protected fun updateStatistics(statisticEntry: StatisticEntry, category: String) {
+    private fun updateStatistics(deltaEntry: MonthStatistic, category: String) {
         lock.lock()
-        val statisticEntryList = AccumulativeStatisticsCalculator.updateStatistics(statisticEntry, period, getStatisticsFor(category))
-        categoryMap[category] = statisticEntryList
-        service.saveStatistics(categoryMap)
+
+
+        // update deltamap: only update the according month
+        deltaCategoryMap[category]?.let {
+            it[deltaEntry.month] = (it[deltaEntry.month]
+                    ?: MonthStatistic(deltaEntry.month)) + deltaEntry
+        } ?: kotlin.run {
+            // create new map
+            deltaCategoryMap[category] = mutableMapOf(deltaEntry.month to deltaEntry)
+        }
+
+        // update all category
+        deltaCategoryMap[allCategory]?.let {
+            it[deltaEntry.month] = (it[deltaEntry.month]
+                    ?: MonthStatistic(deltaEntry.month)) + deltaEntry
+        } ?: kotlin.run {
+            // create new map
+            deltaCategoryMap[allCategory] = mutableMapOf(deltaEntry.month to deltaEntry)
+        }
+
+        // fill up month -1 to calculate correct statistics depending on this value
+        val lastMonth = deltaEntry.month.minusMonths(1)
+        absoluteCategoryMap[category]?.let {
+            if (it[lastMonth] == null) {
+                it[lastMonth] = lastEntryBefore(lastMonth, it).withMonth(lastMonth)
+            }
+        }
+
+        absoluteCategoryMap[allCategory]?.let {
+            if (it[lastMonth] == null) {
+                it[lastMonth] = lastEntryBefore(lastMonth, it).withMonth(lastMonth)
+            }
+        }
+        // update absolute map: update according and following months
+        for (month in yearMonthRange(deltaEntry.month, service.endDate)) {
+            absoluteCategoryMap[category]?.let {
+                // take value from last month if not there
+                it[month] = (it[month] ?: it[month.minusMonths(1)]?.withMonth(month)
+                ?: MonthStatistic(month)) + deltaEntry
+            } ?: kotlin.run {
+                // create new map
+                absoluteCategoryMap[category] = mutableMapOf(month to deltaEntry)
+            }
+
+            absoluteCategoryMap[allCategory]?.let {
+                // take value from last month if not there
+                it[month] = (it[month] ?: it[month.minusMonths(1)]?.withMonth(month)
+                ?: MonthStatistic(month)) + deltaEntry
+            } ?: kotlin.run {
+                // create new map
+                absoluteCategoryMap[allCategory] = mutableMapOf(month to deltaEntry)
+            }
+        }
+
+        service.saveStatistics(deltaCategoryMap, absoluteCategoryMap)
+        deltaCategoryMapForAllObservable.onNext(deltaCategoryMap[allCategory] ?: emptyMap())
         lock.unlock()
     }
 
-    fun getStatisticsFor(category: String): List<StatisticEntry> {
-        val entries = categoryMap[category]
-        return entries ?: ArrayList()
+    private fun lastEntryBefore(month: YearMonth, map: Map<YearMonth, MonthStatistic>): MonthStatistic {
+        var lastValue = MonthStatistic(YearMonth(0, 1))
+
+        map.values.forEach {
+            if (it.month < month && it.month > lastValue.month) lastValue = it
+        }
+
+        return lastValue
     }
 
-    fun getCategoryMap(): Map<String, List<StatisticEntry>> {
-        return categoryMap
+
+    fun getDeltaStatisticsFor(category: String): Map<YearMonth, MonthStatistic> {
+        val entries = deltaCategoryMap[category]
+        return entries ?: emptyMap<YearMonth, MonthStatistic>()
     }
+
+    fun getAbsoluteStatisticsFor(category: String): Map<YearMonth, MonthStatistic> {
+        val entries = absoluteCategoryMap[category]
+        return entries ?: emptyMap<YearMonth, MonthStatistic>()
+    }
+
 
     private fun addExpenses(item: Expenses) {
-        updateStatistics(StatisticEntry.fromTheoryCosts(item.date, item.getCostDistribution()), item.category)
+        updateStatistics(MonthStatistic.fromCostDistributionTakeTheory(item.date.yearMonth, item.costDistribution), item.category)
     }
 
     private fun generateYearsList(): List<String> {
@@ -93,13 +155,45 @@ class CategoryCalculator(protected var period: Period, expensesTable: ItemSubjec
         return list
     }
 
-    fun getCategoryStatistics(startDate: DateTime, endDate: DateTime): List<CategoryStatistics> {
-        val categoryStatistics = ArrayList<CategoryStatistics>(categoryMap.size)
-        for (category in categoryMap.keys) {
-            val value = StatisticsUtils.calcDifferenceInPeriod(startDate, endDate, categoryMap[category])
-            categoryStatistics.add(CategoryStatistics(category, value.sum, service.getGoalFor(category, startDate, endDate)))
+    fun getCategoryStatistics(month: YearMonth): List<CategoryStatistics> {
+        val result = mutableListOf<CategoryStatistics>()
+        for ((category, map) in deltaCategoryMap) {
+            result.add(CategoryStatistics(category, map[month]?.sum
+                    ?: 0, service.getGoalFor(category, month).toInt()))
         }
 
-        return categoryStatistics
+        return result
+    }
+
+    fun getCategoryStatistics(year: Years): List<CategoryStatistics> {
+        return getCategoryStatistics(YearMonth(year.years, 1), YearMonth(year.years, 12))
+    }
+
+    fun getCategoryStatistics(start: YearMonth, end: YearMonth): List<CategoryStatistics> {
+        val result = mutableListOf<CategoryStatistics>()
+
+        for ((category, map) in deltaCategoryMap) {
+            // sum values for each month of the year
+            var sum = 0
+            var goal = 0.0
+            yearMonthRange(start, end).forEach {
+                sum += map[it]?.sum ?: 0
+                goal += service.getGoalFor(category, it)
+            }
+            result.add(CategoryStatistics(category, sum, goal.toInt()))
+        }
+
+        return result
+    }
+
+    fun getAbsoluteStatisticsForAll(): Map<YearMonth, MonthStatistic> {
+        return absoluteCategoryMap[allCategory] ?: emptyMap()
     }
 }
+
+val Years.months: List<YearMonth>
+    get() {
+        return yearMonthRange(YearMonth(years, 1), YearMonth(years, 12))
+    }
+
+

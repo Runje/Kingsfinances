@@ -14,7 +14,7 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel
 import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity
 import blue.koenig.kingsfinances.dagger.FinanceApplication
 import blue.koenig.kingsfinances.model.FinanceModel
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.view.BankAccountDialog
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter
 import blue.koenig.kingsfinances.view.FinanceView
@@ -147,7 +147,7 @@ class OverviewActivity : FamilyActivity(), FinanceView, NavigationView.OnNavigat
         }
     }
 
-    override fun updateAssets(assets: List<StatisticEntry>) {
+    override fun updateAssets(assets: List<StatisticEntryDeprecated>) {
         val accountFragment = pageAdapter!!.accountFragment
         if (accountFragment != null) {
             runOnUiThread { accountFragment.updateAssets(assets) }

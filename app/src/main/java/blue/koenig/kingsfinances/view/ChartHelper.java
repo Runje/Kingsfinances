@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 
 /**
  * Created by Thomas on 05.01.2018.
@@ -20,9 +20,9 @@ import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
 
 public class ChartHelper {
 
-    public static List<String> entrysToMonthXValues(List<StatisticEntry> statisticEntryList) {
+    public static List<String> entrysToMonthXValues(List<StatisticEntryDeprecated> statisticEntryList) {
         ArrayList<String> xEntrys = new ArrayList<>(statisticEntryList.size());
-        for (StatisticEntry debt : statisticEntryList) {
+        for (StatisticEntryDeprecated debt : statisticEntryList) {
             String dateString = debt.getDate().toString("MM/yy");
             xEntrys.add(dateString);
         }
@@ -31,7 +31,7 @@ public class ChartHelper {
 
     }
 
-    public static LineData entrysToLineData(List<StatisticEntry> debts, String userId, int color) {
+    public static LineData entrysToLineData(List<StatisticEntryDeprecated> debts, String userId, int color) {
         // One debts not possible
         if (debts.size() <= 1) return new LineData();
         Map<User, Integer> debtsMap = debts.get(1).getEntryMap();
@@ -41,7 +41,7 @@ public class ChartHelper {
             if (user.getId().equals(userId)) {
                 ArrayList<Entry> userEntrys = new ArrayList<>(debts.size());
                 int i = 0;
-                for (StatisticEntry debt : debts) {
+                for (StatisticEntryDeprecated debt : debts) {
                     Integer entryForNullabe = debt.getEntryForNullabe(user);
                     if (entryForNullabe != null) {
                         int value = entryForNullabe;
@@ -69,7 +69,7 @@ public class ChartHelper {
         return lineData;
     }
 
-    public static LineData entrysToLineData(List<StatisticEntry> entries, int[] colors, List<User> users) {
+    public static LineData entrysToLineData(List<StatisticEntryDeprecated> entries, int[] colors, List<User> users) {
         // One entries not possible
         if (entries.size() <= 1) return new LineData();
         ArrayList<ILineDataSet> dataSets = new ArrayList<>();
@@ -78,7 +78,7 @@ public class ChartHelper {
         for (User user : users) {
             int i = 0;
             ArrayList<Entry> userEntrys = new ArrayList<>(entries.size());
-            for (StatisticEntry debt : entries) {
+            for (StatisticEntryDeprecated debt : entries) {
                 Integer entryForNullabe = debt.getEntryForNullabe(user);
                 if (entryForNullabe != null) {
                     int value = entryForNullabe;

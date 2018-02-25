@@ -22,18 +22,18 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
         statisticEntryList = service.getSavedSortedStatistics();
     }
 
-    public static List<StatisticEntry> updateStatistics(StatisticEntry statisticEntryDelta, Period period, List<StatisticEntry> statisticEntryList) {
+    public static List<StatisticEntryDeprecated> updateStatistics(StatisticEntryDeprecated statisticEntryDelta, Period period, List<StatisticEntryDeprecated> statisticEntryList) {
         DateTime date = statisticEntryDelta.getDate();
         DateTime startDate = getStartDate(date);
         DateTime nextDate = startDate.plus(period);
 
         if (statisticEntryList.size() == 0) {
-            statisticEntryList.add(new StatisticEntry(startDate));
+            statisticEntryList.add(new StatisticEntryDeprecated(startDate));
             statisticEntryDelta.setDate(nextDate);
             statisticEntryList.add(statisticEntryDelta);
             return statisticEntryList;
         } else {
-            for (StatisticEntry statisticEntry : statisticEntryList) {
+            for (StatisticEntryDeprecated statisticEntry : statisticEntryList) {
                 // change all debts after the delta
                 if (!statisticEntry.getDate().isBefore(date)) {
                     statisticEntry.addEntry(statisticEntryDelta);
@@ -42,13 +42,13 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
 
             DateTime firstDate = statisticEntryList.get(0).getDate();
             // date of last debt + 1
-            StatisticEntry lastStatisticEntry = statisticEntryList.get(statisticEntryList.size() - 1);
+            StatisticEntryDeprecated lastStatisticEntry = statisticEntryList.get(statisticEntryList.size() - 1);
             if (lastStatisticEntry.getDate().isBefore(statisticEntryDelta.getDate())) {
                 nextDate = lastStatisticEntry.getDate().plus(period);
 
                 // add debts after list
                 while (date.isAfter(nextDate)) {
-                    StatisticEntry statisticEntry = new StatisticEntry(lastStatisticEntry);
+                    StatisticEntryDeprecated statisticEntry = new StatisticEntryDeprecated(lastStatisticEntry);
                     // add delta only if it next date is after date of delta
                     if (nextDate.isAfter(statisticEntryDelta.getDate())) {
                         statisticEntry.addEntry(statisticEntryDelta);
@@ -58,21 +58,21 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
                     statisticEntryList.add(statisticEntry);
                     nextDate = nextDate.plus(period);
                 }
-                StatisticEntry statisticEntry = new StatisticEntry(lastStatisticEntry);
+                StatisticEntryDeprecated statisticEntry = new StatisticEntryDeprecated(lastStatisticEntry);
                 statisticEntry.addEntry(statisticEntryDelta);
                 statisticEntry.setDate(nextDate);
-                statisticEntryList.add(new StatisticEntry(statisticEntry));
+                statisticEntryList.add(new StatisticEntryDeprecated(statisticEntry));
             } else if (firstDate.isAfter(statisticEntryDelta.getDate())) {
 
                 // add missing debts before all
                 // TODO: instead of months between, period.between
-                List<StatisticEntry> newStatisticEntryAtBeginning = new ArrayList<>(Months.monthsBetween(startDate, firstDate).getMonths() + statisticEntryList.size());
+                List<StatisticEntryDeprecated> newStatisticEntryAtBeginning = new ArrayList<>(Months.monthsBetween(startDate, firstDate).getMonths() + statisticEntryList.size());
                 if (firstDate.isAfter(startDate)) {
-                    newStatisticEntryAtBeginning.add(new StatisticEntry(startDate));
+                    newStatisticEntryAtBeginning.add(new StatisticEntryDeprecated(startDate));
                 }
 
                 while (firstDate.isAfter(nextDate)) {
-                    newStatisticEntryAtBeginning.add(new StatisticEntry(nextDate, statisticEntryDelta.getEntryMap()));
+                    newStatisticEntryAtBeginning.add(new StatisticEntryDeprecated(nextDate, statisticEntryDelta.getEntryMap()));
                     nextDate = nextDate.plus(period);
                 }
 
@@ -86,7 +86,7 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
     }
 
     @Deprecated
-    public static List<StatisticEntry> recalculateAll(List<Expenses> expensesList, Period period) {
+    public static List<StatisticEntryDeprecated> recalculateAll(List<Expenses> expensesList, Period period) {
         if (expensesList.size() == 0) return new ArrayList<>();
 
         DateTime date = expensesList.get(0).getDate();
@@ -94,15 +94,15 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
         DateTime startDate = getStartDate(date);
         DateTime nextDate = startDate.plus(period);
         int size = Months.monthsBetween(startDate, expensesList.get(expensesList.size() - 1).getDate()).getMonths() + 2;
-        List<StatisticEntry> statisticEntryList = new ArrayList<>(size);
-        StatisticEntry statisticEntry = new StatisticEntry();
+        List<StatisticEntryDeprecated> statisticEntryList = new ArrayList<>(size);
+        StatisticEntryDeprecated statisticEntry = new StatisticEntryDeprecated();
         statisticEntry.setDate(startDate);
-        statisticEntryList.add(new StatisticEntry(statisticEntry));
+        statisticEntryList.add(new StatisticEntryDeprecated(statisticEntry));
         for (Expenses expenses : expensesList) {
             while (expenses.getDate().isAfter(nextDate)) {
                 statisticEntry.setDate(nextDate);
                 // add copy
-                statisticEntryList.add(new StatisticEntry(statisticEntry));
+                statisticEntryList.add(new StatisticEntryDeprecated(statisticEntry));
                 nextDate = nextDate.plus(period);
             }
 
@@ -115,7 +115,7 @@ public class AccumulativeStatisticsCalculator extends StatisticsCalculator {
     }
 
     @Override
-    protected List<StatisticEntry> calculateNewStatistics(StatisticEntry statisticEntry, Period period, List<StatisticEntry> statisticEntryList) {
+    protected List<StatisticEntryDeprecated> calculateNewStatistics(StatisticEntryDeprecated statisticEntry, Period period, List<StatisticEntryDeprecated> statisticEntryList) {
         return updateStatistics(statisticEntry, period, statisticEntryList);
     }
 

@@ -39,7 +39,7 @@ public class BankAccountTable extends Table<BankAccount> {
     @Override
     protected void setItem(ContentValues values, BankAccount item) {
         values.put(BANK, item.getBank());
-        values.put(BALANCES, Balance.listToBytes(item.getBalances()));
+        values.put(BALANCES, Balance.Companion.listToBytes(item.getBalances()));
         values.put(OWNERS, usersToId(item.getOwners()));
     }
 
@@ -59,7 +59,7 @@ public class BankAccountTable extends Table<BankAccount> {
 
     private List<Balance> getBalances(Cursor cursor, String column) {
         byte[] bytes = cursor.getBlob(cursor.getColumnIndex(column));
-        return Balance.getBalances(bytes);
+        return Balance.Companion.getBalances(bytes);
     }
 
 
@@ -76,7 +76,7 @@ public class BankAccountTable extends Table<BankAccount> {
     @Override
     protected void bindItem(SQLiteStatement statement, Map<String, Integer> map, BankAccount item) {
         statement.bindString(map.get(BANK), item.getBank());
-        statement.bindBlob(map.get(BALANCES), Balance.listToBytes(item.getBalances()));
+        statement.bindBlob(map.get(BALANCES), Balance.Companion.listToBytes(item.getBalances()));
         statement.bindString(map.get(OWNERS), usersToId(item.getOwners()));
     }
 

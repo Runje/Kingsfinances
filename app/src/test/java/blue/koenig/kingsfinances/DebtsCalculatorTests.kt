@@ -2,7 +2,7 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.model.calculation.AccumulativeStatisticsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Expenses
 import junit.framework.Assert
@@ -32,12 +32,12 @@ class DebtsCalculatorTests {
         Assert.assertEquals(2, debts.size)
 
         var debt = debts.get(0)
-        Assert.assertEquals(TestHelper.getDay(2016, 12, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2016, 12, 1), debt.date)
         Assert.assertEquals(0, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(0, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(1)
-        Assert.assertEquals(TestHelper.getDay(2017, 1, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 1, 1), debt.date)
         Assert.assertEquals(-10, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(10, debt.getEntryFor(TestHelper.milena))
     }
@@ -52,17 +52,17 @@ class DebtsCalculatorTests {
         Assert.assertEquals(3, debts.size)
 
         var debt = debts.get(0)
-        Assert.assertEquals(TestHelper.getDay(2016, 12, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2016, 12, 1), debt.date)
         Assert.assertEquals(0, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(0, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(1)
-        Assert.assertEquals(TestHelper.getDay(2017, 1, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 1, 1), debt.date)
         Assert.assertEquals(-10, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(10, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(2)
-        Assert.assertEquals(TestHelper.getDay(2017, 2, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 2, 1), debt.date)
         Assert.assertEquals(-5, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(5, debt.getEntryFor(TestHelper.milena))
     }
@@ -79,27 +79,27 @@ class DebtsCalculatorTests {
         Assert.assertEquals(5, debts.size)
 
         var debt = debts.get(0)
-        Assert.assertEquals(TestHelper.getDay(2016, 12, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2016, 12, 1), debt.date)
         Assert.assertEquals(0, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(0, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(1)
-        Assert.assertEquals(TestHelper.getDay(2017, 1, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 1, 1), debt.date)
         Assert.assertEquals(-20, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(20, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(2)
-        Assert.assertEquals(TestHelper.getDay(2017, 2, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 2, 1), debt.date)
         Assert.assertEquals(-15, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(15, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(3)
-        Assert.assertEquals(TestHelper.getDay(2017, 3, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 3, 1), debt.date)
         Assert.assertEquals(-15, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(15, debt.getEntryFor(TestHelper.milena))
 
         debt = debts.get(4)
-        Assert.assertEquals(TestHelper.getDay(2017, 4, 1), debt.getDate())
+        Assert.assertEquals(TestHelper.getDay(2017, 4, 1), debt.date)
         Assert.assertEquals(-315, debt.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(315, debt.getEntryFor(TestHelper.milena))
     }
@@ -107,7 +107,7 @@ class DebtsCalculatorTests {
 
     @Test
     fun emptyDebts() {
-        val statisticEntryList = AccumulativeStatisticsCalculator.updateStatistics(TestHelper.makeDebts(-10, 17, 1, 2), Period.months(1), ArrayList<StatisticEntry>())
+        val statisticEntryList = AccumulativeStatisticsCalculator.updateStatistics(TestHelper.makeDebts(-10, 17, 1, 2), Period.months(1), ArrayList<StatisticEntryDeprecated>())
         Assert.assertEquals(2, statisticEntryList.size)
 
         TestHelper.assertDebtsList(0, TestHelper.getDay(17, 1, 1), 0, statisticEntryList)

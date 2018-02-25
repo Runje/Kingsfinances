@@ -17,7 +17,7 @@ import javax.inject.Singleton
  * Created by Thomas on 19.10.2017.
  */
 @Singleton
-@Component(modules = arrayOf(AppModule::class, ConnectionModule::class, InstallationModule::class, ModelModule::class))
+@Component(modules = arrayOf(AppModule::class, ConnectionModule::class, InstallationModule::class, FinanceModelModule::class))
 interface FinanceAppComponent : FamilyAppComponent {
     fun inject(target: OverviewActivity)
 

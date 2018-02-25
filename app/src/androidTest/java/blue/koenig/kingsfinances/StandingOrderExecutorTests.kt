@@ -26,7 +26,5 @@ class StandingOrderExecutorTests : DatabaseTests() {
         standingOrderTable.addFrom(order, "USER")
         executor.executeForAll()
         Assert.assertTrue(executor.consistencyCheck())
-
-
     }
 }

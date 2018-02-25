@@ -18,8 +18,8 @@ class DebtsCalculator(period: Period, expensesTable: ItemSubject<Expenses>, serv
 
     private fun updateExpenses(oldItem: Expenses, newItem: Expenses) {
         if (newItem.date == oldItem.date) {
-            val statisticEntry = StatisticEntry(newItem.date, newItem.getCostDistribution())
-            statisticEntry.subtractEntry(StatisticEntry(oldItem.date, oldItem.getCostDistribution()))
+            val statisticEntry = StatisticEntryDeprecated(newItem.date, newItem.costDistribution)
+            statisticEntry.subtractEntry(StatisticEntryDeprecated(oldItem.date, oldItem.costDistribution))
             updateStatistics(statisticEntry)
         } else {
             // if date has changed, delete old one and add new item
@@ -29,12 +29,12 @@ class DebtsCalculator(period: Period, expensesTable: ItemSubject<Expenses>, serv
     }
 
     private fun deleteExpenses(item: Expenses) {
-        val statisticEntry = StatisticEntry(item.date)
-        statisticEntry.subtractCostDistribution(item.getCostDistribution())
+        val statisticEntry = StatisticEntryDeprecated(item.date)
+        statisticEntry.subtractCostDistribution(item.costDistribution)
         updateStatistics(statisticEntry)
     }
 
     private fun addExpenses(item: Expenses) {
-        updateStatistics(StatisticEntry(item.date, item.getCostDistribution()))
+        updateStatistics(StatisticEntryDeprecated(item.date, item.costDistribution))
     }
 }

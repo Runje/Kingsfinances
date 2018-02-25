@@ -2,7 +2,9 @@ package blue.koenig.kingsfinances.features.statistics
 
 import blue.koenig.kingsfinances.model.StatisticsUtils
 import blue.koenig.kingsfinances.model.calculation.ItemSubject
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.MonthStatistic
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
+import blue.koenig.kingsfinances.model.calculation.yearMonth
 import com.google.common.collect.Lists
 import com.koenig.FamilyConstants.ALL_USER
 import com.koenig.commonModel.User
@@ -23,31 +25,34 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
     private val startDate: DateTime
     private val endDate: DateTime
     val yearsList: List<String>
-    protected var logger = LoggerFactory.getLogger(javaClass.simpleName)
-    protected var statisticEntryLists: MutableMap<BankAccount, List<StatisticEntry>>
-    protected var lock = ReentrantLock()
-    val allAssets: BehaviorSubject<List<StatisticEntry>>
+    private var logger = LoggerFactory.getLogger(javaClass.simpleName)
+    private var statisticEntryLists: MutableMap<BankAccount, List<StatisticEntryDeprecated>> = service.loadAllBankAccountStatistics().toMutableMap()
+    private var lock = ReentrantLock()
+    val allAssets: BehaviorSubject<List<StatisticEntryDeprecated>>
+    val deltaAssetsForAll: BehaviorSubject<Map<YearMonth, MonthStatistic>>
 
-    val entrysForAll: List<StatisticEntry>
+    val entrysForAll: List<StatisticEntryDeprecated>
         get() {
             return statisticEntryLists[ALL_ASSETS] ?: return ArrayList()
         }
 
-    val entrysForForecast: List<StatisticEntry>
+    val entrysForForecast: List<StatisticEntryDeprecated>
         get() {
             return statisticEntryLists[YEAR_FORECAST] ?: return ArrayList()
         }
 
-    val entrysForFutureForecast: List<StatisticEntry>
+    val entrysForFutureForecast: List<StatisticEntryDeprecated>
         get() {
             return statisticEntryLists[FUTURE_FORECAST] ?: return ArrayList()
         }
 
     init {
-        statisticEntryLists = service.loadAllBankAccountStatistics()
-        var allAssetsStartValue: List<StatisticEntry>? = statisticEntryLists[ALL_ASSETS]
+        var allAssetsStartValue: List<StatisticEntryDeprecated>? = statisticEntryLists[ALL_ASSETS]
         if (allAssetsStartValue == null) allAssetsStartValue = ArrayList()
         allAssets = BehaviorSubject.createDefault(allAssetsStartValue)
+        deltaAssetsForAll = BehaviorSubject.create()
+        calcDeltaMapFromAll(statisticEntryLists[ALL_ASSETS]
+                ?: emptyList<StatisticEntryDeprecated>())
         startDate = service.startDate
         endDate = service.endDate
         bankSubject.addAddListener({ bankAccount -> addBankAccount(bankAccount!!) })
@@ -58,7 +63,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
 
     fun calcStatisticsFor(startDate: DateTime, endDate: DateTime): AssetsStatistics {
         val allAssets = entrysForAll
-        val filtered = ArrayList<StatisticEntry>()
+        val filtered = ArrayList<StatisticEntryDeprecated>()
 
         for (statisticEntry in allAssets) {
             val statisticEntryDate = statisticEntry.date
@@ -101,7 +106,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         return list
     }
 
-    fun getAllAssets(): Observable<List<StatisticEntry>> {
+    fun getAllAssets(): Observable<List<StatisticEntryDeprecated>> {
         return allAssets
     }
 
@@ -125,14 +130,14 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         val lastEntry = all[all.size - 1]
         val lastDate = lastEntry.date.plusYears(1).withMonthOfYear(1)
         val numberEntrys = Months.monthsBetween(lastEntry.date, lastDate).months + 1
-        val forecast = ArrayList<StatisticEntry>(numberEntrys)
+        val forecast = ArrayList<StatisticEntryDeprecated>(numberEntrys)
         val sum = lastEntry.getEntryFor(ALL_USER)
         val entryMap = HashMap<User, Int>(1)
         entryMap[FORECAST_USER] = sum
-        forecast.add(StatisticEntry(lastEntry.date, entryMap))
+        forecast.add(StatisticEntryDeprecated(lastEntry.date, entryMap))
 
         // get average win of last 12 month
-        val overallWin = StatisticEntry(lastEntry)
+        val overallWin = StatisticEntryDeprecated(lastEntry)
         overallWin.subtractEntry(all[Math.max(0, all.size - 12)])
         val averageWin = overallWin.getEntryFor(ALL_USER) / 12
 
@@ -140,18 +145,18 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
             val prognose = sum + averageWin * i
             val map = HashMap<User, Int>(1)
             map[FORECAST_USER] = prognose
-            forecast.add(StatisticEntry(lastEntry.date.plus(Months.months(i)), map))
+            forecast.add(StatisticEntryDeprecated(lastEntry.date.plus(Months.months(i)), map))
         }
 
         statisticEntryLists[YEAR_FORECAST] = forecast
 
         val years = 20
-        val futureForecast = ArrayList<StatisticEntry>(years)
+        val futureForecast = ArrayList<StatisticEntryDeprecated>(years)
         for (i in 0 until years) {
             val prognose = sum + overallWin.getEntryFor(ALL_USER) * i
             val map = HashMap<User, Int>(1)
             map[FORECAST_USER] = prognose
-            futureForecast.add(StatisticEntry(lastEntry.date.plus(Years.years(i)), map))
+            futureForecast.add(StatisticEntryDeprecated(lastEntry.date.plus(Years.years(i)), map))
         }
 
         statisticEntryLists[FUTURE_FORECAST] = futureForecast
@@ -169,7 +174,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
     }
 
     private fun updateAllAssets() {
-        val allEntries = ArrayList<StatisticEntry>()
+        val allEntries = ArrayList<StatisticEntryDeprecated>()
         for (bankAccount in statisticEntryLists.keys) {
             if (bankAccount == ALL_ASSETS || bankAccount == YEAR_FORECAST || bankAccount == FUTURE_FORECAST)
                 continue
@@ -178,7 +183,7 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
                 val entry = entries.get(i)
                 if (allEntries.size <= i) {
                     // add new entry if no entry
-                    allEntries.add(StatisticEntry(entry))
+                    allEntries.add(StatisticEntryDeprecated(entry))
                 } else {
                     allEntries[i].addEntry(entry)
                 }
@@ -198,13 +203,27 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         statisticEntryLists[ALL_ASSETS] = allEntries
         logger.info("On Next")
         allAssets.onNext(allEntries)
+
+        calcDeltaMapFromAll(allEntries)
+    }
+
+    private fun calcDeltaMapFromAll(allEntries: List<StatisticEntryDeprecated>) {
+        // convert to year month delta map
+        val deltaMap = mutableMapOf<YearMonth, MonthStatistic>()
+        allEntries.forEachIndexed { index, entryDeprecated ->
+            if (index + 1 < allEntries.size) {
+                deltaMap[entryDeprecated.date.yearMonth] = allEntries[index + 1].toMonthStatistic() - entryDeprecated.toMonthStatistic()
+            }
+        }
+
+        deltaAssetsForAll.onNext(deltaMap)
     }
 
     private fun updateBankAccount(newBankAccount: BankAccount) {
         updateStatisticsFor(newBankAccount)
     }
 
-    fun getEntrysFor(bankAccount: BankAccount): List<StatisticEntry>? {
+    fun getEntrysFor(bankAccount: BankAccount): List<StatisticEntryDeprecated>? {
         return statisticEntryLists[bankAccount]
     }
 
@@ -215,18 +234,18 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         var YEAR_FORECAST = BankAccount("YEAR_FORECAST", "YEAR_FORECAST", "YEAR_FORECAST", FORECAST_USER, ArrayList())
         var FUTURE_FORECAST = BankAccount("FUTURE_FORECAST", "FUTURE_FORECAST", "FUTURE_FORECAST", FORECAST_USER, ArrayList())
 
-        fun calculateStatisticsOfBankAccount(bankAccount: BankAccount, start: DateTime, end: DateTime, period: Period): List<StatisticEntry> {
+        fun calculateStatisticsOfBankAccount(bankAccount: BankAccount, start: DateTime, end: DateTime, period: Period): List<StatisticEntryDeprecated> {
             var startDate = start
             var endDate = end
             startDate = if (startDate.dayOfMonth().get() == 1) startDate else startDate.withDayOfMonth(1)
             endDate = if (endDate.dayOfMonth().get() == 1) endDate else endDate.plus(Months.ONE).withDayOfMonth(1)
-            val entries = ArrayList<StatisticEntry>(Months.monthsBetween(startDate, endDate).months + 1)
+            val entries = ArrayList<StatisticEntryDeprecated>(Months.monthsBetween(startDate, endDate).months + 1)
             // balances are sorted with newest at top
             val balances = bankAccount.balances
             var nextDate = startDate
             if (balances.size == 0) {
                 while (!nextDate.isAfter(endDate)) {
-                    entries.add(StatisticEntry(nextDate))
+                    entries.add(StatisticEntryDeprecated(nextDate))
                     nextDate = nextDate.plus(period)
                 }
 
@@ -238,8 +257,8 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
             val firstDate = firstBalance.date
             // fill all entrys before first entry with value of first entry
             while (nextDate.isBefore(firstDate)) {
-                val entry = StatisticEntry(nextDate)
-                entry.addEntry(StatisticEntry(firstBalance, bankAccount.owners))
+                val entry = StatisticEntryDeprecated(nextDate)
+                entry.addEntry(StatisticEntryDeprecated(firstBalance, bankAccount.owners))
                 entries.add(entry)
                 nextDate = nextDate.plus(period)
             }
@@ -249,11 +268,11 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
                 val balance = balances[i]
                 val date = balance.date
                 if (nextDate == date) {
-                    entries.add(StatisticEntry(balance, bankAccount.owners))
+                    entries.add(StatisticEntryDeprecated(balance, bankAccount.owners))
                     nextDate = nextDate.plus(period)
                 } else if (!nextDate.isAfter(date)) {
                     while (balance.date.isAfter(nextDate)) {
-                        entries.add(StatisticEntry(Balance(calcLinearEstimation(lastBalance, balance, nextDate), nextDate), bankAccount.owners))
+                        entries.add(StatisticEntryDeprecated(Balance(calcLinearEstimation(lastBalance, balance, nextDate), nextDate), bankAccount.owners))
                         nextDate = nextDate.plus(period)
                     }
                 }
@@ -263,8 +282,8 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
 
             // add value of last balance until end
             while (!nextDate.isAfter(endDate)) {
-                val statisticEntry = StatisticEntry(nextDate)
-                statisticEntry.addEntry(StatisticEntry(lastBalance, bankAccount.owners))
+                val statisticEntry = StatisticEntryDeprecated(nextDate)
+                statisticEntry.addEntry(StatisticEntryDeprecated(lastBalance, bankAccount.owners))
                 entries.add(statisticEntry)
                 nextDate = nextDate.plus(period)
             }
@@ -280,7 +299,9 @@ class AssetsCalculator(protected var period: Period, bankSubject: ItemSubject<Ba
         }
     }
 
-    fun getStartValueFor(user: User?): Int {
+    fun getStartValueFor(user: User): Int {
         return getEntrysFor(ALL_ASSETS)?.first()?.getEntryFor(user) ?: 0
     }
+
+
 }

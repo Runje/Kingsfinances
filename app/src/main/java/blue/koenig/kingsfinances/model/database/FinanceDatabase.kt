@@ -8,7 +8,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig
+import blue.koenig.kingsfinances.model.FinanceConfig
 import blue.koenig.kingsfinances.model.PendingOperation
 import blue.koenig.kingsfinances.model.PendingStatus
 import com.koenig.commonModel.Category
@@ -26,8 +26,7 @@ import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 
-class FinanceDatabase @Throws(SQLException::class)
-constructor(private val context: Context, name: String, factory: SQLiteDatabase.CursorFactory?, version: Int, userService: UserService) : SQLiteOpenHelper(context, name, factory, version) {
+class FinanceDatabase(context: Context, name: String = DATABASE_NAME, factory: SQLiteDatabase.CursorFactory? = null, version: Int = DATABASE_VERSION, userService: UserService, private val config: FinanceConfig) : SQLiteOpenHelper(context, name, factory, version) {
     val expensesTable: ExpensesTable
     val standingOrderTable: StandingOrderTable
     val categoryTable: CategoryTable
@@ -50,7 +49,7 @@ constructor(private val context: Context, name: String, factory: SQLiteDatabase.
         get() = expensesTable.allItems
 
     private val userId: String
-        get() = FamilyConfig.getUserId(context)
+        get() = config.userId
 
     val allCategorys: List<Category>
         @Throws(SQLException::class)
@@ -64,13 +63,6 @@ constructor(private val context: Context, name: String, factory: SQLiteDatabase.
         @Throws(SQLException::class)
         get() = bankAccountTable.allItems
 
-    @Throws(SQLException::class)
-    constructor(context: Context, databaseName: String, userService: UserService) : this(context, databaseName, null, DATABASE_VERSION, userService) {
-    }
-
-    @Throws(SQLException::class)
-    constructor(context: Context, userService: UserService) : this(context, DATABASE_NAME, userService) {
-    }
 
     init {
         pendingTable = PendingTable(writableDatabase, lock)

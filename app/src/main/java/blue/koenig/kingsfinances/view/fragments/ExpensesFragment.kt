@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog
 import blue.koenig.kingsfamilylibrary.view.ViewUtils
 import blue.koenig.kingsfinances.R
@@ -20,7 +19,7 @@ import blue.koenig.kingsfinances.dagger.FinanceApplication
 import blue.koenig.kingsfinances.features.expenses.ExpensesPresenter
 import blue.koenig.kingsfinances.features.expenses.ExpensesState
 import blue.koenig.kingsfinances.features.expenses.ExpensesView
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.view.ChartHelper
 import blue.koenig.kingsfinances.view.ChartHelper.entrysToMonthXValues
 import blue.koenig.kingsfinances.view.FinanceViewUtils
@@ -59,7 +58,7 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
         updatesAvailable.visibility = if (hasChanged) View.VISIBLE else View.GONE
     }
 
-    private fun renderDebts(debts: List<StatisticEntry>) {
+    private fun renderDebts(debts: List<StatisticEntryDeprecated>) {
         updateDebts(debts)
     }
 
@@ -150,16 +149,16 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
     }
 
 
-    fun updateDebts(debts: List<StatisticEntry>) {
+    fun updateDebts(debts: List<StatisticEntryDeprecated>) {
         if (lineChart != null) {
             updateLinechart(debts)
         }
     }
 
     @Synchronized
-    private fun updateLinechart(statisticEntryList: List<StatisticEntry>) {
+    private fun updateLinechart(statisticEntryList: List<StatisticEntryDeprecated>) {
         // TODO: after long abstinence(probably destroy was called) and then resume it fails with a NPE on lineChart
-        val lineData = ChartHelper.entrysToLineData(statisticEntryList, FamilyConfig.getUserId(context), Color.GREEN)
+        val lineData = ChartHelper.entrysToLineData(statisticEntryList, state.userId, Color.GREEN)
         lineChart?.data = lineData
 
         val xValues = entrysToMonthXValues(statisticEntryList)

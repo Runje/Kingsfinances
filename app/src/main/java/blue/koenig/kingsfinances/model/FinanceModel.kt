@@ -2,17 +2,17 @@ package blue.koenig.kingsfinances.model
 
 import android.content.Context
 import android.graphics.Color
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
 import blue.koenig.kingsfamilylibrary.model.family.FamilyModel
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler
 import blue.koenig.kingsfinances.R
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
+import blue.koenig.kingsfinances.features.expenses.CompensationCalculator
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.model.database.FinanceDatabase
 import blue.koenig.kingsfinances.view.FinanceNullView
 import blue.koenig.kingsfinances.view.FinanceView
@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit
  */
 
 class FinanceModel// TODO: Income Calculator as input that its tracking all changes from beginning. Put somewhere else but make sure it is tracking from startLoggedIn!
-(connection: ServerConnection, context: Context, handler: LoginHandler, internal var database: FinanceDatabase, internal var userService: FinanceUserService, private val assetsCalculator: AssetsCalculator, incomeCalculator: IncomeCalculator, categoryCalculator: CategoryCalculator, val standingOrderExecutor: StandingOrderExecutor, val debtsCalculator: DebtsCalculator) : FamilyModel(connection, context, handler), FinanceCategoryService.CategoryServiceListener {
+(val compensationCalculator: CompensationCalculator, config: FinanceConfig, connection: ServerConnection, context: Context, handler: LoginHandler, internal var database: FinanceDatabase, internal var userService: FinanceUserService, private val assetsCalculator: AssetsCalculator, incomeCalculator: IncomeCalculator, categoryCalculator: CategoryCalculator, val standingOrderExecutor: StandingOrderExecutor, val debtsCalculator: DebtsCalculator) : FamilyModel(connection, context, handler, config), FinanceCategoryService.CategoryServiceListener {
 
     private val categoryService: FinanceCategoryService
     private var pendingView: PendingView? = null
@@ -57,6 +57,9 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         // start executing standing orders after while because at the beginning is so much work done
         Observable.timer(20, TimeUnit.SECONDS).observeOn(Schedulers.computation()).subscribe {
             executeStandingOrders()
+            logger.info("Updating compensations...")
+            compensationCalculator.calcCompensations()
+            logger.info("Updated compensations")
         }
     }
 
@@ -107,7 +110,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         }
 
     //return debtsCalculator.recalculateAll();
-    val debts: List<StatisticEntry>
+    val debts: List<StatisticEntryDeprecated>
         get() {
             val debts = debtsCalculator.entrys
             if (debts.size == 0) {
@@ -117,7 +120,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
             return debts
         }
 
-    val allAssets: List<StatisticEntry>
+    val allAssets: List<StatisticEntryDeprecated>
         get() = assetsCalculator.entrysForAll
 
     init {
@@ -197,7 +200,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
     }
 
     private fun askForUpdates(itemType: ItemType) {
-        sendMessageToServer(AskForUpdatesMessage(Component.FINANCE, FamilyConfig.getLastSyncDate(context, itemType.name), itemType))
+        sendMessageToServer(AskForUpdatesMessage(Component.FINANCE, config.getLastSyncDate(itemType.name), itemType))
     }
 
     override fun updateFamilymembers(members: List<User>) {
@@ -233,7 +236,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
                 else -> logger.error("Unknown item type $itemType")
             }
 
-            FamilyConfig.saveLastSyncDate(DateTime.now(), context, itemType.name)
+            config.saveLastSyncDate(DateTime.now(), itemType.name)
 
         } catch (ex: SQLException) {
             logger.error("Error while updating: " + ex.message)

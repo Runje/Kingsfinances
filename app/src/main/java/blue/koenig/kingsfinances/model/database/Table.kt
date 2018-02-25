@@ -32,24 +32,38 @@ abstract class Table<T : Item>(protected var db: SQLiteDatabase, lock: Reentrant
     val allDeleted: List<DatabaseItem<T>>
         @Throws(SQLException::class)
         get() = runInLockWithResult<ArrayList<DatabaseItem<T>>>(Database.ResultTransaction {
-            val items = ArrayList<DatabaseItem<T>>()
 
             val selectQuery = "SELECT * FROM " + tableName + " WHERE " + DatabaseTable.COLUMN_DELETED + " = ?"
 
             val cursor = db.rawQuery(selectQuery, arrayOf(DatabaseTable.TRUE_STRING))
 
-            if (cursor.moveToFirst()) {
-                do {
-                    val databaseItem = createDatabaseItemFromCursor(cursor)
-                    items.add(databaseItem)
-                } while (cursor.moveToNext())
-            }
-
-            cursor.close()
-
-            items
+            getListFromCursor(cursor)
         })
 
+    private fun getListFromCursor(cursor: Cursor): ArrayList<DatabaseItem<T>> {
+        val items = ArrayList<DatabaseItem<T>>()
+        if (cursor.moveToFirst()) {
+            do {
+                val databaseItem = createDatabaseItemFromCursor(cursor)
+                items.add(databaseItem)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+
+        return items
+    }
+
+    fun getWith(condition: String, argumentList: List<String>): List<DatabaseItem<T>> {
+        return runInLockWithResult {
+            val selectQuery = "SELECT * FROM " + tableName + " WHERE " + DatabaseTable.COLUMN_DELETED + " = ? AND " + condition
+            val arguments = arrayListOf(DatabaseTable.FALSE_STRING)
+            arguments.addAll(argumentList)
+            val cursor = db.rawQuery(selectQuery, arguments.toTypedArray())
+
+            getListFromCursor(cursor)
+        }
+    }
     protected val allColumnNames: MutableList<String>
         get() {
             val columns = ArrayList<String>()

@@ -4,12 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.TextView;
 
-import com.koenig.commonModel.Frequency;
 import com.koenig.commonModel.finance.Expenses;
 import com.koenig.commonModel.finance.StandingOrder;
-
-import blue.koenig.kingsfinances.OverviewActivity;
-import blue.koenig.kingsfinances.R;
 
 /**
  * Created by Thomas on 14.11.2017.
@@ -43,27 +39,27 @@ public class FinanceViewUtils {
 
     public static void startAddExpensesActivity(Context context) {
         Intent intent = new Intent(context, BookkeepingItemActivity.class);
-        intent.putExtra(BookkeepingItemActivity.TYPE, BookkeepingItemActivity.EXPENSES);
+        intent.putExtra(BookkeepingItemActivity.Companion.getTYPE(), BookkeepingItemActivity.Companion.getEXPENSES());
         context.startActivity(intent);
     }
 
     public static void startAddStandingOrderActivity(Context context) {
         Intent intent = new Intent(context, BookkeepingItemActivity.class);
-        intent.putExtra(BookkeepingItemActivity.TYPE, BookkeepingItemActivity.STANDINGORDER);
+        intent.putExtra(BookkeepingItemActivity.Companion.getTYPE(), BookkeepingItemActivity.Companion.getSTANDINGORDER());
         context.startActivity(intent);
     }
 
     public static void startEditExpensesActivity(Context context, Expenses expenses) {
         Intent intent = new Intent(context, BookkeepingItemActivity.class);
-        intent.putExtra(BookkeepingItemActivity.TYPE, BookkeepingItemActivity.EXPENSES);
-        intent.putExtra(BookkeepingItemActivity.ITEM, expenses.getBytes());
+        intent.putExtra(BookkeepingItemActivity.Companion.getTYPE(), BookkeepingItemActivity.Companion.getEXPENSES());
+        intent.putExtra(BookkeepingItemActivity.Companion.getITEM(), expenses.getBytes());
         context.startActivity(intent);
     }
 
     public static void startEditStandingOrderActivity(Context context, StandingOrder standingOrder) {
         Intent intent = new Intent(context, BookkeepingItemActivity.class);
-        intent.putExtra(BookkeepingItemActivity.TYPE, BookkeepingItemActivity.STANDINGORDER);
-        intent.putExtra(BookkeepingItemActivity.ITEM, standingOrder.getBytes());
+        intent.putExtra(BookkeepingItemActivity.Companion.getTYPE(), BookkeepingItemActivity.Companion.getSTANDINGORDER());
+        intent.putExtra(BookkeepingItemActivity.Companion.getITEM(), standingOrder.getBytes());
         context.startActivity(intent);
     }
 }

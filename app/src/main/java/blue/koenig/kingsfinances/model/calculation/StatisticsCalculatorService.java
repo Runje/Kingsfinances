@@ -12,7 +12,7 @@ public interface StatisticsCalculatorService {
      *
      * @return sorted debts
      */
-    List<StatisticEntry> getSavedSortedStatistics();
+    List<StatisticEntryDeprecated> getSavedSortedStatistics();
 
-    void saveStatistics(List<StatisticEntry> statisticEntryList);
+    void saveStatistics(List<StatisticEntryDeprecated> statisticEntryList);
 }

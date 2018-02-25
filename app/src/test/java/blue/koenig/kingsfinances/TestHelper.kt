@@ -1,7 +1,7 @@
 package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.BankAccount
@@ -30,56 +30,51 @@ object TestHelper {
         return DateTime(year, month, day, 0, 0)
     }
 
-    fun getCalculatorService(statisticEntryList: List<StatisticEntry>): StatisticsCalculatorService {
+    fun getCalculatorService(statisticEntryList: List<StatisticEntryDeprecated>): StatisticsCalculatorService {
         return object : StatisticsCalculatorService {
-            override fun getSavedSortedStatistics(): List<StatisticEntry> {
+            override fun getSavedSortedStatistics(): List<StatisticEntryDeprecated> {
                 return statisticEntryList
             }
 
-            override fun saveStatistics(statisticEntryList: List<StatisticEntry>) {
+            override fun saveStatistics(statisticEntryList: List<StatisticEntryDeprecated>) {
 
             }
         }
     }
 
-    fun getAssetsCalculatorService(map: Map<BankAccount, List<StatisticEntry>>, start: DateTime, end: DateTime): AssetsCalculatorService {
+    fun getAssetsCalculatorService(map: Map<BankAccount, List<StatisticEntryDeprecated>>, start: DateTime, end: DateTime): AssetsCalculatorService {
         return object : AssetsCalculatorService {
-            override fun loadAllBankAccountStatistics(): Map<BankAccount, List<StatisticEntry>> {
+            override val startDate: DateTime
+                get() = start
+            override val endDate: DateTime
+                get() = end
+            override val overallString: String
+                get() = ""
+            override val futureString: String
+                get() = ""
+
+            override fun loadAllBankAccountStatistics(): Map<BankAccount, List<StatisticEntryDeprecated>> {
                 return map
             }
 
-            override fun getStartDate(): DateTime {
-                return start
-            }
 
-            override fun getEndDate(): DateTime {
-                return end
-            }
-
-            override fun getOverallString(): String? {
-                return null
-            }
-
-            override fun save(statisticEntryLists: Map<BankAccount, List<StatisticEntry>>) {
+            override fun save(statisticEntryLists: Map<BankAccount, List<StatisticEntryDeprecated>>) {
 
             }
 
-            override fun getFutureString(): String? {
-                return null
-            }
         }
     }
 
-    fun assertDebtsList(index: Int, dateTime: DateTime, debts: Int, statisticEntryList: List<StatisticEntry>) {
+    fun assertDebtsList(index: Int, dateTime: DateTime, debts: Int, statisticEntryList: List<StatisticEntryDeprecated>) {
         val debt = statisticEntryList[index]
         Assert.assertEquals(dateTime, debt.date)
         Assert.assertEquals(debts, debt.getEntryFor(thomas))
         Assert.assertEquals(-debts, debt.getEntryFor(milena))
     }
 
-    fun makeDebtsList(startDate: DateTime, debts: IntArray): List<StatisticEntry> {
+    fun makeDebtsList(startDate: DateTime, debts: IntArray): List<StatisticEntryDeprecated> {
         var startDate = startDate
-        val statisticEntryList = ArrayList<StatisticEntry>(debts.size)
+        val statisticEntryList = ArrayList<StatisticEntryDeprecated>(debts.size)
         for (i in debts.indices) {
             statisticEntryList.add(makeDebts(startDate, debts[i]))
             startDate = startDate.plus(Period.months(1))
@@ -88,21 +83,21 @@ object TestHelper {
         return statisticEntryList
     }
 
-    fun makeDebts(date: DateTime, debts: Int): StatisticEntry {
-        return StatisticEntry(date, makeCostDistribution(debts, 0, 0, debts))
+    fun makeDebts(date: DateTime, debts: Int): StatisticEntryDeprecated {
+        return StatisticEntryDeprecated(date, makeCostDistribution(debts, 0, 0, debts))
     }
 
-    fun makeDebts(debts: Int, year: Int, month: Int, day: Int): StatisticEntry {
+    fun makeDebts(debts: Int, year: Int, month: Int, day: Int): StatisticEntryDeprecated {
         return makeDebts(getDay(year, month, day), debts)
     }
 
-    fun getStatisticsCalculatorService(list: List<StatisticEntry>): StatisticsCalculatorService {
+    fun getStatisticsCalculatorService(list: List<StatisticEntryDeprecated>): StatisticsCalculatorService {
         return object : StatisticsCalculatorService {
-            override fun getSavedSortedStatistics(): List<StatisticEntry> {
+            override fun getSavedSortedStatistics(): List<StatisticEntryDeprecated> {
                 return list
             }
 
-            override fun saveStatistics(statisticEntryList: List<StatisticEntry>) {
+            override fun saveStatistics(statisticEntryList: List<StatisticEntryDeprecated>) {
 
             }
         }

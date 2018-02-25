@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.StringRes;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -33,14 +32,13 @@ import blue.koenig.kingsfinances.R;
 
 public class CostDistributionView extends LinearLayout {
     protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-
+    LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+    LayoutParams buttonLayoutParams = new LayoutParams(25, LayoutParams.MATCH_PARENT);
+    ReentrantLock lock = new ReentrantLock();
     private CostDistribution costDistribution;
     private List<User> users;
     private Map<User, Integer> userRealViewIdMap = new HashMap<>();
     private Map<User, Integer> userTheoryViewIdMap = new HashMap<>();
-    LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-    LayoutParams buttonLayoutParams = new LayoutParams(25, LayoutParams.MATCH_PARENT);
-    ReentrantLock lock = new ReentrantLock();
     private int itemCosts;
 
     public CostDistributionView(Context context, CostDistribution costDistribution, List<User> users) {
@@ -55,7 +53,7 @@ public class CostDistributionView extends LinearLayout {
 
         for (User user : users) {
             Costs costs = costDistribution.getCostsFor(user);
-            View distributorView = makeDistributor(user, costs.Real, costDistribution.getRealPercent(user), userRealViewIdMap);
+            View distributorView = makeDistributor(user, costs.getReal(), costDistribution.getRealPercent(user), userRealViewIdMap);
             addView(distributorView, layoutParams);
         }
 
@@ -64,7 +62,7 @@ public class CostDistributionView extends LinearLayout {
 
         for (User user : users) {
             Costs costs = costDistribution.getCostsFor(user);
-            View distributorView = makeDistributor(user, costs.Theory, costDistribution.getTheoryPercent(user), userTheoryViewIdMap);
+            View distributorView = makeDistributor(user, costs.getTheory(), costDistribution.getTheoryPercent(user), userTheoryViewIdMap);
             addView(distributorView, layoutParams);
         }
     }
@@ -198,7 +196,7 @@ public class CostDistributionView extends LinearLayout {
             try {
                 float costs = FinanceViewUtils.getCostsFromTextView(editCosts);
                 editCosts.setError(null);
-                costDistribution.putCosts(user, new Costs(oldCosts.Real,(int)(costs * 100)));
+                costDistribution.putCosts(user, new Costs(oldCosts.getReal(), (int) (costs * 100)));
             } catch (NumberFormatException e) {
                 editCosts.setError(getContext().getString(R.string.invalid_costs));
             }
@@ -211,7 +209,7 @@ public class CostDistributionView extends LinearLayout {
             try {
                 float costs = FinanceViewUtils.getCostsFromTextView(editCosts);
                 editCosts.setError(null);
-                costDistribution.putCosts(user, new Costs((int)(costs * 100), oldCosts.Theory));
+                costDistribution.putCosts(user, new Costs((int) (costs * 100), oldCosts.getTheory()));
             } catch (NumberFormatException e) {
                 editCosts.setError(getContext().getString(R.string.invalid_costs));
             }

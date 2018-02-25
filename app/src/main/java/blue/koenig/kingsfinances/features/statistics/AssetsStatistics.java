@@ -5,7 +5,7 @@ import org.joda.time.DateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry;
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 
 /**
  * Created by Thomas on 08.01.2018.
@@ -15,13 +15,13 @@ public class AssetsStatistics {
 
     private final DateTime startDate;
     private final DateTime endDate;
-    private final List<StatisticEntry> assets;
+    private final List<StatisticEntryDeprecated> assets;
 
     private final int monthlyWin;
 
     private final int allWin;
 
-    public AssetsStatistics(DateTime startDate, DateTime endDate, List<StatisticEntry> assets, int monthlyWin, int allWin) {
+    public AssetsStatistics(DateTime startDate, DateTime endDate, List<StatisticEntryDeprecated> assets, int monthlyWin, int allWin) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.assets = assets;
@@ -41,7 +41,7 @@ public class AssetsStatistics {
         return endDate;
     }
 
-    public List<StatisticEntry> getAssets() {
+    public List<StatisticEntryDeprecated> getAssets() {
         return assets;
     }
 

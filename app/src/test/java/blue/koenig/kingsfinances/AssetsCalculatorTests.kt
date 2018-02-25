@@ -1,7 +1,7 @@
 package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
@@ -80,8 +80,8 @@ class AssetsCalculatorTests {
         val bankAccountThomas = createBankAccountThomas(TestHelper.getDay(17, 1, 2), intArrayOf(10, 20, 30, -50))
         val start = TestHelper.getDay(17, 1, 1)
         val end = TestHelper.getDay(17, 5, 1)
-        var statisticEntryList: List<StatisticEntry>? = AssetsCalculator.calculateStatisticsOfBankAccount(bankAccountThomas, start, end, Period.months(1))
-        val listMap = HashMap<BankAccount, List<StatisticEntry>>(1)
+        var statisticEntryList: List<StatisticEntryDeprecated>? = AssetsCalculator.calculateStatisticsOfBankAccount(bankAccountThomas, start, end, Period.months(1))
+        val listMap = HashMap<BankAccount, List<StatisticEntryDeprecated>>(1)
         listMap[bankAccountThomas] = statisticEntryList!!
         val assetsCalculator = AssetsCalculator(Period.months(1), itemSubject,
                 TestHelper.getAssetsCalculatorService(hashMapOf(), start, end))
@@ -171,20 +171,20 @@ class AssetsCalculatorTests {
 */
 
 
-    private fun assertAssetOfList(index: Int, day: DateTime, assetsThomas: Int, assetsMilena: Int, newAssets: List<StatisticEntry>) {
+    private fun assertAssetOfList(index: Int, day: DateTime, assetsThomas: Int, assetsMilena: Int, newAssets: List<StatisticEntryDeprecated>) {
         val entry = newAssets[index]
         Assert.assertEquals(day, entry.date)
         Assert.assertEquals(assetsThomas, entry.getEntryFor(TestHelper.thomas))
         Assert.assertEquals(assetsMilena, entry.getEntryFor(TestHelper.milena))
     }
 
-    private fun makeAssetsListThomas(day: DateTime, ints: IntArray): List<StatisticEntry> {
+    private fun makeAssetsListThomas(day: DateTime, ints: IntArray): List<StatisticEntryDeprecated> {
         var day = day
         val userMap = HashMap<User, Int>(1)
-        val statisticEntryList = ArrayList<StatisticEntry>(ints.size)
+        val statisticEntryList = ArrayList<StatisticEntryDeprecated>(ints.size)
         for (i in ints.indices) {
             userMap[TestHelper.thomas] = ints[i]
-            statisticEntryList.add(StatisticEntry(DateTime(day), userMap))
+            statisticEntryList.add(StatisticEntryDeprecated(DateTime(day), userMap))
             day = day.plus(Period.months(1))
         }
 
@@ -219,7 +219,7 @@ class AssetsCalculatorTests {
             dateTime = dateTime.plus(Period.months(1))
         }
 
-        return BankAccount("", "", owners, balanceList)
+        return BankAccount("", "", owners.toMutableList(), balanceList)
     }
 
 }

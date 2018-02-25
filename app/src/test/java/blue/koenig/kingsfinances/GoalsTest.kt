@@ -2,7 +2,7 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.TestHelper.getDay
 import blue.koenig.kingsfinances.features.statistics.StatisticsPresenter
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.FamilyConstants
 import com.koenig.commonModel.Goal
 import junit.framework.Assert
@@ -52,7 +52,7 @@ class GoalsTest {
         testGoal(12, getDay(2017, 1, 1), 1000, goals)
     }
 
-    private fun testGoal(index: Int, day: DateTime, value: Int, goals: List<StatisticEntry>) {
+    private fun testGoal(index: Int, day: DateTime, value: Int, goals: List<StatisticEntryDeprecated>) {
         val statisticEntry = goals[index]
         Assert.assertEquals(day, statisticEntry.date)
         Assert.assertEquals(value, statisticEntry.getEntryFor(FamilyConstants.GOAL_ALL_USER))

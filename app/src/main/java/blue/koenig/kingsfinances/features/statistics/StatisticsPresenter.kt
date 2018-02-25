@@ -3,7 +3,7 @@ package blue.koenig.kingsfinances.features.statistics
 
 import blue.koenig.kingsfinances.model.StatisticsUtils.calcDifferenceInPeriod
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.model.database.GoalTable
 import com.koenig.FamilyConstants
 import com.koenig.FamilyConstants.ALL_USER
@@ -31,7 +31,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
         list.add(FamilyConstants.ALL_USER)
         list.add(AssetsCalculator.FORECAST_USER)
         list.add(FamilyConstants.GOAL_ALL_USER)
-        list;
+        list
     }
 
     fun attachView(view: StatisticsView) {
@@ -54,7 +54,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
     fun clickYear(position: Int) {
         var beforeDate = DateTime(0)
         var afterDate = FamilyConstants.UNLIMITED
-        var entrysForFutureForecast: List<StatisticEntry>? = null
+        var entrysForFutureForecast: List<StatisticEntryDeprecated>? = null
         // get all users (familymembers)
         val statUsers = if (position == 1) arrayListOf(AssetsCalculator.FORECAST_USER) else membersWithForecastAndGoal
         if (position == 1) {
@@ -87,7 +87,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
         } else {
             // goals beginning later
             val offset = statistics.assets.indexOfFirst { statisticEntry ->
-                goals[0].date?.equals(statisticEntry.date) ?: false
+                goals[0].date.equals(statisticEntry.date)
             }
             if (offset != -1) {
                 for (i in 0 until min(goals.size, statistics.assets.size - offset)) {
@@ -107,7 +107,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
         protected var logger = LoggerFactory.getLogger("StatisticsPresenter")
 
 
-        fun calcSavingRate(startDate: DateTime, endDate: DateTime, overallWin: Int, incomes: List<StatisticEntry>): Float {
+        fun calcSavingRate(startDate: DateTime, endDate: DateTime, overallWin: Int, incomes: List<StatisticEntryDeprecated>): Float {
 
             val allSavings = calcDifferenceInPeriod(startDate, endDate, incomes)
             return if (allSavings.sum == 0) {
@@ -117,7 +117,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
 
         }
 
-        fun calcGoals(beforeDate: DateTime, afterDate: DateTime, allItems: List<Goal>, startValue: Int = 0): List<StatisticEntry> {
+        fun calcGoals(beforeDate: DateTime, afterDate: DateTime, allItems: List<Goal>, startValue: Int = 0): List<StatisticEntryDeprecated> {
             // first year of data
             val minYear: Int = allItems.minBy { it ->
                 it.goals.keys.min() ?: 3000
@@ -125,7 +125,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
             // last year of data
             val maxYear = allItems.maxBy { it -> it.goals.keys.min() ?: 0 }?.goals?.keys?.max()
                     ?: 3000
-            val result = arrayListOf<StatisticEntry>()
+            val result = arrayListOf<StatisticEntryDeprecated>()
             // sum goals up until year of beforeDate
             val firstYear = max(beforeDate.year, minYear)
             val sumUntilYear = startValue + if (firstYear > minYear) allItems.sumBy { it ->
@@ -147,7 +147,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
                 val monthlyGoal = allItems.sumBy { it -> it.goals[year] ?: 0 } / 12.0
                 for (month in 1..12) {
                     if (!date.isBefore(beforeDate) && !date.isAfter(afterDate)) {
-                        result.add(StatisticEntry(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal)))
+                        result.add(StatisticEntryDeprecated(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal)))
                     }
 
                     date = date.plus(Period.months(1))
@@ -158,7 +158,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
 
             // add last one
             if (!date.isBefore(beforeDate) && !date.isAfter(afterDate)) {
-                result.add(StatisticEntry(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal)))
+                result.add(StatisticEntryDeprecated(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal)))
             }
 
 

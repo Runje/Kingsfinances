@@ -22,27 +22,30 @@ class ExpensesTable(database: SQLiteDatabase, lock: ReentrantLock) : Bookkeeping
     override val tableName = "ExpensesTable"
 
     override fun getBookkeepingTableSpecificCreateStatement(): String {
-        return ",$DATE LONG, $STANDING_ORDER TEXT"
+        return ",$DATE LONG, $STANDING_ORDER TEXT, $COMPENSATION INT"
     }
 
     override fun setBookkeepingItem(values: ContentValues, item: Expenses) {
         values.put(DATE, dateTimeToValue(item.date))
         values.put(STANDING_ORDER, item.standingOrder)
+        values.put(COMPENSATION, item.isCompensation)
     }
 
     override fun bindBookkeepingItem(statement: SQLiteStatement, map: Map<String, Int>, item: Expenses) {
         statement.bindLong(map[DATE]!!, dateTimeToValue(item.date))
         statement.bindString(map[STANDING_ORDER]!!, item.standingOrder)
+        statement.bindLong(map[COMPENSATION]!!, boolToValue(item.isCompensation).toLong())
     }
 
     override fun getBookkeepingItem(entry: BookkeepingEntry, cursor: Cursor): Expenses {
         val date = getDateTime(cursor, DATE)
         val standingOrder = getString(cursor, STANDING_ORDER)
-        return Expenses(entry, date, standingOrder)
+        val isCompensation = getBool(cursor, COMPENSATION)
+        return Expenses(entry, date, standingOrder, isCompensation)
     }
 
     override fun getBookkeepingColumnNames(): Collection<String> {
-        return Arrays.asList(DATE, STANDING_ORDER)
+        return Arrays.asList(DATE, STANDING_ORDER, COMPENSATION)
     }
 
     @Throws(SQLException::class)
@@ -68,9 +71,20 @@ class ExpensesTable(database: SQLiteDatabase, lock: ReentrantLock) : Bookkeeping
     }
 
     companion object {
-        private val DATE = "date"
-        private val STANDING_ORDER = "standing_order"
+        private const val DATE = "date"
+        private const val STANDING_ORDER = "standing_order"
+        private const val COMPENSATION = "compensation"
     }
+
+    val compensations: Map<DateTime, Expenses>
+        get() {
+            val list = getWith("$COMPENSATION = ?", arrayListOf(TRUE_STRING))
+            val map = mutableMapOf<DateTime, Expenses>()
+            list.forEach { map[it.item.date] = it.item }
+            return map
+        }
+
+
 }
 
 

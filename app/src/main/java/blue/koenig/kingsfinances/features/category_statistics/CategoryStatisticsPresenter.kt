@@ -1,8 +1,8 @@
 package blue.koenig.kingsfinances.features.category_statistics
 
-import android.content.Context
-import blue.koenig.kingsfamilylibrary.model.FamilyConfig
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
+import blue.koenig.kingsfinances.model.FinanceConfig
+import blue.koenig.kingsfinances.model.calculation.yearMonth
 import blue.koenig.kingsfinances.model.database.GoalTable
 import blue.koenig.kingsfinances.model.database.PendingTable
 import com.google.common.collect.Lists
@@ -13,8 +13,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
-import org.joda.time.Months
-import org.joda.time.Period
+import org.joda.time.YearMonth
 import org.joda.time.Years
 import org.joda.time.format.DateTimeFormat
 import org.slf4j.LoggerFactory
@@ -23,7 +22,7 @@ import org.slf4j.LoggerFactory
  * Created by Thomas on 16.01.2018.
  */
 
-class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalculator, private val goalTable: GoalTable, private val context: Context, private val pendingTable: PendingTable, private val connection: ServerConnection) {
+class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalculator, private val goalTable: GoalTable, private val config: FinanceConfig, private val pendingTable: PendingTable, private val connection: ServerConnection) {
     private var state: CategoryStatisticsState
     private var disposable: Disposable? = null
     private var view: CategoryStatisticsView? = null
@@ -34,7 +33,7 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
 
     fun attachView(view: CategoryStatisticsView) {
         this.view = view
-        disposable = categoryCalculator.allStatistics.observeOn(AndroidSchedulers.mainThread()).subscribe(
+        disposable = categoryCalculator.deltaStatisticsForAll.observeOn(AndroidSchedulers.mainThread()).subscribe(
                 { changeSelection(state.yearsSelection, state.monthsSelection) }
         ) { throwable -> logger.error("OnError: " + throwable.toString()) }
 
@@ -49,10 +48,10 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
             val year: Int = getYear()
             val goal: Int = calcYearGoal(catGoal.goal)
             // TODO: make goals for each user
-            val updatedGoal = goalTable.saveGoal(catGoal.category, goal, year, statisticsUserId = FamilyConstants.ALL_USER.id, editFromUserId = FamilyConfig.getUserId(context))
+            val updatedGoal = goalTable.saveGoal(catGoal.category, goal, year, statisticsUserId = FamilyConstants.ALL_USER.id, editFromUserId = config.userId)
 
             // add to pending operations
-            val operation = pendingTable.addUpdate(updatedGoal, FamilyConfig.getUserId(context))
+            val operation = pendingTable.addUpdate(updatedGoal, config.userId)
             // send to server
             connection.sendFamilyMessage(AUDMessage(Component.FINANCE, operation))
             logger.info("Saved new goal: " + goal)
@@ -96,29 +95,28 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
         if (yearsPos == state.yearsSelection && monthPos == state.monthsSelection) return
         val statistics = calcStatistics(yearsPos, monthPos)
         state = state.copy(categoryStatistics = statistics, yearsSelection = yearsPos, monthsSelection = monthPos)
-        update();
+        update()
     }
 
     private fun calcStatistics(yearsPos: Int, monthPos: Int): List<CategoryStatistics> {
-        var startDate = categoryCalculator.startDate
-        var endDate = DateTime.now().plus(Period.months(1)).withDayOfMonth(1)
-
-        if (yearsPos != 0) {
+        val result = if (yearsPos != 0) {
             // not overall
             val year = getYear(yearsPos)
             if (monthPos != 0) {
                 // not all month
                 val date = DateTime.parse(state.monthsList[monthPos], DateTimeFormat.forPattern("MMM"))
-                startDate = date.withYear(year).withDayOfMonth(1).withTimeAtStartOfDay();
-                endDate = startDate.plus(Months.ONE);
+                val yearMonth = YearMonth(year, date.monthOfYear)
+                categoryCalculator.getCategoryStatistics(yearMonth)
             } else {
                 // whole year
-                startDate = DateTime(year, 1, 1, 0, 0)
-                endDate = startDate.plus(Years.ONE)
+                categoryCalculator.getCategoryStatistics(Years.years(year))
             }
+        } else {
+            // overall
+            categoryCalculator.getCategoryStatistics(config.startDate.yearMonth, DateTime.now().yearMonth)
         }
 
-        return categoryCalculator.getCategoryStatistics(startDate, endDate).sortedBy { value -> value.winnings }
+        return result.sortedBy { value -> value.winnings }
     }
 
 

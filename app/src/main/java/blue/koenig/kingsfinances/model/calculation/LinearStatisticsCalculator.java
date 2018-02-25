@@ -26,7 +26,7 @@ public class LinearStatisticsCalculator extends StatisticsCalculator {
         return dateTime.plus(Period.months(1)).withDayOfMonth(1);
     }
 
-    public static List<StatisticEntry> updateStatistics(StatisticEntry delta, Period period, List<StatisticEntry> statisticEntryList) {
+    public static List<StatisticEntryDeprecated> updateStatistics(StatisticEntryDeprecated delta, Period period, List<StatisticEntryDeprecated> statisticEntryList) {
         DateTime date = delta.getDate();
         DateTime relevantDate = calcEntryDate(date);
         delta.setDate(relevantDate);
@@ -37,14 +37,14 @@ public class LinearStatisticsCalculator extends StatisticsCalculator {
         } else {
             // TODO: make hashmap to index date for faster search
             int i = 0;
-            for (StatisticEntry statisticEntry : statisticEntryList) {
+            for (StatisticEntryDeprecated statisticEntry : statisticEntryList) {
                 // add delta to current entry
                 if (statisticEntry.getDate().equals(relevantDate)) {
                     statisticEntry.addEntry(delta);
                     return statisticEntryList;
                 } else if (statisticEntry.getDate().isAfter(relevantDate)) {
                     // insert delta + lastEntry here
-                    StatisticEntry newEntry = new StatisticEntry(delta);
+                    StatisticEntryDeprecated newEntry = new StatisticEntryDeprecated(delta);
                     if (i > 0) newEntry.addEntry(statisticEntryList.get(i - 1));
                     statisticEntryList.add(i, newEntry);
                     return statisticEntryList;
@@ -61,7 +61,7 @@ public class LinearStatisticsCalculator extends StatisticsCalculator {
     }
 
     @Override
-    protected List<StatisticEntry> calculateNewStatistics(StatisticEntry delta, Period period, List<StatisticEntry> statisticEntryList) {
+    protected List<StatisticEntryDeprecated> calculateNewStatistics(StatisticEntryDeprecated delta, Period period, List<StatisticEntryDeprecated> statisticEntryList) {
         return updateStatistics(delta, period, statisticEntryList);
     }
 }

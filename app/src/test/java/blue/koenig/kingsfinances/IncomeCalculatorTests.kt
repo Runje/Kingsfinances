@@ -2,7 +2,7 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.features.statistics.StatisticsPresenter
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntry
+import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Expenses
 import junit.framework.Assert
@@ -125,7 +125,7 @@ class IncomeCalculatorTests {
     @Test
     fun entrysMissing() {
         // wenn vorne welche fehlen gibt es ein fehler, auch wenn hinten welche fehlen, könnte es fehler geben
-        val entries = ArrayList<StatisticEntry>()
+        val entries = ArrayList<StatisticEntryDeprecated>()
         entries.add(createStatisticsEntry(TestHelper.getDay(2017, 6, 1), 100, 100))
         entries.add(createStatisticsEntry(TestHelper.getDay(2017, 7, 1), 200, 200))
 
@@ -133,11 +133,11 @@ class IncomeCalculatorTests {
         Assert.assertEquals(0.5f, savingRate)
     }
 
-    private fun createStatisticsEntry(day: DateTime, thomas: Int, milena: Int): StatisticEntry {
+    private fun createStatisticsEntry(day: DateTime, thomas: Int, milena: Int): StatisticEntryDeprecated {
         val map = HashMap<User, Int>(2)
         map[TestHelper.thomas] = thomas
         map[TestHelper.milena] = milena
-        return StatisticEntry(day, map)
+        return StatisticEntryDeprecated(day, map)
     }
 
     private fun createExpensesForThomas(day: DateTime, costs: Int): Expenses {
@@ -145,7 +145,7 @@ class IncomeCalculatorTests {
     }
 
     companion object {
-        fun assertIncomeList(index: Int, dateTime: DateTime, thomas: Int, milena: Int, statisticEntryList: List<StatisticEntry>) {
+        fun assertIncomeList(index: Int, dateTime: DateTime, thomas: Int, milena: Int, statisticEntryList: List<StatisticEntryDeprecated>) {
             val debt = statisticEntryList[index]
             Assert.assertEquals(dateTime, debt.date)
             Assert.assertEquals(thomas, debt.getEntryFor(TestHelper.thomas))
