@@ -74,7 +74,7 @@ public class CostDistributionView extends LinearLayout {
         view.setId(id);
         userViewIdMap.put(user, id);
 
-        setCosts(user.getAbbreviation(), StringFormats.centsToCentString(costs), StringFormats.floatToPercentString(percent), view);
+        setCosts(user.getAbbreviation(), StringFormats.INSTANCE.centsToCentString(costs), StringFormats.INSTANCE.floatToPercentString(percent), view);
         User otherUser = getOtherUser(user);
 
         // add text watcher
@@ -96,12 +96,12 @@ public class CostDistributionView extends LinearLayout {
                     EditText otherEditPercent = otherUsersView.findViewById(R.id.editPercent);
                     textView.setError(null);
                     int cents = (int) (euro * 100);
-                    otherEditCosts.setText(StringFormats.centsToCentString(itemCosts - cents));
+                    otherEditCosts.setText(StringFormats.INSTANCE.centsToCentString(itemCosts - cents));
                     if (itemCosts != 0) {
                         float percent = (float) cents / itemCosts;
                         float otherPercent = 1 - percent;
-                        editPercent.setText(StringFormats.floatToPercentString(percent));
-                        otherEditPercent.setText(StringFormats.floatToPercentString(otherPercent));
+                        editPercent.setText(StringFormats.INSTANCE.floatToPercentString(percent));
+                        otherEditPercent.setText(StringFormats.INSTANCE.floatToPercentString(otherPercent));
                     }
                     updateCostDistribution();
 
@@ -130,11 +130,11 @@ public class CostDistributionView extends LinearLayout {
                                                        EditText otherEditPercent = otherUsersView.findViewById(R.id.editPercent);
                                                        textView.setError(null);
                                                        int cents = (int) (percent * itemCosts);
-                                                       editCosts.setText(StringFormats.centsToCentString(cents));
-                                                       otherEditCosts.setText(StringFormats.centsToCentString(itemCosts - cents));
+                                                       editCosts.setText(StringFormats.INSTANCE.centsToCentString(cents));
+                                                       otherEditCosts.setText(StringFormats.INSTANCE.centsToCentString(itemCosts - cents));
 
                                                        float otherPercent = 1 - percent;
-                                                       otherEditPercent.setText(StringFormats.floatToPercentString(otherPercent));
+                                                       otherEditPercent.setText(StringFormats.INSTANCE.floatToPercentString(otherPercent));
 
                                                        updateCostDistribution();
 
@@ -154,7 +154,7 @@ public class CostDistributionView extends LinearLayout {
             //bu100.setText("100%");
             //bu100.setWidth(50);
             bu100.setOnClickListener((b) -> {
-                editCosts.setText(StringFormats.centsToCentString(itemCosts));
+                editCosts.setText(StringFormats.INSTANCE.centsToCentString(itemCosts));
                 updateCostDistribution();
             });
             //buttons.addView(bu100, buttonLayoutParams);
@@ -163,7 +163,7 @@ public class CostDistributionView extends LinearLayout {
             //bu50.setWidth(50);
             //bu50.setText("50%");
             bu50.setOnClickListener((b) -> {
-                editCosts.setText(StringFormats.centsToCentString(FamilyUtils.getHalfRoundDown(itemCosts)));
+                editCosts.setText(StringFormats.INSTANCE.centsToCentString(FamilyUtils.getHalfRoundDown(itemCosts)));
                 updateCostDistribution();
             });
             //9buttons.addView(bu50, buttonLayoutParams);

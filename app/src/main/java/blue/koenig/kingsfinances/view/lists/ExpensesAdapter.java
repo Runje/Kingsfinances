@@ -44,7 +44,7 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
 
     @Override
     protected Comparator<Expenses> getComparator() {
-        return (lhs, rhs) -> rhs.getDate().compareTo(lhs.getDate());
+        return (lhs, rhs) -> rhs.getDay().compareTo(lhs.getDay());
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
 
         name.setText(ex.getName());
         category.setText(ex.getCategory().toString());
-        costs.setText(StringFormats.centsToEuroString(ex.getCosts()));
+        costs.setText(StringFormats.INSTANCE.centsToEuroString(ex.getCosts()));
         if (ex.getCosts() > 0)
         {
             costs.setTextColor(ContextCompat.getColor(context, R.color.positive_highlight));
@@ -120,7 +120,7 @@ public class ExpensesAdapter extends ListAdapter<Expenses>
             costs.setTextColor(ContextCompat.getColor(context, R.color.normalText));
         }
 
-        date.setText(ex.getDate().toString("dd.MM.yy"));
+        date.setText(ex.getDay().toString("dd.MM.yy"));
 
     }
 

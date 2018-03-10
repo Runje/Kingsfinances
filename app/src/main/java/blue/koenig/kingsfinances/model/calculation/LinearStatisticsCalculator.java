@@ -1,5 +1,7 @@
 package blue.koenig.kingsfinances.model.calculation;
 
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated;
+
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -17,10 +19,10 @@ public class LinearStatisticsCalculator extends StatisticsCalculator {
     }
 
     /**
-     * Calculates the next statistical relevant date(1. of next month).
+     * Calculates the next statistical relevant day(1. of next month).
      *
-     * @param dateTime date of change
-     * @return date of statistical relevance
+     * @param dateTime day of change
+     * @return day of statistical relevance
      */
     public static DateTime calcEntryDate(DateTime dateTime) {
         return dateTime.plus(Period.months(1)).withDayOfMonth(1);
@@ -35,7 +37,7 @@ public class LinearStatisticsCalculator extends StatisticsCalculator {
             statisticEntryList.add(delta);
             return statisticEntryList;
         } else {
-            // TODO: make hashmap to index date for faster search
+            // TODO: make hashmap to index day for faster search
             int i = 0;
             for (StatisticEntryDeprecated statisticEntry : statisticEntryList) {
                 // add delta to current entry

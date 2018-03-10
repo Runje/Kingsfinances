@@ -1,7 +1,7 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.model.FinanceConfig
 import com.koenig.commonModel.User
+import com.koenig.commonModel.finance.FinanceConfig
 import org.joda.time.DateTime
 
 /**

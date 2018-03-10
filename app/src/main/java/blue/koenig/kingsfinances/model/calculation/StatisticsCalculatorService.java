@@ -1,5 +1,7 @@
 package blue.koenig.kingsfinances.model.calculation;
 
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated;
+
 import java.util.List;
 
 /**

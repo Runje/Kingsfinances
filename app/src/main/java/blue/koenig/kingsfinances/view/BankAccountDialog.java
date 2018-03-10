@@ -118,8 +118,8 @@ public class BankAccountDialog {
     }
 
     private void updateFromLayout(View layout) {
-        final EditText editBankName = (EditText) layout.findViewById(R.id.editBank);
-        final EditText editAccountName = (EditText) layout.findViewById(R.id.edit_name);
+        final EditText editBankName = layout.findViewById(R.id.editBank);
+        final EditText editAccountName = layout.findViewById(R.id.edit_name);
 
         String name = editAccountName.getText().toString();
         bankAccount.setName(name);
@@ -127,11 +127,11 @@ public class BankAccountDialog {
     }
 
     private void updateLayout(final View layout, final Dialog dialog) {
-        final EditText editBankName = (EditText) layout.findViewById(R.id.editBank);
-        final EditText editAccountName = (EditText) layout.findViewById(R.id.edit_name);
-        final EditText editBalance = (EditText) layout.findViewById(R.id.edit_balance);
-        final EditText editOwner = (EditText) layout.findViewById(R.id.edit_owner);
-        final EditText editDate = (EditText) layout.findViewById(R.id.edit_last_date);
+        final EditText editBankName = layout.findViewById(R.id.editBank);
+        final EditText editAccountName = layout.findViewById(R.id.edit_name);
+        final EditText editBalance = layout.findViewById(R.id.edit_balance);
+        final EditText editOwner = layout.findViewById(R.id.edit_owner);
+        final EditText editDate = layout.findViewById(R.id.edit_last_date);
 
 
         editOwner.setOnClickListener(v -> {
@@ -148,8 +148,8 @@ public class BankAccountDialog {
 
 
         editBankName.setText(bankAccount.getBank());
-        editBalance.setText(StringFormats.centsToCentString(bankAccount.getBalance()));
-        editOwner.setText(StringFormats.usersToAbbreviationString(bankAccount.getOwners()));
+        editBalance.setText(StringFormats.INSTANCE.centsToCentString(bankAccount.getBalance()));
+        editOwner.setText(StringFormats.INSTANCE.usersToAbbreviationString(bankAccount.getOwners()));
         editAccountName.setText(bankAccount.getName());
         editDate.setText(bankAccount.getDateTime().toString("dd.MM.yy"));
 
@@ -168,8 +168,8 @@ public class BankAccountDialog {
         final AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(titleId);
         final View layout = LayoutInflater.from(context).inflate(R.layout.edit_name_dialog, null);
-        final EditText editName = (EditText) layout.findViewById(R.id.edit_name);
-        ViewUtils.clickOn(editName);
+        final EditText editName = layout.findViewById(R.id.edit_name);
+        ViewUtils.INSTANCE.clickOn(editName);
         builder.setView(layout);
         builder.setPositiveButton("OK", (dialog, which) -> {
             String name = (editName).getText().toString();

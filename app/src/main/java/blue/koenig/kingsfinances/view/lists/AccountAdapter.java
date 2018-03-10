@@ -35,16 +35,16 @@ public class AccountAdapter extends ListAdapter<BankAccount> {
             if (listener != null) listener.onEdit(account);
         });
 
-        TextView bank = (TextView) convertView.findViewById(R.id.text_bankname);
-        TextView accountName = (TextView) convertView.findViewById(R.id.text_name);
-        TextView date = (TextView) convertView.findViewById(R.id.text_last_update);
-        TextView balance = (TextView) convertView.findViewById(R.id.text_balance);
-        TextView owner = (TextView) convertView.findViewById(R.id.text_owner);
+        TextView bank = convertView.findViewById(R.id.text_bankname);
+        TextView accountName = convertView.findViewById(R.id.text_name);
+        TextView date = convertView.findViewById(R.id.text_last_update);
+        TextView balance = convertView.findViewById(R.id.text_balance);
+        TextView owner = convertView.findViewById(R.id.text_owner);
 
-        balance.setText(StringFormats.centsToEuroString(account.getBalance()));
+        balance.setText(StringFormats.INSTANCE.centsToEuroString(account.getBalance()));
         bank.setText(account.getBank());
         accountName.setText(account.getName());
-        owner.setText(StringFormats.usersToAbbreviationString(account.getOwners()));
+        owner.setText(StringFormats.INSTANCE.usersToAbbreviationString(account.getOwners()));
 
         date.setText(account.getDateTime().toString("dd.MM.yy"));
     }

@@ -8,7 +8,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import blue.koenig.kingsfinances.model.FinanceConfig
 import blue.koenig.kingsfinances.model.PendingOperation
 import blue.koenig.kingsfinances.model.PendingStatus
 import com.koenig.commonModel.Category
@@ -16,10 +15,7 @@ import com.koenig.commonModel.Goal
 import com.koenig.commonModel.Item
 import com.koenig.commonModel.database.DatabaseItem
 import com.koenig.commonModel.database.UserService
-import com.koenig.commonModel.finance.Balance
-import com.koenig.commonModel.finance.BankAccount
-import com.koenig.commonModel.finance.Expenses
-import com.koenig.commonModel.finance.StandingOrder
+import com.koenig.commonModel.finance.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
@@ -34,7 +30,7 @@ class FinanceDatabase(context: Context, name: String = DATABASE_NAME, factory: S
     val goalTable: GoalTable
     protected var logger = LoggerFactory.getLogger(this.javaClass.simpleName)
     protected var lock = ReentrantLock()
-    internal var tables: MutableList<Table<*>> = ArrayList()
+    internal var tables: MutableList<ItemTable<*>> = ArrayList()
     val pendingTable: PendingTable
 
     val allPendingOperation: List<PendingOperation<out Item>>

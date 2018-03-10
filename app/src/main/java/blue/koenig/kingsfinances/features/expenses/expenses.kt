@@ -5,18 +5,19 @@ import blue.koenig.kingsfinances.features.FamilyPresenter
 import blue.koenig.kingsfinances.features.FamilyState
 import blue.koenig.kingsfinances.features.FamilyView
 import blue.koenig.kingsfinances.features.pending_operations.OperationExecutor
-import blue.koenig.kingsfinances.model.FinanceConfig
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.FamilyConstants
 import com.koenig.commonModel.ItemType
 import com.koenig.commonModel.Repository.ExpensesRepository
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.FinanceConfig
+import com.koenig.commonModel.finance.statistics.MonthStatistic
 import com.koenig.communication.messages.AskForUpdatesMessage
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import org.joda.time.YearMonth
 import java.util.concurrent.TimeUnit
 
 /**
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit
 class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMembers: List<User>, val connection: ServerConnection, val config: FinanceConfig, val debtsCalculator: DebtsCalculator, val operationExecutor: OperationExecutor) : FamilyPresenter<ExpensesState, ExpensesView>() {
 
     init {
-        state = ExpensesState(familyMembers = familyMembers, userId = config.userId)
+        state = ExpensesState(familyMembers = familyMembers, user = config.user)
 
         // TODO: listen to changes of family members and userId!
         expensesRepository.hasChanged.observeOn(AndroidSchedulers.mainThread()).subscribe { update(state.copy(hasChanged = it)) }
@@ -47,7 +48,7 @@ class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMember
                     connection.sendFamilyMessage(AskForUpdatesMessage.askForExpenses(config.getLastSyncDate(ItemType.EXPENSES.name)))
                     items = expensesRepository.allItems
                 }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
-                    update(state.copy(expenses = items, debts = debtsCalculator.entrys, hasChanged = false))
+                    update(state.copy(expenses = items, debts = debtsCalculator.absoluteMap, hasChanged = false))
                 }
 
                 // disable timer after timeout of 3s, TODO: if not connected immediately come back
@@ -64,7 +65,7 @@ class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMember
                     operationExecutor.deleteItem(it, expensesRepository)
                     items = expensesRepository.allItems
                 }.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe {
-                    update(state.copy(expenses = items, debts = debtsCalculator.entrys, hasChanged = false, isLoading = false))
+                    update(state.copy(expenses = items, debts = debtsCalculator.absoluteMap, hasChanged = false, isLoading = false))
                 }
             })
         }
@@ -73,11 +74,11 @@ class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMember
         Observable.fromCallable { update(state.copy(isLoading = true)) }.subscribeOn(AndroidSchedulers.mainThread()).subscribe()
 
         lateinit var items: List<Expenses>
-        lateinit var debts: List<StatisticEntryDeprecated>
+        lateinit var debts: Map<YearMonth, MonthStatistic>
         Observable.fromCallable {
             logger.info("Calling all items")
             items = expensesRepository.allItems
-            debts = debtsCalculator.entrys
+            debts = debtsCalculator.absoluteMap
         }.subscribeOn(Schedulers.computation()).observeOn(AndroidSchedulers.mainThread()).subscribe {
             update(state.copy(expenses = items, debts = debts, isLoading = false))
         }
@@ -92,4 +93,4 @@ interface ExpensesView : FamilyView<ExpensesState> {
     val onDelete: Observable<Expenses>
 }
 
-data class ExpensesState(val expenses: List<Expenses> = emptyList(), val isLoading: Boolean = false, val debts: List<StatisticEntryDeprecated> = emptyList(), val familyMembers: List<User> = emptyList(), val hasChanged: Boolean = false, val userId: String = FamilyConstants.NO_ID) : FamilyState
+data class ExpensesState(val expenses: List<Expenses> = emptyList(), val isLoading: Boolean = false, val debts: Map<YearMonth, MonthStatistic> = emptyMap(), val familyMembers: List<User> = emptyList(), val hasChanged: Boolean = false, val user: User = FamilyConstants.NO_USER) : FamilyState

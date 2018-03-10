@@ -1,20 +1,20 @@
 package blue.koenig.kingsfinances.features.category_statistics
 
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
-import blue.koenig.kingsfinances.model.FinanceConfig
-import blue.koenig.kingsfinances.model.calculation.yearMonth
+import blue.koenig.kingsfinances.model.StatisticsUtils
 import blue.koenig.kingsfinances.model.database.GoalTable
 import blue.koenig.kingsfinances.model.database.PendingTable
 import com.google.common.collect.Lists
 import com.koenig.FamilyConstants
 import com.koenig.commonModel.Component
+import com.koenig.commonModel.finance.FinanceConfig
+import com.koenig.commonModel.finance.statistics.createYearsList
 import com.koenig.communication.messages.AUDMessage
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
 import org.joda.time.YearMonth
-import org.joda.time.Years
 import org.joda.time.format.DateTimeFormat
 import org.slf4j.LoggerFactory
 
@@ -22,18 +22,28 @@ import org.slf4j.LoggerFactory
  * Created by Thomas on 16.01.2018.
  */
 
-class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalculator, private val goalTable: GoalTable, private val config: FinanceConfig, private val pendingTable: PendingTable, private val connection: ServerConnection) {
+class CategoryStatisticsPresenter(private val categoryStatisticsRepository: CategoryStatisticsRepository, private val goalTable: GoalTable, private val config: FinanceConfig, private val pendingTable: PendingTable, private val connection: ServerConnection) {
     private var state: CategoryStatisticsState
     private var disposable: Disposable? = null
     private var view: CategoryStatisticsView? = null
+    private fun generateYearsList(): List<String> {
+        val list = Lists.newArrayList(FamilyConstants.OVERALL_STRING)
+        list.addAll(createYearsList(config.startMonth, YearMonth()))
+        return list
+    }
 
+    private fun generateMonthsList(): List<String> {
+        val list = Lists.newArrayList(FamilyConstants.OVERALL_STRING)
+        list.addAll(StatisticsUtils.allMonthsList())
+        return list
+    }
     init {
-        state = CategoryStatisticsState(calcStatistics(0, 0), categoryCalculator.yearsList, 0, 0, Lists.newArrayList(categoryCalculator.overallString))
+        state = CategoryStatisticsState(calcStatistics(0, 0), generateYearsList(), 0, 0, Lists.newArrayList(FamilyConstants.OVERALL_STRING))
     }
 
     fun attachView(view: CategoryStatisticsView) {
         this.view = view
-        disposable = categoryCalculator.deltaStatisticsForAll.observeOn(AndroidSchedulers.mainThread()).subscribe(
+        disposable = categoryStatisticsRepository.statisticsChanged.observeOn(AndroidSchedulers.mainThread()).subscribe(
                 { changeSelection(state.yearsSelection, state.monthsSelection) }
         ) { throwable -> logger.error("OnError: " + throwable.toString()) }
 
@@ -54,7 +64,7 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
             val operation = pendingTable.addUpdate(updatedGoal, config.userId)
             // send to server
             connection.sendFamilyMessage(AUDMessage(Component.FINANCE, operation))
-            logger.info("Saved new goal: " + goal)
+            logger.info("Saved new goal: $goal")
         }
 
         update()
@@ -76,9 +86,9 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
         logger.info("Change year: " + pos!!)
         if (pos == 0) {
             //if overall show only overall for months
-            state = state.copy(monthsList = Lists.newArrayList(categoryCalculator.overallString), monthsSelection = 0)
+            state = state.copy(monthsList = Lists.newArrayList(FamilyConstants.OVERALL_STRING), monthsSelection = 0)
         } else {
-            state = state.copy(monthsList = categoryCalculator.monthsList)
+            state = state.copy(monthsList = generateMonthsList())
         }
 
         changeSelection(pos, state.monthsSelection)
@@ -106,14 +116,14 @@ class CategoryStatisticsPresenter(private val categoryCalculator: CategoryCalcul
                 // not all month
                 val date = DateTime.parse(state.monthsList[monthPos], DateTimeFormat.forPattern("MMM"))
                 val yearMonth = YearMonth(year, date.monthOfYear)
-                categoryCalculator.getCategoryStatistics(yearMonth)
+                categoryStatisticsRepository.getCategoryStatistics(yearMonth)
             } else {
                 // whole year
-                categoryCalculator.getCategoryStatistics(Years.years(year))
+                categoryStatisticsRepository.getCategoryStatistics(YearMonth(year, 1), YearMonth(year, 12))
             }
         } else {
             // overall
-            categoryCalculator.getCategoryStatistics(config.startDate.yearMonth, DateTime.now().yearMonth)
+            categoryStatisticsRepository.getCategoryStatistics(config.startMonth, YearMonth())
         }
 
         return result.sortedBy { value -> value.winnings }

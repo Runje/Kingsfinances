@@ -2,6 +2,7 @@ package blue.koenig.kingsfinances.model.calculation
 
 import blue.koenig.kingsfinances.TestHelper.milena
 import blue.koenig.kingsfinances.TestHelper.thomas
+import com.koenig.commonModel.finance.statistics.MonthStatistic
 import org.joda.time.YearMonth
 import org.junit.Assert
 import org.junit.Test

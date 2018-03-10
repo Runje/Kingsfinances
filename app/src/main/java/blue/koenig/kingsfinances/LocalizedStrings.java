@@ -6,18 +6,18 @@ import com.koenig.FamilyConstants;
 import com.koenig.StringFormats;
 import com.koenig.commonModel.Frequency;
 
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 /**
  * Created by Thomas on 20.12.2017.
  */
 
 public class LocalizedStrings {
-    public static String dateTimeToUnlimitedDayString(Context context, DateTime dateTime) {
-        if (dateTime.equals(FamilyConstants.INSTANCE.getUNLIMITED()))
+    public static String localDateToUnlimitedDayString(Context context, LocalDate day) {
+        if (day.equals(FamilyConstants.INSTANCE.getUNLIMITED()))
             return context.getString(R.string.unlimited);
 
-        return StringFormats.dateTimeToDayString(dateTime);
+        return StringFormats.INSTANCE.localDateTimeToDayString(day);
     }
 
     public static String frequencyToString(Context context, Frequency frequency)

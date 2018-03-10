@@ -1,6 +1,6 @@
 package blue.koenig.kingsfinances.features.category_statistics
 
-import blue.koenig.kingsfinances.model.calculation.MonthStatistic
+import com.koenig.commonModel.finance.statistics.MonthStatistic
 import org.joda.time.DateTime
 import org.joda.time.YearMonth
 import org.joda.time.Years

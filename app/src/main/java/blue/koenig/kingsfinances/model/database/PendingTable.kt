@@ -18,7 +18,7 @@ import java.util.concurrent.locks.ReentrantLock
  * Created by Thomas on 25.11.2017.
  */
 
-class PendingTable(database: SQLiteDatabase, lock: ReentrantLock) : Table<PendingOperation<*>>(database, lock) {
+class PendingTable(database: SQLiteDatabase, lock: ReentrantLock) : ItemTable<PendingOperation<*>>(database, lock) {
     override val tableName: String
         get() = NAME
     override val tableSpecificCreateStatement: String
@@ -75,7 +75,7 @@ class PendingTable(database: SQLiteDatabase, lock: ReentrantLock) : Table<Pendin
 
     companion object {
         val NAME = "pendings"
-        val COLUMN_DATE = "date"
+        val COLUMN_DATE = "day"
         val COLUMN_OPERATION = "operation"
         val COLUMN_STATUS = "status"
     }

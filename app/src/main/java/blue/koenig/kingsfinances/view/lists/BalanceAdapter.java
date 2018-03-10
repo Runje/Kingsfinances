@@ -34,22 +34,22 @@ public class BalanceAdapter extends ListAdapter<Balance> {
         convertView.setLongClickable(true);
         convertView.setClickable(true);
 
-        TextView textBalance = (TextView) convertView.findViewById(R.id.text_balance);
-        TextView date = (TextView) convertView.findViewById(R.id.text_date);
+        TextView textBalance = convertView.findViewById(R.id.text_balance);
+        TextView date = convertView.findViewById(R.id.text_date);
 
-        textBalance.setText(StringFormats.centsToCentString(balance.getBalance()));
+        textBalance.setText(StringFormats.INSTANCE.centsToCentString(balance.getBalance()));
         if (balance.getBalance() >= 0) {
             textBalance.setTextColor(ContextCompat.getColor(convertView.getContext(), R.color.positive_highlight));
         } else {
             textBalance.setTextColor(ContextCompat.getColor(convertView.getContext(), R.color.negative_highlight));
         }
 
-        date.setText(balance.getDate().toString("dd.MM.yy"));
+        date.setText(balance.getDay().toString("dd.MM.yy"));
     }
 
     @Override
     protected Comparator<Balance> getComparator() {
-        return (lhs, rhs) -> rhs.getDate().compareTo(lhs.getDate());
+        return (lhs, rhs) -> rhs.getDay().compareTo(lhs.getDay());
     }
 
     @Override

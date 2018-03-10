@@ -8,11 +8,8 @@ import blue.koenig.kingsfamilylibrary.view.family.FamilyView
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler
 import blue.koenig.kingsfinances.R
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
-import blue.koenig.kingsfinances.features.expenses.CompensationCalculator
-import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.model.database.FinanceDatabase
 import blue.koenig.kingsfinances.view.FinanceNullView
 import blue.koenig.kingsfinances.view.FinanceView
@@ -20,11 +17,11 @@ import blue.koenig.kingsfinances.view.NullPendingView
 import blue.koenig.kingsfinances.view.PendingView
 import com.koenig.commonModel.*
 import com.koenig.commonModel.database.DatabaseItem
-import com.koenig.commonModel.finance.Balance
-import com.koenig.commonModel.finance.BankAccount
-import com.koenig.commonModel.finance.Expenses
-import com.koenig.commonModel.finance.StandingOrder
+import com.koenig.commonModel.finance.*
 import com.koenig.commonModel.finance.features.StandingOrderExecutor
+import com.koenig.commonModel.finance.statistics.AssetsCalculator
+import com.koenig.commonModel.finance.statistics.CompensationCalculator
+import com.koenig.commonModel.finance.statistics.MonthStatistic
 import com.koenig.communication.messages.AUDMessage
 import com.koenig.communication.messages.AskForUpdatesMessage
 import com.koenig.communication.messages.FamilyMessage
@@ -33,6 +30,7 @@ import com.koenig.communication.messages.finance.FinanceTextMessages
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
+import org.joda.time.YearMonth
 import org.slf4j.LoggerFactory
 import java.sql.SQLException
 import java.util.*
@@ -110,9 +108,9 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
         }
 
     //return debtsCalculator.recalculateAll();
-    val debts: List<StatisticEntryDeprecated>
+    val debts: Map<YearMonth, MonthStatistic>
         get() {
-            val debts = debtsCalculator.entrys
+            val debts = debtsCalculator.absoluteMap
             if (debts.size == 0) {
                 logger.warn("Recalculating all debts!")
             }
@@ -120,7 +118,7 @@ class FinanceModel// TODO: Income Calculator as input that its tracking all chan
             return debts
         }
 
-    val allAssets: List<StatisticEntryDeprecated>
+    val allAssets: Map<YearMonth, MonthStatistic>
         get() = assetsCalculator.entrysForAll
 
     init {

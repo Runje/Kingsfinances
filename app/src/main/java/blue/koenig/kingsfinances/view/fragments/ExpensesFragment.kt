@@ -19,7 +19,6 @@ import blue.koenig.kingsfinances.dagger.FinanceApplication
 import blue.koenig.kingsfinances.features.expenses.ExpensesPresenter
 import blue.koenig.kingsfinances.features.expenses.ExpensesState
 import blue.koenig.kingsfinances.features.expenses.ExpensesView
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.view.ChartHelper
 import blue.koenig.kingsfinances.view.ChartHelper.entrysToMonthXValues
 import blue.koenig.kingsfinances.view.FinanceViewUtils
@@ -28,8 +27,10 @@ import com.github.mikephil.charting.charts.LineChart
 import com.jakewharton.rxbinding2.support.v4.widget.RxSwipeRefreshLayout
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.statistics.MonthStatistic
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import org.joda.time.YearMonth
 
 
 /**
@@ -58,7 +59,7 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
         updatesAvailable.visibility = if (hasChanged) View.VISIBLE else View.GONE
     }
 
-    private fun renderDebts(debts: List<StatisticEntryDeprecated>) {
+    private fun renderDebts(debts: Map<YearMonth, MonthStatistic>) {
         updateDebts(debts)
     }
 
@@ -74,7 +75,7 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
                 linearLayout.removeAllViews()
                 val layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, familyMembers.size.toFloat())
                 linearLayout.layoutParams = layoutParams
-                val bigWidth = ViewUtils.getScreenWidth(activity) > 1300
+                val bigWidth = ViewUtils.getScreenSize(activity!!.windowManager).x > 1300
                 if (bigWidth) {
                     logger.info("BIG WIDTH SCREEN")
                     for (member in familyMembers) {
@@ -149,20 +150,20 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
     }
 
 
-    fun updateDebts(debts: List<StatisticEntryDeprecated>) {
+    fun updateDebts(debts: Map<YearMonth, MonthStatistic>) {
         if (lineChart != null) {
             updateLinechart(debts)
         }
     }
 
     @Synchronized
-    private fun updateLinechart(statisticEntryList: List<StatisticEntryDeprecated>) {
+    private fun updateLinechart(statisticEntryList: Map<YearMonth, MonthStatistic>) {
         // TODO: after long abstinence(probably destroy was called) and then resume it fails with a NPE on lineChart
-        val lineData = ChartHelper.entrysToLineData(statisticEntryList, state.userId, Color.GREEN)
+        val lineData = ChartHelper.mapToLineData(statisticEntryList.values.sortedBy { it.month }, IntArray(Color.GREEN), listOf(state.user))
         lineChart?.data = lineData
 
-        val xValues = entrysToMonthXValues(statisticEntryList)
-        //convert x values to date string
+        val xValues = entrysToMonthXValues(statisticEntryList.keys.sorted())
+        //convert x values to day string
         lineChart?.xAxis?.setValueFormatter { value, _ ->
             val intValue = value.toInt()
             if (intValue > xValues.size - 1) {

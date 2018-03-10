@@ -2,12 +2,12 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculatorService
-import blue.koenig.kingsfinances.features.expenses.CompensationCalculator
-import blue.koenig.kingsfinances.model.calculation.MonthStatistic
 import blue.koenig.kingsfinances.model.database.ExpensesDbRepository
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Costs
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.statistics.CompensationCalculator
+import com.koenig.commonModel.finance.statistics.MonthStatistic
 import io.reactivex.Observable
 import org.joda.time.DateTime
 import org.joda.time.Period
@@ -31,8 +31,8 @@ class CompensationDatabaseTests : DatabaseTests() {
 
         val compensations = financeDatabase.expensesTable.compensations
         Assert.assertEquals(2, compensations.size)
-        Assert.assertEquals(compensations[expenses1.date]!!.name, expenses1.name)
-        Assert.assertEquals(compensations[expenses3.date]!!.name, expenses3.name)
+        Assert.assertEquals(compensations[expenses1.day]!!.name, expenses1.name)
+        Assert.assertEquals(compensations[expenses3.day]!!.name, expenses3.name)
     }
 
     @Test
@@ -51,7 +51,7 @@ class CompensationDatabaseTests : DatabaseTests() {
         Assert.assertEquals(15, compensations[day]!!.costDistribution[Helper.thomas].Theory)
         // everything else should be 0
         compensations.values.forEach {
-            if (it.date != day) {
+            if (it.day != day) {
                 Assert.assertEquals(0, it.costDistribution[Helper.thomas].Theory)
             }
         }
@@ -61,7 +61,7 @@ class CompensationDatabaseTests : DatabaseTests() {
         compensations = financeDatabase.expensesTable.compensations
         Assert.assertEquals(0, compensations[day]!!.costDistribution[Helper.thomas].Theory)
         compensations.values.forEach {
-            if (it.date != day) {
+            if (it.day != day) {
                 Assert.assertEquals(0, it.costDistribution[Helper.thomas].Theory)
             }
         }

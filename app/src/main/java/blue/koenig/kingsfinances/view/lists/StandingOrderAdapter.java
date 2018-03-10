@@ -58,15 +58,15 @@ public class StandingOrderAdapter extends ListAdapter<StandingOrder>
 
         });
 
-        TextView name = (TextView) convertView.findViewById(R.id.text_name);
-        TextView costs = (TextView) convertView.findViewById(R.id.text_costs);
-        TextView date = (TextView) convertView.findViewById(R.id.text_first_date);
+        TextView name = convertView.findViewById(R.id.text_name);
+        TextView costs = convertView.findViewById(R.id.text_costs);
+        TextView date = convertView.findViewById(R.id.text_first_date);
 
 
 
 
         name.setText(ex.getName());
-        costs.setText(StringFormats.centsToEuroString(ex.getCosts()));
+        costs.setText(StringFormats.INSTANCE.centsToEuroString(ex.getCosts()));
         if (ex.getCosts() > 0)
         {
             costs.setTextColor(ContextCompat.getColor(context, R.color.positive_highlight));

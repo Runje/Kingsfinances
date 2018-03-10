@@ -20,7 +20,7 @@ import com.koenig.commonModel.finance.BookkeepingEntry
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Expenses
 import com.koenig.commonModel.finance.StandingOrder
-import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import java.nio.ByteBuffer
 import java.util.*
 import javax.inject.Inject
@@ -68,10 +68,10 @@ class BookkeepingItemActivity : AppCompatActivity() {
 
         if (bookkeepingItem == null) {
             if (isExpenses) {
-                expenses = Expenses("", "", "", 0, CostDistribution(), DateTime.now(), "")
+                expenses = Expenses("", "", "", 0, CostDistribution(), LocalDate(), "")
                 bookkeepingItem = expenses
             } else {
-                standingOrder = StandingOrder("", "", "", 0, CostDistribution(), DateTime.now(), FamilyConstants.UNLIMITED, Frequency.Monthly, 1, HashMap())
+                standingOrder = StandingOrder("", "", "", 0, CostDistribution(), LocalDate(), FamilyConstants.UNLIMITED, Frequency.Monthly, 1, HashMap())
                 bookkeepingItem = standingOrder
             }
         }
@@ -178,12 +178,12 @@ class BookkeepingItemActivity : AppCompatActivity() {
 
 
         editFirstDate.setOnClickListener {
-            ViewUtils.getDateFromDialog(this) { dateTime ->
-                editFirstDate.setText(StringFormats.dateTimeToDayString(dateTime))
+            ViewUtils.getDateFromDialog(this) { day ->
+                editFirstDate.setText(StringFormats.localDateTimeToDayString(day))
                 if (isExpenses)
-                    expenses!!.date = dateTime
+                    expenses!!.day = day
                 else
-                    standingOrder!!.firstDate = dateTime
+                    standingOrder!!.firstDate = day
             }
         }
 
@@ -195,7 +195,7 @@ class BookkeepingItemActivity : AppCompatActivity() {
         val textDate = findViewById<View>(R.id.text_date) as TextView
 
         textDate.setText(R.string.date)
-        editFirstDate.setText(LocalizedStrings.dateTimeToUnlimitedDayString(this, if (isExpenses) expenses!!.date else standingOrder!!.firstDate))
+        editFirstDate.setText(LocalizedStrings.localDateToUnlimitedDayString(this, if (isExpenses) expenses!!.day else standingOrder!!.firstDate))
 
         if (isExpenses) {
             findViewById<View>(R.id.standing_order_addition).visibility = View.GONE
@@ -204,12 +204,12 @@ class BookkeepingItemActivity : AppCompatActivity() {
             val editLastDate = findViewById<EditText>(R.id.edit_last_date)
             editLastDate.setOnClickListener {
                 ViewUtils.getUnlimitedDateFromDialog(this) { dateTime ->
-                    editLastDate.setText(LocalizedStrings.dateTimeToUnlimitedDayString(this, dateTime))
+                    editLastDate.setText(LocalizedStrings.localDateToUnlimitedDayString(this, dateTime))
                     standingOrder!!.endDate = dateTime
                 }
             }
             val editFrequency = findViewById<EditText>(R.id.edit_frequency)
-            editLastDate.setText(LocalizedStrings.dateTimeToUnlimitedDayString(this, standingOrder!!.endDate))
+            editLastDate.setText(LocalizedStrings.localDateToUnlimitedDayString(this, standingOrder!!.endDate))
             val frequency = LocalizedStrings.frequencyToString(this, standingOrder!!.frequencyFactor, standingOrder!!.frequency)
             editFrequency.setText(frequency)
             editFrequency.setOnClickListener {

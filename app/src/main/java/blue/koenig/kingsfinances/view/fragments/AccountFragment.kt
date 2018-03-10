@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.ListView
 import blue.koenig.kingsfamilylibrary.view.DeleteDialog
 import blue.koenig.kingsfinances.R
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.view.BalancesDialog
 import blue.koenig.kingsfinances.view.ChartHelper
 import blue.koenig.kingsfinances.view.ChartHelper.entrysToMonthXValues
@@ -21,6 +20,8 @@ import com.koenig.FamilyConstants
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
+import com.koenig.commonModel.finance.statistics.MonthStatistic
+import org.joda.time.YearMonth
 
 
 /**
@@ -98,11 +99,11 @@ class AccountFragment : FinanceFragment() {
         initialized = true
     }
 
-    private fun updateLinechart(statisticEntryList: List<StatisticEntryDeprecated>) {
-        val lineData = ChartHelper.entrysToLineData(statisticEntryList, intArrayOf(Color.BLUE, Color.RED, Color.GREEN, Color.GRAY, Color.WHITE), statUsers)
+    private fun updateLinechart(statisticEntryMap: Map<YearMonth, MonthStatistic>) {
+        val lineData = ChartHelper.mapToLineData(statisticEntryMap.values.sortedBy { it.month }, intArrayOf(Color.BLUE, Color.RED, Color.GREEN, Color.GRAY, Color.WHITE), statUsers)
         lineChart!!.data = lineData
 
-        val xValues = entrysToMonthXValues(statisticEntryList)
+        val xValues = entrysToMonthXValues(statisticEntryMap.keys.sorted())
         //convert x values to date string
         lineChart!!.xAxis.setValueFormatter { value, _ ->
             val intValue = value.toInt()
@@ -114,7 +115,7 @@ class AccountFragment : FinanceFragment() {
 
         // show last 12 month
         //lineChart.setVisibleXRangeMaximum(12);
-        //lineChart.moveViewToX(Math.max(0, statisticEntryList.size() - 12));
+        //lineChart.moveViewToX(Math.max(0, statisticEntryMap.size() - 12));
         lineChart!!.invalidate()
     }
 
@@ -128,7 +129,7 @@ class AccountFragment : FinanceFragment() {
         activity!!.runOnUiThread { adapter!!.update(accounts) }
     }
 
-    fun updateAssets(assets: List<StatisticEntryDeprecated>) {
+    fun updateAssets(assets: Map<YearMonth, MonthStatistic>) {
         activity!!.runOnUiThread { updateLinechart(assets) }
     }
 }

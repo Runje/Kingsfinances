@@ -1,12 +1,13 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.features.statistics.AssetsCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
+import com.koenig.commonModel.finance.statistics.AssetsCalculator
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 import junit.framework.Assert
 import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import org.joda.time.Period
 import org.junit.Test
 import java.util.*
@@ -19,45 +20,45 @@ class AssetsCalculatorTests {
 
     @Test
     fun linearEstimation() {
-        Assert.assertEquals(15, AssetsCalculator.calcLinearEstimation(Balance(10, TestHelper.getDay(17, 1, 31)), Balance(20, TestHelper.getDay(17, 2, 2)), TestHelper.getDay(17, 2, 1)))
+        Assert.assertEquals(15, AssetsCalculator.calcLinearEstimation(Balance(10, LocalDate(17, 1, 31)), Balance(20, LocalDate(17, 2, 2)), LocalDate(17, 2, 1)))
     }
 
     @Test
     fun add() {
         val itemSubject = TestSubject<BankAccount>()
-        val assetsCalculatorService = TestHelper.getAssetsCalculatorService(hashMapOf(), TestHelper.getDay(17, 1, 1), TestHelper.getDay(17, 5, 1))
+        val assetsCalculatorService = TestHelper.getAssetsCalculatorService(hashMapOf(), LocalDate(17, 1, 1), LocalDate(17, 5, 1))
         val assetsCalculator = AssetsCalculator(Period.months(1), itemSubject, assetsCalculatorService)
-        val bankAccountThomas = createBankAccountThomas(TestHelper.getDay(17, 1, 2), intArrayOf(10, 20, 30, -50))
+        val bankAccountThomas = createBankAccountThomas(LocalDate(17, 1, 2), intArrayOf(10, 20, 30, -50))
         itemSubject.add(bankAccountThomas)
         var statisticEntryList = assetsCalculator.getEntrysFor(bankAccountThomas)
 
         Assert.assertEquals(5, statisticEntryList!!.size)
 
-        assertAssetOfList(0, TestHelper.getDay(17, 1, 1), 10, 0, statisticEntryList)
-        assertAssetOfList(1, TestHelper.getDay(17, 2, 1), 19, 0, statisticEntryList)
-        assertAssetOfList(2, TestHelper.getDay(17, 3, 1), 29, 0, statisticEntryList)
-        assertAssetOfList(3, TestHelper.getDay(17, 4, 1), -47, 0, statisticEntryList)
-        assertAssetOfList(4, TestHelper.getDay(17, 5, 1), -50, 0, statisticEntryList)
+        assertAssetOfList(0, LocalDate(17, 1, 1), 10, 0, statisticEntryList)
+        assertAssetOfList(1, LocalDate(17, 2, 1), 19, 0, statisticEntryList)
+        assertAssetOfList(2, LocalDate(17, 3, 1), 29, 0, statisticEntryList)
+        assertAssetOfList(3, LocalDate(17, 4, 1), -47, 0, statisticEntryList)
+        assertAssetOfList(4, LocalDate(17, 5, 1), -50, 0, statisticEntryList)
 
         statisticEntryList = assetsCalculator.entrysForAll
 
         Assert.assertEquals(5, statisticEntryList.size)
 
-        assertAssetOfList(0, TestHelper.getDay(17, 1, 1), 10, 0, statisticEntryList)
-        assertAssetOfList(1, TestHelper.getDay(17, 2, 1), 19, 0, statisticEntryList)
-        assertAssetOfList(2, TestHelper.getDay(17, 3, 1), 29, 0, statisticEntryList)
-        assertAssetOfList(3, TestHelper.getDay(17, 4, 1), -47, 0, statisticEntryList)
-        assertAssetOfList(4, TestHelper.getDay(17, 5, 1), -50, 0, statisticEntryList)
+        assertAssetOfList(0, LocalDate(17, 1, 1), 10, 0, statisticEntryList)
+        assertAssetOfList(1, LocalDate(17, 2, 1), 19, 0, statisticEntryList)
+        assertAssetOfList(2, LocalDate(17, 3, 1), 29, 0, statisticEntryList)
+        assertAssetOfList(3, LocalDate(17, 4, 1), -47, 0, statisticEntryList)
+        assertAssetOfList(4, LocalDate(17, 5, 1), -50, 0, statisticEntryList)
     }
 
     @Test
     fun addAll() {
         val itemSubject = TestSubject<BankAccount>()
-        val assetsCalculatorService = TestHelper.getAssetsCalculatorService(hashMapOf(), TestHelper.getDay(17, 1, 1), TestHelper.getDay(17, 6, 1))
+        val assetsCalculatorService = TestHelper.getAssetsCalculatorService(hashMapOf(), LocalDate(17, 1, 1), LocalDate(17, 6, 1))
         val assetsCalculator = AssetsCalculator(Period.months(1), itemSubject, assetsCalculatorService)
-        val bankAccountThomas = createBankAccountThomas(TestHelper.getDay(17, 1, 1), intArrayOf(10, 20, 30, -50))
-        val bankAccountMilena = createBankAccountMilena(TestHelper.getDay(17, 2, 1), intArrayOf(10, 20, 30, -50))
-        val bankAccountBoth = createBankAccountBoth(TestHelper.getDay(17, 3, 1), intArrayOf(10, 20, 30, -50))
+        val bankAccountThomas = createBankAccountThomas(LocalDate(17, 1, 1), intArrayOf(10, 20, 30, -50))
+        val bankAccountMilena = createBankAccountMilena(LocalDate(17, 2, 1), intArrayOf(10, 20, 30, -50))
+        val bankAccountBoth = createBankAccountBoth(LocalDate(17, 3, 1), intArrayOf(10, 20, 30, -50))
         itemSubject.add(bankAccountThomas)
         itemSubject.add(bankAccountMilena)
         itemSubject.add(bankAccountBoth)
@@ -65,21 +66,21 @@ class AssetsCalculatorTests {
 
         Assert.assertEquals(6, statisticEntryList.size)
 
-        assertAssetOfList(0, TestHelper.getDay(17, 1, 1), 15, 15, statisticEntryList)
-        assertAssetOfList(1, TestHelper.getDay(17, 2, 1), 25, 15, statisticEntryList)
-        assertAssetOfList(2, TestHelper.getDay(17, 3, 1), 35, 25, statisticEntryList)
-        assertAssetOfList(3, TestHelper.getDay(17, 4, 1), -40, 40, statisticEntryList)
-        assertAssetOfList(4, TestHelper.getDay(17, 5, 1), -35, -35, statisticEntryList)
-        assertAssetOfList(5, TestHelper.getDay(17, 6, 1), -75, -75, statisticEntryList)
+        assertAssetOfList(0, LocalDate(17, 1, 1), 15, 15, statisticEntryList)
+        assertAssetOfList(1, LocalDate(17, 2, 1), 25, 15, statisticEntryList)
+        assertAssetOfList(2, LocalDate(17, 3, 1), 35, 25, statisticEntryList)
+        assertAssetOfList(3, LocalDate(17, 4, 1), -40, 40, statisticEntryList)
+        assertAssetOfList(4, LocalDate(17, 5, 1), -35, -35, statisticEntryList)
+        assertAssetOfList(5, LocalDate(17, 6, 1), -75, -75, statisticEntryList)
     }
 
 
     @Test
     fun delete() {
         val itemSubject = TestSubject<BankAccount>()
-        val bankAccountThomas = createBankAccountThomas(TestHelper.getDay(17, 1, 2), intArrayOf(10, 20, 30, -50))
-        val start = TestHelper.getDay(17, 1, 1)
-        val end = TestHelper.getDay(17, 5, 1)
+        val bankAccountThomas = createBankAccountThomas(LocalDate(17, 1, 2), intArrayOf(10, 20, 30, -50))
+        val start = LocalDate(17, 1, 1)
+        val end = LocalDate(17, 5, 1)
         var statisticEntryList: List<StatisticEntryDeprecated>? = AssetsCalculator.calculateStatisticsOfBankAccount(bankAccountThomas, start, end, Period.months(1))
         val listMap = HashMap<BankAccount, List<StatisticEntryDeprecated>>(1)
         listMap[bankAccountThomas] = statisticEntryList!!
@@ -97,7 +98,7 @@ class AssetsCalculatorTests {
     /*
     @Test
     public void updateDate() {
-        // edit date
+        // edit day
         TestSubject itemSubject = new TestSubject();
         AssetsCalculator assetsCalculator = new AssetsCalculator(Period.months(1), itemSubject,
                 getCalculatorService(makeAssetsListThomas(getDay(17, 1, 1), new int[]{0, 10, 0, -10, 60})));
@@ -113,7 +114,7 @@ class AssetsCalculatorTests {
         assertAssetOfList(3, getDay(17, 4, 1), -20, 0,statisticEntryList);
         assertAssetOfList(4, getDay(17, 5, 1), 140, 0,statisticEntryList);
         assertAssetOfList(5, getDay(17, 6, 1), 90, 0,statisticEntryList);
-        // edit date & value
+        // edit day & value
         // add and delete
     }
 

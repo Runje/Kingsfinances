@@ -1,10 +1,9 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.model.calculation.AccumulativeStatisticsCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 import junit.framework.Assert
 import org.joda.time.DateTime
 import org.joda.time.Period

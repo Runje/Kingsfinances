@@ -2,6 +2,8 @@ package blue.koenig.kingsfinances.model.calculation;
 
 import android.support.annotation.NonNull;
 
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated;
+
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 

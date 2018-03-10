@@ -1,22 +1,24 @@
 package blue.koenig.kingsfinances.features.statistics
 
 
-import blue.koenig.kingsfinances.model.StatisticsUtils.calcDifferenceInPeriod
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
+import blue.koenig.kingsfinances.model.calculation.lastEntryBefore
 import blue.koenig.kingsfinances.model.database.GoalTable
 import com.koenig.FamilyConstants
 import com.koenig.FamilyConstants.ALL_USER
 import com.koenig.commonModel.Goal
 import com.koenig.commonModel.User
+import com.koenig.commonModel.finance.statistics.AssetsCalculator
+import com.koenig.commonModel.finance.statistics.AssetsStatistics
+import com.koenig.commonModel.finance.statistics.MonthStatistic
+import com.koenig.commonModel.finance.statistics.yearMonth
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import org.joda.time.DateTime
 import org.joda.time.Period
+import org.joda.time.YearMonth
 import org.joda.time.Years
 import org.slf4j.LoggerFactory
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Created by Thomas on 07.01.2018.
@@ -52,54 +54,37 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
     }
 
     fun clickYear(position: Int) {
-        var beforeDate = DateTime(0)
-        var afterDate = FamilyConstants.UNLIMITED
-        var entrysForFutureForecast: List<StatisticEntryDeprecated>? = null
+        var startMonth = FamilyConstants.BEGIN_YEAR_MONTH
+        var endMonth = FamilyConstants.UNLIMITED.yearMonth
+        var entrysForFutureForecast: Map<YearMonth, MonthStatistic>? = null
         // get all users (familymembers)
         val statUsers = if (position == 1) arrayListOf(AssetsCalculator.FORECAST_USER) else membersWithForecastAndGoal
         if (position == 1) {
+            // overall, include future forecast
             entrysForFutureForecast = assetsCalculator.entrysForFutureForecast
         } else if (position != 0) {
             // not overall
             val year = Integer.parseInt(state.yearsList[position])
-            beforeDate = DateTime(year, 1, 1, 0, 0)
-            afterDate = beforeDate.plus(Years.ONE)
+            startMonth = YearMonth(year, 1)
+            endMonth = startMonth.plus(Years.ONE)
         }
 
-        val statistics = assetsCalculator.calcStatisticsFor(beforeDate, afterDate)
-        val savingRate = calcSavingRate(statistics.startDate, statistics.endDate, statistics.overallWin, incomeCalculator.entrys)
-        val statisticsToShow = if (entrysForFutureForecast != null) AssetsStatistics(statistics.startDate, statistics.endDate, entrysForFutureForecast, statistics.monthlyWin, statistics.overallWin) else statistics
-        val lastGoalDate = statistics.assets.last().date
-        val goals = calcGoals(beforeDate, lastGoalDate, goalTable.allItems, assetsCalculator.getStartValueFor(ALL_USER))
+        val statistics = assetsCalculator.calcStatisticsFor(startMonth, endMonth)
+        val savingRate = calcSavingRate(statistics.startDate, statistics.endDate, statistics.overallWin, incomeCalculator.absoluteMap)
+        val statisticsToShow: AssetsStatistics = if (entrysForFutureForecast != null) AssetsStatistics(statistics.startDate, statistics.endDate, entrysForFutureForecast, statistics.monthlyWin, statistics.overallWin) else statistics
+        val lastGoalDate = statistics.assets.maxBy { it.key }!!.key
+        val goals = calcGoals(startMonth, lastGoalDate, goalTable.allItems, assetsCalculator.getStartValueFor(ALL_USER))
 
         // remove all goals from statistics(shouldn't be there, but gets there because of mutability of statisticsEntry!
-        statistics.assets.forEach { entry -> entry.putEntry(FamilyConstants.GOAL_ALL_USER, 0) }
+        //statistics.assets.forEach { entry -> entry.putEntry(FamilyConstants.GOAL_ALL_USER, 0) }
         // add goal statistics to other statistics
-        // find start of goals
-        val startIndex = goals.indexOfFirst { statisticEntry ->
-            statistics.assets[0]?.date?.equals(statisticEntry.date) ?: false
-        }
-        if (startIndex != -1) {
-            for (i in 0 until min(statistics.assets.size, goals.size - startIndex)) {
-                check(statistics.assets[i].date.equals(goals[i + startIndex].date)) { "dates are not aligned" }
-                statistics.assets[i].addEntry(goals[i + startIndex])
-            }
-        } else {
-            // goals beginning later
-            val offset = statistics.assets.indexOfFirst { statisticEntry ->
-                goals[0].date.equals(statisticEntry.date)
-            }
-            if (offset != -1) {
-                for (i in 0 until min(goals.size, statistics.assets.size - offset)) {
-                    check(statistics.assets[i + offset].date.equals(goals[i].date)) { "dates are not aligned" }
-                    statistics.assets[i + offset].addEntry(goals[i])
-                }
-            }
+
+        val assets = statistics.assets.toMutableMap()
+        for ((month, goal) in goals) {
+            assets[month] = (statistics.assets[month] ?: MonthStatistic(month)) + goal
         }
 
-
-
-        changeStateTo(state.copy(statistics = statisticsToShow, savingRate = savingRate, users = statUsers))
+        changeStateTo(state.copy(statistics = statisticsToShow.copy(assets = assets), savingRate = savingRate, users = statUsers))
     }
 
 
@@ -107,25 +92,22 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
         protected var logger = LoggerFactory.getLogger("StatisticsPresenter")
 
 
-        fun calcSavingRate(startDate: DateTime, endDate: DateTime, overallWin: Int, incomes: List<StatisticEntryDeprecated>): Float {
-
-            val allSavings = calcDifferenceInPeriod(startDate, endDate, incomes)
-            return if (allSavings.sum == 0) {
+        fun calcSavingRate(startDate: YearMonth, endDate: YearMonth, overallWin: Int, incomes: Map<YearMonth, MonthStatistic>): Float {
+            val allSavings = lastEntryBefore(endDate, incomes).sum - (incomes[startDate]?.sum ?: 0)
+            return if (allSavings == 0) {
                 0f
-            } else overallWin / allSavings.sum.toFloat()
-
-
+            } else overallWin / allSavings.toFloat()
         }
 
-        fun calcGoals(beforeDate: DateTime, afterDate: DateTime, allItems: List<Goal>, startValue: Int = 0): List<StatisticEntryDeprecated> {
+        fun calcGoals(beforeDate: YearMonth, afterDate: YearMonth, allItems: List<Goal>, startValue: Int = 0): Map<YearMonth, MonthStatistic> {
             // first year of data
             val minYear: Int = allItems.minBy { it ->
                 it.goals.keys.min() ?: 3000
             }?.goals?.keys?.min() ?: 0
             // last year of data
             val maxYear = allItems.maxBy { it -> it.goals.keys.min() ?: 0 }?.goals?.keys?.max()
-                    ?: 3000
-            val result = arrayListOf<StatisticEntryDeprecated>()
+                    ?: FamilyConstants.UNLIMITED.year
+            val result = mutableMapOf<YearMonth, MonthStatistic>()
             // sum goals up until year of beforeDate
             val firstYear = max(beforeDate.year, minYear)
             val sumUntilYear = startValue + if (firstYear > minYear) allItems.sumBy { it ->
@@ -137,17 +119,17 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
             } else 0
 
             // last year is -1 if it is the first day of the year
-            var lastYear = if (afterDate.monthOfYear == 12 && afterDate.dayOfMonth == 1) afterDate.year - 1 else afterDate.year
+            var lastYear = afterDate.year
             // if it is unlimited make data until we have data
             if (lastYear == FamilyConstants.UNLIMITED.year) lastYear = maxYear
-            var date = DateTime(firstYear, 1, 1, 0, 0, 0)
+            var date = YearMonth(firstYear, 1)
             var goal = sumUntilYear
             for (year in firstYear..lastYear) {
                 // TODO: cents going lost due to rounding error
                 val monthlyGoal = allItems.sumBy { it -> it.goals[year] ?: 0 } / 12.0
                 for (month in 1..12) {
-                    if (!date.isBefore(beforeDate) && !date.isAfter(afterDate)) {
-                        result.add(StatisticEntryDeprecated(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal)))
+                    if (date in beforeDate..afterDate) {
+                        result[date] = MonthStatistic(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal))
                     }
 
                     date = date.plus(Period.months(1))
@@ -157,8 +139,8 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
             }
 
             // add last one
-            if (!date.isBefore(beforeDate) && !date.isAfter(afterDate)) {
-                result.add(StatisticEntryDeprecated(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal)))
+            if (date in beforeDate..afterDate) {
+                result[date] = MonthStatistic(date, mutableMapOf(FamilyConstants.GOAL_ALL_USER to goal))
             }
 
 

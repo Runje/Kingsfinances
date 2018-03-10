@@ -14,7 +14,6 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel
 import blue.koenig.kingsfamilylibrary.view.family.FamilyActivity
 import blue.koenig.kingsfinances.dagger.FinanceApplication
 import blue.koenig.kingsfinances.model.FinanceModel
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.view.BankAccountDialog
 import blue.koenig.kingsfinances.view.FinanceFragmentPagerAdapter
 import blue.koenig.kingsfinances.view.FinanceView
@@ -22,6 +21,8 @@ import blue.koenig.kingsfinances.view.FinanceViewUtils
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.BankAccount
 import com.koenig.commonModel.finance.StandingOrder
+import com.koenig.commonModel.finance.statistics.MonthStatistic
+import org.joda.time.YearMonth
 import javax.inject.Inject
 
 class OverviewActivity : FamilyActivity(), FinanceView, NavigationView.OnNavigationItemSelectedListener {
@@ -147,7 +148,7 @@ class OverviewActivity : FamilyActivity(), FinanceView, NavigationView.OnNavigat
         }
     }
 
-    override fun updateAssets(assets: List<StatisticEntryDeprecated>) {
+    override fun updateAssets(assets: Map<YearMonth, MonthStatistic>) {
         val accountFragment = pageAdapter!!.accountFragment
         if (accountFragment != null) {
             runOnUiThread { accountFragment.updateAssets(assets) }

@@ -1,11 +1,10 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.features.statistics.AssetsCalculatorService
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import blue.koenig.kingsfinances.model.calculation.StatisticsCalculatorService
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.BankAccount
 import com.koenig.commonModel.finance.CostDistribution
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 import org.joda.time.DateTime
 import org.joda.time.Period
 import org.junit.Assert

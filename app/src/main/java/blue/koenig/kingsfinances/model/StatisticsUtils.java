@@ -1,15 +1,14 @@
 package blue.koenig.kingsfinances.model;
 
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated;
+
 import org.joda.time.DateTime;
 import org.joda.time.Period;
-import org.joda.time.Years;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 
 /**
  * Created by Thomas on 20.01.2018.
@@ -18,16 +17,7 @@ import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated;
 public class StatisticsUtils {
     private final static Logger logger = LoggerFactory.getLogger("StatisticsUtils");
 
-    public static List<String> yearsList(DateTime startDate, DateTime endDate) {
-        ArrayList<String> list = new ArrayList<>();
-        DateTime nextDate = startDate;
-        while (nextDate.isBefore(endDate)) {
-            list.add(0, Integer.toString(nextDate.getYear()));
-            nextDate = nextDate.plus(Years.ONE);
-        }
 
-        return list;
-    }
 
     public static List<String> allMonthsList() {
         List<String> months = new ArrayList<>(12);
@@ -56,10 +46,10 @@ public class StatisticsUtils {
         StatisticEntryDeprecated last = entrys.size() > 0 ? entrys.get(entrys.size() - 1) : null;
         for (StatisticEntryDeprecated entry : entrys) {
             if (!entry.getDate().withTimeAtStartOfDay().isAfter(startDate.withTimeAtStartOfDay())) {
-                // it is nearer at the start date
+                // it is nearer at the start day
                 first = entry;
             } else if (!entry.getDate().withTimeAtStartOfDay().isAfter(endDate.withTimeAtStartOfDay())) {
-                // nearer at end date
+                // nearer at end day
                 last = entry;
             }
         }

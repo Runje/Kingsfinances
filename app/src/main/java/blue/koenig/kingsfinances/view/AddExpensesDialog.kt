@@ -8,13 +8,13 @@ import blue.koenig.kingsfinances.model.CategoryService
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Expenses
-import org.joda.time.DateTime
+import org.joda.time.LocalDate
 
 /**
  * Created by Thomas on 20.11.2017.
  */
 
-class AddExpensesDialog(context: Context, categoryService: CategoryService, users: List<User>, listener: AddExpensesListener) : EditExpensesDialog(context, Expenses("", "", "", 0, CostDistribution(), DateTime.now(), ""), categoryService, users, object : EditDialog.EditListener<Expenses> {
+class AddExpensesDialog(context: Context, categoryService: CategoryService, users: List<User>, listener: AddExpensesListener) : EditExpensesDialog(context, Expenses("", "", "", 0, CostDistribution(), LocalDate(), ""), categoryService, users, object : EditDialog.EditListener<Expenses> {
     override fun onEdit(expenses: Expenses) {
         listener.add(expenses)
     }

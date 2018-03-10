@@ -1,6 +1,7 @@
 package blue.koenig.kingsfinances.features.statistics
 
 import com.koenig.commonModel.User
+import com.koenig.commonModel.finance.statistics.AssetsStatistics
 
 /**
  * Created by Thomas on 07.01.2018.

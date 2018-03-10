@@ -1,7 +1,7 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 
 /**
  * Created by Thomas on 02.01.2018.

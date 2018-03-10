@@ -1,7 +1,7 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.model.calculation.ItemSubject
-import blue.koenig.kingsfinances.model.database.Table
+import blue.koenig.kingsfinances.model.database.ItemTable
+import com.koenig.commonModel.finance.statistics.ItemSubject
 import java.util.*
 
 /**
@@ -9,9 +9,9 @@ import java.util.*
  */
 
 open class TestSubject<T> : ItemSubject<T> {
-    private val deleteListeners = ArrayList<Table.OnDeleteListener<T>>()
-    private val updateListeners = ArrayList<Table.OnUpdateListener<T>>()
-    private val addListeners = ArrayList<Table.OnAddListener<T>>()
+    private val deleteListeners = ArrayList<ItemTable.OnDeleteListener<T>>()
+    private val updateListeners = ArrayList<ItemTable.OnUpdateListener<T>>()
+    private val addListeners = ArrayList<ItemTable.OnAddListener<T>>()
 
 
     fun add(item: T) {
@@ -32,15 +32,15 @@ open class TestSubject<T> : ItemSubject<T> {
         }
     }
 
-    override fun addDeleteListener(listener: Table.OnDeleteListener<T>) {
+    override fun addDeleteListener(listener: ItemTable.OnDeleteListener<T>) {
         deleteListeners.add(listener)
     }
 
-    override fun addUpdateListener(listener: Table.OnUpdateListener<T>) {
+    override fun addUpdateListener(listener: ItemTable.OnUpdateListener<T>) {
         updateListeners.add(listener)
     }
 
-    override fun addAddListener(listener: Table.OnAddListener<T>) {
+    override fun addAddListener(listener: ItemTable.OnAddListener<T>) {
         addListeners.add(listener)
     }
 }

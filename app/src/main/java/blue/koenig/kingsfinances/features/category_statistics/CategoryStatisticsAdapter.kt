@@ -19,24 +19,25 @@ import org.slf4j.LoggerFactory
  */
 
 class CategoryStatisticsAdapter(var items: List<CategoryStatistics> = arrayListOf()) : RecyclerView.Adapter<CategoryStatisticsAdapter.CategoryStatisticsViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryStatisticsViewHolder {
+        logger.info("Create view holder $viewType")
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.cat_statistics_item, parent, false)
+        return CategoryStatisticsViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: CategoryStatisticsViewHolder, position: Int) {
+        holder.bind(items[position], showGoal, goals)
+    }
+
     private var logger = LoggerFactory.getLogger(this.javaClass.simpleName)
 
     var showGoal: Boolean = true
 
-    override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): CategoryStatisticsViewHolder {
-        logger.info("Create view holder $viewType")
-        val view = LayoutInflater.from(parent?.context).inflate(R.layout.cat_statistics_item, parent, false)
-        return CategoryStatisticsViewHolder(view)
-    }
+
 
     override fun getItemCount(): Int {
         return items.size
     }
-
-    override fun onBindViewHolder(holder: CategoryStatisticsViewHolder?, position: Int) {
-        holder?.bind(items[position], showGoal, goals)
-    }
-
 
     val goals: PublishSubject<CatGoal> = PublishSubject.create<CatGoal>()
 

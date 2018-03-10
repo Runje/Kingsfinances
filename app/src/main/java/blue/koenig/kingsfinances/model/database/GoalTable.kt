@@ -7,13 +7,14 @@ import android.database.sqlite.SQLiteStatement
 import com.koenig.commonModel.Byteable.Companion.bytesToGoals
 import com.koenig.commonModel.Byteable.Companion.goalsToByte
 import com.koenig.commonModel.Goal
+import com.koenig.commonModel.database.DatabaseItemTable.Companion.COLUMN_NAME
 import java.util.concurrent.locks.ReentrantLock
 
 /**
  * Created by Thomas on 25.11.2017.
  */
 
-class GoalTable(database: SQLiteDatabase, lock: ReentrantLock) : Table<Goal>(database, lock) {
+class GoalTable(database: SQLiteDatabase, lock: ReentrantLock) : ItemTable<Goal>(database, lock) {
 
     override val tableName: String
         get() = NAME

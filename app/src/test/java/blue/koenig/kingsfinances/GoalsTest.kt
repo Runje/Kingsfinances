@@ -2,9 +2,9 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.TestHelper.getDay
 import blue.koenig.kingsfinances.features.statistics.StatisticsPresenter
-import blue.koenig.kingsfinances.model.calculation.StatisticEntryDeprecated
 import com.koenig.FamilyConstants
 import com.koenig.commonModel.Goal
+import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 import junit.framework.Assert
 import org.joda.time.DateTime
 import org.junit.Test

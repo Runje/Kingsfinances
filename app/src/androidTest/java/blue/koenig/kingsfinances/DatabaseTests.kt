@@ -1,11 +1,11 @@
 package blue.koenig.kingsfinances
 
 import android.support.test.InstrumentationRegistry
-import blue.koenig.kingsfinances.model.FinanceConfig
 import blue.koenig.kingsfinances.model.FinanceContextConfig
 import blue.koenig.kingsfinances.model.database.FinanceDatabase
 import com.koenig.FamilyConstants
 import com.koenig.commonModel.database.UserService
+import com.koenig.commonModel.finance.FinanceConfig
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import java.sql.SQLException
