@@ -39,9 +39,9 @@ abstract class AndroidTable<T>(protected var db: SQLiteDatabase, override var lo
         }
 
     @Throws(SQLException::class)
-    override fun add(databaseItem: T) {
+    override fun add(item: T) {
         runInLock(Database.Transaction {
-            db.insert(tableName, null, setDatabaseItem(databaseItem))
+            db.insert(tableName, null, setDatabaseItem(item))
         })
     }
 

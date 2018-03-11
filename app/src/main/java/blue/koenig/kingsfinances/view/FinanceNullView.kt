@@ -1,13 +1,10 @@
 package blue.koenig.kingsfinances.view
 
 import android.support.annotation.StringRes
-
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.BankAccount
 import com.koenig.commonModel.finance.StandingOrder
 import com.koenig.commonModel.finance.statistics.MonthStatistic
-
-import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 import org.joda.time.YearMonth
 
 /**
@@ -52,8 +49,6 @@ class FinanceNullView : FinanceView {
 
     }
 
-    fun updateAssets(assets: List<StatisticEntryDeprecated>) {
 
-    }
 
 }

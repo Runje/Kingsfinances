@@ -87,7 +87,7 @@ class StatisticsFragment : Fragment(), StatisticsView {
             }
         }
         list!!.adapter = adapter
-        list!!.setOnItemClickListener { parent, view1, position, id -> presenter.clickYear(position) }
+        list!!.setOnItemClickListener { _, _, position, _ -> presenter.clickYear(position) }
     }
 
     private fun updateLinechart(statisticEntryList: Map<YearMonth, MonthStatistic>, users: List<User>) {

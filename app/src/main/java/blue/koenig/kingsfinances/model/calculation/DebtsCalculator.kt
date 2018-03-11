@@ -6,6 +6,7 @@ import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Expenses
 import com.koenig.commonModel.finance.statistics.ItemSubject
 import com.koenig.commonModel.finance.statistics.MonthStatistic
+import com.koenig.commonModel.finance.statistics.MonthStatisticsCalculator
 import com.koenig.commonModel.finance.statistics.yearMonth
 import io.reactivex.Observable
 import org.joda.time.YearMonth

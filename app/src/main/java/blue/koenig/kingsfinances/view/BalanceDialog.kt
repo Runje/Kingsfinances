@@ -19,7 +19,7 @@ import org.joda.time.LocalDate
  */
 class BalanceDialog {
     private val context: Context
-    private var balance: Balance? = null
+    private var balance: Balance
     private var confirmListener: ConfirmListener? = null
     private var backToOverview = false
 
@@ -42,16 +42,16 @@ class BalanceDialog {
         val builder = AlertDialog.Builder(context)
         val layout = LayoutInflater.from(context).inflate(R.layout.edit_costs_dialog, null)
         val editCosts = layout.findViewById<View>(R.id.edit_costs) as EditText
-        if (balance!!.balance != 0) {
-            editCosts.setText(java.lang.Float.toString(balance!!.balance.toFloat()))
+        if (balance.balance != 0) {
+            editCosts.setText(java.lang.Float.toString(balance.balance.toFloat()))
         }
         ViewUtils.clickOn(editCosts)
         builder.setView(layout)
         builder.setTitle(R.string.balance)
-        builder.setPositiveButton("OK") { dialog, which ->
+        builder.setPositiveButton("OK") { _, _ ->
             try {
                 val c = java.lang.Float.parseFloat(editCosts.text.toString())
-                balance!!.balance = (c * 100).toInt()
+                balance.balance = (c * 100).toInt()
                 if (backToOverview) {
                     showOverview()
                 } else {
@@ -74,12 +74,11 @@ class BalanceDialog {
         builder.setTitle(R.string.date)
         builder.setNegativeButton(R.string.cancel, null)
         val datePicker = layout.findViewById<DatePicker>(R.id.datePicker)
-        if (balance!!.day != null) {
-            ViewUtils.setDateToDatePicker(datePicker, balance!!.day)
-        }
-        builder.setPositiveButton("OK") { dialog, which ->
+
+        ViewUtils.setDateToDatePicker(datePicker, balance.day)
+        builder.setPositiveButton("OK") { _, _ ->
             val date = ViewUtils.getDateFromDatePicker(datePicker)
-            balance!!.day = date
+            balance.day = date
             showOverview()
         }
 
@@ -89,16 +88,14 @@ class BalanceDialog {
 
     private fun showOverview() {
         backToOverview = true
-        if (balance!!.day == null) {
-            balance!!.day = LocalDate()
-        }
+
         val builder = AlertDialog.Builder(context)
         val layout = LayoutInflater.from(context).inflate(R.layout.balance_dialog_overview, null)
         builder.setView(layout)
 
         builder.setPositiveButton(R.string.save) { _, _ ->
             updateFromLayout(layout)
-            confirmListener!!.onConfirm(balance!!)
+            confirmListener!!.onConfirm(balance)
         }
         builder.setNegativeButton(R.string.cancel, null)
 
@@ -111,7 +108,7 @@ class BalanceDialog {
     private fun updateFromLayout(layout: View) {
         val editBalance = layout.findViewById<View>(R.id.edit_balance) as EditText
         val balance = java.lang.Float.parseFloat(editBalance.text.toString())
-        this.balance!!.balance = (100 * balance).toInt()
+        this.balance.balance = (100 * balance).toInt()
     }
 
     private fun updateLayout(layout: View, dialog: Dialog) {
@@ -119,15 +116,15 @@ class BalanceDialog {
         val editDate = layout.findViewById<View>(R.id.edit_last_date) as EditText
 
 
-        editDate.setOnClickListener { v ->
+        editDate.setOnClickListener {
             dialog.cancel()
             updateFromLayout(layout)
             showDate()
         }
 
 
-        editBalance.setText(StringFormats.centsToCentString(balance!!.balance))
-        editDate.setText(balance!!.day.toString("dd.MM.yy"))
+        editBalance.setText(StringFormats.centsToCentString(balance.balance))
+        editDate.setText(balance.day.toString("dd.MM.yy"))
     }
 
     fun setConfirmListener(confirmListener: ConfirmListener) {

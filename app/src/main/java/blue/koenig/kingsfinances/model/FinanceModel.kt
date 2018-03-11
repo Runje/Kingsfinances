@@ -7,7 +7,6 @@ import blue.koenig.kingsfamilylibrary.model.family.FamilyModel
 import blue.koenig.kingsfamilylibrary.view.family.FamilyView
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler
 import blue.koenig.kingsfinances.R
-import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.model.calculation.DebtsCalculator
 import blue.koenig.kingsfinances.model.calculation.IncomeCalculator
 import blue.koenig.kingsfinances.model.database.FinanceDatabase
@@ -20,6 +19,7 @@ import com.koenig.commonModel.database.DatabaseItem
 import com.koenig.commonModel.finance.*
 import com.koenig.commonModel.finance.features.StandingOrderExecutor
 import com.koenig.commonModel.finance.statistics.AssetsCalculator
+import com.koenig.commonModel.finance.statistics.CategoryCalculator
 import com.koenig.commonModel.finance.statistics.CompensationCalculator
 import com.koenig.commonModel.finance.statistics.MonthStatistic
 import com.koenig.communication.messages.AUDMessage

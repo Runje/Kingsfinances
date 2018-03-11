@@ -4,7 +4,6 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import blue.koenig.kingsfamilylibrary.model.communication.ServerConnection
 import blue.koenig.kingsfamilylibrary.view.family.LoginHandler
-import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.category_statistics.CategoryStatisticsDbRepository
 import blue.koenig.kingsfinances.features.category_statistics.CategoryStatisticsPresenter
 import blue.koenig.kingsfinances.features.category_statistics.CategoryStatisticsRepository
@@ -23,6 +22,7 @@ import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.FinanceConfig
 import com.koenig.commonModel.finance.features.StandingOrderExecutor
 import com.koenig.commonModel.finance.statistics.AssetsCalculator
+import com.koenig.commonModel.finance.statistics.CategoryCalculator
 import com.koenig.commonModel.finance.statistics.CompensationCalculator
 import dagger.Module
 import dagger.Provides
@@ -50,7 +50,7 @@ class FinanceModelModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(context: Context, userService: FinanceUserService, config: FinanceConfig): FinanceDatabase = FinanceDatabase(context = context, userService = userService, config = config)
+    fun provideDatabase(context: Context, userService: FinanceUserService, config: FinanceConfig): FinanceDatabase = FinanceDatabase(context = context, userService = userService::getUserFromId, config = config)
 
     @Provides
     @Singleton
@@ -110,7 +110,7 @@ class FinanceModelModule {
 
     @Provides
     @Singleton
-    fun provideCategoryRepository(database: FinanceDatabase): CategoryRepository = CategoryDbRepository(database.categoryTable, database.writableDatabase)
+    fun provideCategoryRepository(database: FinanceDatabase): CategoryRepository = CategoryAndroidRepository(database.categoryTable, database.writableDatabase)
 
     @Provides
     fun provideCategoryStatisticsPresenter(categoryStatisticsRepository: CategoryStatisticsRepository, database: FinanceDatabase, config: FinanceConfig, connection: ServerConnection): CategoryStatisticsPresenter = CategoryStatisticsPresenter(categoryStatisticsRepository, database.goalTable, config, database.pendingTable, connection)

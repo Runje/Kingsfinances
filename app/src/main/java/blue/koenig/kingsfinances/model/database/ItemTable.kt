@@ -70,9 +70,6 @@ abstract class ItemTable<T : Item>(db: SQLiteDatabase, lock: ReentrantLock) : Da
             return columns
         }
 
-    override val tableSpecificCreateStatement: String
-        get() = ""
-
     override fun setDatabaseItem(item: DatabaseItem<T>): ContentValues {
         val values = ContentValues()
         values.put(COLUMN_ID, item.id)
@@ -92,13 +89,13 @@ abstract class ItemTable<T : Item>(db: SQLiteDatabase, lock: ReentrantLock) : Da
 
 
     @Throws(SQLException::class)
-    override fun add(databaseItem: DatabaseItem<T>) {
+    override fun add(item: DatabaseItem<T>) {
         runInLock(Database.Transaction {
-            super.add(databaseItem)
+            super.add(item)
             for (onAddListener in onAddListeners) {
                 // only add non deleted items to statistics
-                if (!databaseItem.isDeleted) {
-                    onAddListener.onAdd(databaseItem.item)
+                if (!item.isDeleted) {
+                    onAddListener.onAdd(item.item)
                 }
             }
 

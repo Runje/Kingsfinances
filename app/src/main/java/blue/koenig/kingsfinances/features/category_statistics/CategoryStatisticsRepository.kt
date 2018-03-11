@@ -1,8 +1,8 @@
 package blue.koenig.kingsfinances.features.category_statistics
 
-import blue.koenig.kingsfinances.model.calculation.lastEntryBefore
 import com.koenig.commonModel.Repository.CategoryRepository
 import com.koenig.commonModel.Repository.GoalRepository
+import com.koenig.commonModel.finance.statistics.lastEntryBefore
 import com.koenig.commonModel.finance.statistics.yearMonthRange
 import io.reactivex.Observable
 import org.joda.time.YearMonth

@@ -13,8 +13,8 @@ import blue.koenig.kingsfinances.model.PendingStatus
 import com.koenig.commonModel.Category
 import com.koenig.commonModel.Goal
 import com.koenig.commonModel.Item
+import com.koenig.commonModel.User
 import com.koenig.commonModel.database.DatabaseItem
-import com.koenig.commonModel.database.UserService
 import com.koenig.commonModel.finance.*
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
@@ -22,10 +22,10 @@ import java.sql.SQLException
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 
-class FinanceDatabase(context: Context, name: String = DATABASE_NAME, factory: SQLiteDatabase.CursorFactory? = null, version: Int = DATABASE_VERSION, userService: UserService, private val config: FinanceConfig) : SQLiteOpenHelper(context, name, factory, version) {
+class FinanceDatabase(context: Context, name: String = DATABASE_NAME, factory: SQLiteDatabase.CursorFactory? = null, version: Int = DATABASE_VERSION, userService: (String) -> User?, private val config: FinanceConfig) : SQLiteOpenHelper(context, name, factory, version) {
     val expensesTable: ExpensesTable
     val standingOrderTable: StandingOrderTable
-    val categoryTable: CategoryTable
+    val categoryTable: CategoryAndroidTable
     val bankAccountTable: BankAccountTable
     val goalTable: GoalTable
     protected var logger = LoggerFactory.getLogger(this.javaClass.simpleName)
@@ -64,7 +64,7 @@ class FinanceDatabase(context: Context, name: String = DATABASE_NAME, factory: S
         pendingTable = PendingTable(writableDatabase, lock)
         expensesTable = ExpensesTable(writableDatabase, lock)
         standingOrderTable = StandingOrderTable(writableDatabase, lock)
-        categoryTable = CategoryTable(writableDatabase, lock)
+        categoryTable = CategoryAndroidTable(writableDatabase, lock)
         goalTable = GoalTable(writableDatabase, lock)
         bankAccountTable = BankAccountTable(writableDatabase, userService, lock)
         tables.add(pendingTable)

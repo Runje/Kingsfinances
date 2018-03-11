@@ -1,11 +1,11 @@
 package blue.koenig.kingsfinances
 
-import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculatorService
 import blue.koenig.kingsfinances.model.database.ExpensesDbRepository
 import com.koenig.commonModel.finance.CostDistribution
 import com.koenig.commonModel.finance.Costs
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.statistics.CategoryCalculator
 import com.koenig.commonModel.finance.statistics.CompensationCalculator
 import com.koenig.commonModel.finance.statistics.MonthStatistic
 import io.reactivex.Observable

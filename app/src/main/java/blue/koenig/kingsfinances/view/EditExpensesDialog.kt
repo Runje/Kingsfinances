@@ -68,7 +68,7 @@ open class EditExpensesDialog(context: Context, item: Expenses, private val cate
 
             }
         })
-        editCategory.setOnClickListener { v ->
+        editCategory.setOnClickListener {
             PickCategoryDialog(context, object : PickCategoryInteractor {
                 override fun onPick(mainCategory: String, subCategory: String) {
                     editCategory.setText(FinanceViewUtils.CategoryToString(mainCategory, subCategory))

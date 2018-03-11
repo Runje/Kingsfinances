@@ -2,9 +2,9 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.TestHelper.milena
 import blue.koenig.kingsfinances.TestHelper.thomas
-import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculator
 import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculatorService
 import com.koenig.commonModel.finance.Expenses
+import com.koenig.commonModel.finance.statistics.CategoryCalculator
 import com.koenig.commonModel.finance.statistics.MonthStatistic
 import junit.framework.Assert
 import org.joda.time.DateTime

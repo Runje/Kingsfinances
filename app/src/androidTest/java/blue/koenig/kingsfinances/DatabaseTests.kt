@@ -4,7 +4,6 @@ import android.support.test.InstrumentationRegistry
 import blue.koenig.kingsfinances.model.FinanceContextConfig
 import blue.koenig.kingsfinances.model.database.FinanceDatabase
 import com.koenig.FamilyConstants
-import com.koenig.commonModel.database.UserService
 import com.koenig.commonModel.finance.FinanceConfig
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -32,7 +31,7 @@ open class DatabaseTests {
         Helper.init(config)
         assertEquals("blue.koenig.kingsfinances", appContext.packageName)
 
-        financeDatabase = FinanceDatabase(appContext, "TestDatabase.sqlite", userService = UserService { _ -> FamilyConstants.ALL_USER }, config = config)
+        financeDatabase = FinanceDatabase(appContext, "TestDatabase.sqlite", userService = { _ -> FamilyConstants.ALL_USER }, config = config)
         financeDatabase.deleteAllEntrys()
     }
 

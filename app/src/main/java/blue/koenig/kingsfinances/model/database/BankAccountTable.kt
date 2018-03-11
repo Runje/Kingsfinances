@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteStatement
-import com.koenig.commonModel.database.UserService
+import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
 import java.util.*
@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock
  * Created by Thomas on 25.11.2017.
  */
 
-class BankAccountTable(database: SQLiteDatabase, private val userService: UserService, lock: ReentrantLock) : ItemTable<BankAccount>(database, lock) {
+class BankAccountTable(database: SQLiteDatabase, private val userService: (String) -> User?, lock: ReentrantLock) : ItemTable<BankAccount>(database, lock) {
     override val columnNames: MutableList<String>
 
     override val tableSpecificCreateStatement: String
