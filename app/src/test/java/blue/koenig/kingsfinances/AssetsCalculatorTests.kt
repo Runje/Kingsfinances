@@ -1,16 +1,21 @@
 package blue.koenig.kingsfinances
 
+import com.koenig.commonModel.Repository.AssetsRepository
 import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
 import com.koenig.commonModel.finance.statistics.AssetsCalculator
-import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
+import com.koenig.commonModel.finance.statistics.MonthStatistic
+import com.nhaarman.mockito_kotlin.whenever
+import io.reactivex.Observable
 import junit.framework.Assert
-import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import org.joda.time.Period
+import org.joda.time.YearMonth
+import org.junit.Before
 import org.junit.Test
-import java.util.*
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
 
 /**
  * Created by Thomas on 03.01.2018.
@@ -18,6 +23,27 @@ import java.util.*
 
 class AssetsCalculatorTests {
 
+    val itemSubject = TestSubject<BankAccount>()
+    var startMonth = YearMonth(2015, 1)
+    var endMonth = YearMonth(2016, 12)
+
+    val startMonthObservable
+        get() = Observable.just(startMonth)
+    val endMonthObservable
+        get() = Observable.just(endMonth)
+    @Mock
+    lateinit var assetsRepository: AssetsRepository
+
+    fun initAssetCalculator() {
+        assetsCalculator = AssetsCalculator(itemSubject, startMonthObservable, endMonthObservable, assetsRepository)
+    }
+
+    lateinit var assetsCalculator: AssetsCalculator
+
+    @Before
+    fun setup() {
+        MockitoAnnotations.initMocks(this)
+    }
     @Test
     fun linearEstimation() {
         Assert.assertEquals(15, AssetsCalculator.calcLinearEstimation(Balance(10, LocalDate(17, 1, 31)), Balance(20, LocalDate(17, 2, 2)), LocalDate(17, 2, 1)))
@@ -25,37 +51,51 @@ class AssetsCalculatorTests {
 
     @Test
     fun add() {
-        val itemSubject = TestSubject<BankAccount>()
-        val assetsCalculatorService = TestHelper.getAssetsCalculatorService(hashMapOf(), LocalDate(17, 1, 1), LocalDate(17, 5, 1))
-        val assetsCalculator = AssetsCalculator(Period.months(1), itemSubject, assetsCalculatorService)
+        // given
+        initTest(startMonth = YearMonth(17, 1), endMonth = YearMonth(17, 5))
+
+        // when adding new bank account
         val bankAccountThomas = createBankAccountThomas(LocalDate(17, 1, 2), intArrayOf(10, 20, 30, -50))
         itemSubject.add(bankAccountThomas)
-        var statisticEntryList = assetsCalculator.getEntrysFor(bankAccountThomas)
 
-        Assert.assertEquals(5, statisticEntryList!!.size)
+        // then
+        var statisticEntryList = assetsCalculator.getEntrysFor(bankAccountThomas)!!
 
-        assertAssetOfList(0, LocalDate(17, 1, 1), 10, 0, statisticEntryList)
-        assertAssetOfList(1, LocalDate(17, 2, 1), 19, 0, statisticEntryList)
-        assertAssetOfList(2, LocalDate(17, 3, 1), 29, 0, statisticEntryList)
-        assertAssetOfList(3, LocalDate(17, 4, 1), -47, 0, statisticEntryList)
-        assertAssetOfList(4, LocalDate(17, 5, 1), -50, 0, statisticEntryList)
+        Assert.assertEquals(5, statisticEntryList.size)
+
+        assertAssetOfList(YearMonth(17, 1), 10, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 2), 19, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 3), 29, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 4), -47, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 5), -50, 0, statisticEntryList)
 
         statisticEntryList = assetsCalculator.entrysForAll
 
         Assert.assertEquals(5, statisticEntryList.size)
 
-        assertAssetOfList(0, LocalDate(17, 1, 1), 10, 0, statisticEntryList)
-        assertAssetOfList(1, LocalDate(17, 2, 1), 19, 0, statisticEntryList)
-        assertAssetOfList(2, LocalDate(17, 3, 1), 29, 0, statisticEntryList)
-        assertAssetOfList(3, LocalDate(17, 4, 1), -47, 0, statisticEntryList)
-        assertAssetOfList(4, LocalDate(17, 5, 1), -50, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 1), 10, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 2), 19, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 3), 29, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 4), -47, 0, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 5), -50, 0, statisticEntryList)
     }
+
+    private fun initTest(startMonth: YearMonth, endMonth: YearMonth, assets: MutableMap<BankAccount, MutableMap<YearMonth, MonthStatistic>> = mutableMapOf<BankAccount, MutableMap<YearMonth, MonthStatistic>>()) {
+        this.startMonth = startMonth
+        this.endMonth = endMonth
+        whenever(assetsRepository.load()).thenReturn(assets)
+        initAssetCalculator()
+    }
+
 
     @Test
     fun addAll() {
-        val itemSubject = TestSubject<BankAccount>()
-        val assetsCalculatorService = TestHelper.getAssetsCalculatorService(hashMapOf(), LocalDate(17, 1, 1), LocalDate(17, 6, 1))
-        val assetsCalculator = AssetsCalculator(Period.months(1), itemSubject, assetsCalculatorService)
+
+
+        // given
+        initTest(startMonth = YearMonth(17, 1), endMonth = YearMonth(17, 6))
+
+        // when adding multiple bankAccounts
         val bankAccountThomas = createBankAccountThomas(LocalDate(17, 1, 1), intArrayOf(10, 20, 30, -50))
         val bankAccountMilena = createBankAccountMilena(LocalDate(17, 2, 1), intArrayOf(10, 20, 30, -50))
         val bankAccountBoth = createBankAccountBoth(LocalDate(17, 3, 1), intArrayOf(10, 20, 30, -50))
@@ -64,28 +104,30 @@ class AssetsCalculatorTests {
         itemSubject.add(bankAccountBoth)
         val statisticEntryList = assetsCalculator.entrysForAll
 
+        // then
         Assert.assertEquals(6, statisticEntryList.size)
 
-        assertAssetOfList(0, LocalDate(17, 1, 1), 15, 15, statisticEntryList)
-        assertAssetOfList(1, LocalDate(17, 2, 1), 25, 15, statisticEntryList)
-        assertAssetOfList(2, LocalDate(17, 3, 1), 35, 25, statisticEntryList)
-        assertAssetOfList(3, LocalDate(17, 4, 1), -40, 40, statisticEntryList)
-        assertAssetOfList(4, LocalDate(17, 5, 1), -35, -35, statisticEntryList)
-        assertAssetOfList(5, LocalDate(17, 6, 1), -75, -75, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 1), 15, 15, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 2), 25, 15, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 3), 35, 25, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 4), -40, 40, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 5), -35, -35, statisticEntryList)
+        assertAssetOfList(YearMonth(17, 6), -75, -75, statisticEntryList)
     }
-
 
     @Test
     fun delete() {
-        val itemSubject = TestSubject<BankAccount>()
+        // given
+        val start = YearMonth(17, 1)
+        val end = YearMonth(17, 5)
         val bankAccountThomas = createBankAccountThomas(LocalDate(17, 1, 2), intArrayOf(10, 20, 30, -50))
-        val start = LocalDate(17, 1, 1)
-        val end = LocalDate(17, 5, 1)
-        var statisticEntryList: List<StatisticEntryDeprecated>? = AssetsCalculator.calculateStatisticsOfBankAccount(bankAccountThomas, start, end, Period.months(1))
-        val listMap = HashMap<BankAccount, List<StatisticEntryDeprecated>>(1)
-        listMap[bankAccountThomas] = statisticEntryList!!
-        val assetsCalculator = AssetsCalculator(Period.months(1), itemSubject,
-                TestHelper.getAssetsCalculatorService(hashMapOf(), start, end))
+        initTest(startMonth = start, endMonth = end)
+        itemSubject.add(bankAccountThomas)
+
+        var statisticEntryList = assetsCalculator.getEntrysFor(bankAccountThomas)
+        Assert.assertNotNull(statisticEntryList)
+
+        // when delete bank account
         itemSubject.delete(bankAccountThomas)
         statisticEntryList = assetsCalculator.getEntrysFor(bankAccountThomas)
 
@@ -95,128 +137,41 @@ class AssetsCalculatorTests {
         Assert.assertEquals(0, statisticEntryList.size)
 
     }
-    /*
-    @Test
-    public void updateDate() {
-        // edit day
-        TestSubject itemSubject = new TestSubject();
-        AssetsCalculator assetsCalculator = new AssetsCalculator(Period.months(1), itemSubject,
-                getCalculatorService(makeAssetsListThomas(getDay(17, 1, 1), new int[]{0, 10, 0, -10, 60})));
-        itemSubject.update(createBankAccountThomas(getDay(17,1,2), new int[] {           10,20,  30,-50}),
-                           createBankAccountThomas(getDay(17,2,2), new int[] {              10,   20,30,-50}));
-        List<StatisticEntry> statisticEntryList = assetsCalculator.getEntrys();
 
-        Assert.assertEquals(6, statisticEntryList.size());
 
-        assertAssetOfList(0, getDay(17, 1, 1), 0, 0, statisticEntryList);
-        assertAssetOfList(1, getDay(17, 2, 1), 0, 0, statisticEntryList);
-        assertAssetOfList(2, getDay(17, 3, 1), -10,0, statisticEntryList);
-        assertAssetOfList(3, getDay(17, 4, 1), -20, 0,statisticEntryList);
-        assertAssetOfList(4, getDay(17, 5, 1), 140, 0,statisticEntryList);
-        assertAssetOfList(5, getDay(17, 6, 1), 90, 0,statisticEntryList);
-        // edit day & value
-        // add and delete
+    private fun assertAssetOfList(month: YearMonth, assetsThomas: Int, assetsMilena: Int, newAssets: Map<YearMonth, MonthStatistic>) {
+        val entry = newAssets[month]!!
+        Assert.assertEquals(month, entry.month)
+        Assert.assertEquals(assetsThomas, entry[TestHelper.thomas])
+        Assert.assertEquals(assetsMilena, entry[TestHelper.milena])
     }
 
-    @Test
-    public void updateBetween() {
-        // add entry between
-        TestSubject itemSubject = new TestSubject();
-        List<StatisticEntry> oldEntryList = makeAssetsListThomas(getDay(17, 1, 1), new int[]{0, 10, 10, 10, 60});
-        // remove entry from month 3 and 4
-        oldEntryList.remove(2);
-        oldEntryList.remove(2);
-        AssetsCalculator assetsCalculator = new AssetsCalculator(Period.months(1), itemSubject,
-                getCalculatorService(oldEntryList));
-        BankAccount oldBankAccount = createBankAccountThomas(getDay(17, 1, 2), new int[]{0});
-        itemSubject.update(oldBankAccount,
-                createBankAccountThomas(getDay(17, 1, 2), new int[]{10, 20, 30, -50}));
-        List<StatisticEntry> statisticEntryList = assetsCalculator.getEntrys();
 
-        Assert.assertEquals(5, statisticEntryList.size());
-
-        assertAssetOfList(0, getDay(17, 1, 1), 0, 0, statisticEntryList);
-        assertAssetOfList(1, getDay(17, 2, 1), 20, 0, statisticEntryList);
-        assertAssetOfList(2, getDay(17, 3, 1), 30, 0, statisticEntryList);
-        assertAssetOfList(3, getDay(17, 4, 1), 40, 0, statisticEntryList);
-        assertAssetOfList(4, getDay(17, 5, 1), 10, 0, statisticEntryList);
-    }
-
-    @Test
-    public void updateBetween2() {
-        // add entry between
-        TestSubject itemSubject = new TestSubject();
-        List<StatisticEntry> oldEntryList = makeAssetsListThomas(getDay(17, 1, 1), new int[]{0, 10, 10, 10, 60});
-        // remove entry from month 3 and 4
-        oldEntryList.remove(2);
-        oldEntryList.remove(3);
-        AssetsCalculator assetsCalculator = new AssetsCalculator(Period.months(1), itemSubject,
-                getCalculatorService(oldEntryList));
-        BankAccount oldBankAccount = createBankAccountThomas(getDay(17, 1, 2), new int[]{0});
-        itemSubject.update(oldBankAccount,
-                createBankAccountThomas(getDay(17, 1, 2), new int[]{10, 20, 30}));
-        List<StatisticEntry> statisticEntryList = assetsCalculator.getEntrys();
-
-        Assert.assertEquals(5, statisticEntryList.size());
-
-        assertAssetOfList(0, getDay(17, 1, 1), 0, 0, statisticEntryList);
-        assertAssetOfList(1, getDay(17, 2, 1), 20, 0, statisticEntryList);
-        assertAssetOfList(2, getDay(17, 3, 1), 30, 0, statisticEntryList);
-        assertAssetOfList(3, getDay(17, 4, 1), 40, 0, statisticEntryList);
-        assertAssetOfList(4, getDay(17, 5, 1), 90, 0, statisticEntryList);
-    }
-
-    @Test
-    public void changeOwners() {
-    }
-*/
-
-
-    private fun assertAssetOfList(index: Int, day: DateTime, assetsThomas: Int, assetsMilena: Int, newAssets: List<StatisticEntryDeprecated>) {
-        val entry = newAssets[index]
-        Assert.assertEquals(day, entry.date)
-        Assert.assertEquals(assetsThomas, entry.getEntryFor(TestHelper.thomas))
-        Assert.assertEquals(assetsMilena, entry.getEntryFor(TestHelper.milena))
-    }
-
-    private fun makeAssetsListThomas(day: DateTime, ints: IntArray): List<StatisticEntryDeprecated> {
-        var day = day
-        val userMap = HashMap<User, Int>(1)
-        val statisticEntryList = ArrayList<StatisticEntryDeprecated>(ints.size)
-        for (i in ints.indices) {
-            userMap[TestHelper.thomas] = ints[i]
-            statisticEntryList.add(StatisticEntryDeprecated(DateTime(day), userMap))
-            day = day.plus(Period.months(1))
-        }
-
-        return statisticEntryList
-    }
-
-    private fun createBankAccountThomas(day: DateTime, balances: IntArray): BankAccount {
+    private fun createBankAccountThomas(day: LocalDate, balances: IntArray): BankAccount {
         val owners = ArrayList<User>(1)
         owners.add(TestHelper.thomas)
         return createBankAccount(day, balances, owners)
     }
 
-    private fun createBankAccountMilena(day: DateTime, balances: IntArray): BankAccount {
+    private fun createBankAccountMilena(day: LocalDate, balances: IntArray): BankAccount {
         val owners = ArrayList<User>(1)
         owners.add(TestHelper.milena)
         return createBankAccount(day, balances, owners)
     }
 
-    private fun createBankAccountBoth(day: DateTime, balances: IntArray): BankAccount {
+    private fun createBankAccountBoth(day: LocalDate, balances: IntArray): BankAccount {
         val owners = ArrayList<User>(1)
         owners.add(TestHelper.thomas)
         owners.add(TestHelper.milena)
         return createBankAccount(day, balances, owners)
     }
 
-    private fun createBankAccount(day: DateTime, balances: IntArray, owners: List<User>): BankAccount {
+    private fun createBankAccount(day: LocalDate, balances: IntArray, owners: List<User>): BankAccount {
 
         val balanceList = ArrayList<Balance>(balances.size)
         var dateTime = day
         for (balance in balances) {
-            balanceList.add(Balance(balance, DateTime(dateTime)))
+            balanceList.add(Balance(balance, LocalDate(dateTime)))
             dateTime = dateTime.plus(Period.months(1))
         }
 

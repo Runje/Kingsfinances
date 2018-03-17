@@ -2,9 +2,8 @@ package blue.koenig.kingsfinances
 
 import com.koenig.commonModel.finance.statistics.CompensationCalculator
 import com.koenig.commonModel.finance.statistics.MonthStatistic
-import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated
 import junit.framework.Assert
-import org.joda.time.DateTime
+import org.joda.time.LocalDate
 import org.joda.time.YearMonth
 import org.junit.Test
 
@@ -20,7 +19,7 @@ class CompensationTests {
         val expenses = MonthStatistic(month, mapOf(TestHelper.thomas to -1000, TestHelper.milena to 1000))
 
         val result = CompensationCalculator.calcCompensation(month, deltaAssets, expenses, listOf(TestHelper.milena, TestHelper.thomas), "Ausgleich", "Ausgleich")
-        Assert.assertEquals(DateTime(2017, 2, 28, 0, 0, 0), result.day)
+        Assert.assertEquals(LocalDate(2017, 2, 28), result.day)
         Assert.assertEquals(2, result.costDistribution.getDistribution().size)
         Assert.assertEquals(2000, result.costDistribution.getCostsFor(TestHelper.thomas).Theory)
         Assert.assertEquals(-2000, result.costDistribution.getCostsFor(TestHelper.milena).Theory)
@@ -38,16 +37,14 @@ class CompensationTests {
         val result = CompensationCalculator.calcCompensations(startDate, endDate, allAssets, expenses, listOf(TestHelper.thomas), "Ausgleich", "Ausgleich")
         Assert.assertEquals(2, result.size)
         var entry = result[0]
-        Assert.assertEquals(TestHelper.getDay(2017, 1, 31), entry.day)
+        Assert.assertEquals(LocalDate(2017, 1, 31), entry.day)
         Assert.assertEquals(1, entry.costDistribution.getDistribution().size)
         Assert.assertEquals(10, entry.costDistribution.getCostsFor(TestHelper.thomas).Theory)
         entry = result[1]
-        Assert.assertEquals(TestHelper.getDay(2017, 2, 28), entry.day)
+        Assert.assertEquals(LocalDate(2017, 2, 28), entry.day)
         Assert.assertEquals(1, entry.costDistribution.getDistribution().size)
         Assert.assertEquals(-10, entry.costDistribution.getCostsFor(TestHelper.thomas).Theory)
     }
 
-    private fun createEntryForThomas(day: DateTime, value: Int): StatisticEntryDeprecated {
-        return StatisticEntryDeprecated(day, mapOf(TestHelper.thomas to value))
-    }
+
 }

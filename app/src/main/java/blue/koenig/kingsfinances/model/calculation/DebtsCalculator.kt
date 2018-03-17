@@ -44,6 +44,6 @@ class DebtsCalculator(expensesTable: ItemSubject<Expenses>, val deltaMonthStatis
     }
 
     private fun addExpenses(item: Expenses) {
-        updateStatistics(MonthStatistic(item.day.yearMonth, calcDebtsFromCostDistribution(item.costDistribution, inverse = true)))
+        updateStatistics(MonthStatistic(item.day.yearMonth, calcDebtsFromCostDistribution(item.costDistribution, inverse = false)))
     }
 }

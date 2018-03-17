@@ -2,16 +2,18 @@ package blue.koenig.kingsfinances
 
 import blue.koenig.kingsfinances.TestHelper.milena
 import blue.koenig.kingsfinances.TestHelper.thomas
-import blue.koenig.kingsfinances.features.category_statistics.CategoryCalculatorService
+import com.koenig.commonModel.Repository.CategoryRepository
 import com.koenig.commonModel.finance.Expenses
 import com.koenig.commonModel.finance.statistics.CategoryCalculator
 import com.koenig.commonModel.finance.statistics.MonthStatistic
+import io.reactivex.Observable
 import junit.framework.Assert
-import org.joda.time.DateTime
-import org.joda.time.Period
+import org.joda.time.LocalDate
 import org.joda.time.YearMonth
-import org.joda.time.Years
+import org.junit.Before
 import org.junit.Test
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -19,22 +21,30 @@ import org.junit.Test
  * @see [Testing documentation](http://d.android.com/tools/testing)
  */
 class CategoryCalculatorTests {
-    fun makeExpenses(category: String, thomas: Int, milena: Int, dateTime: DateTime): Expenses {
-        return Expenses("", category, "", thomas + milena, TestHelper.makeCostDistribution(thomas, thomas, milena, milena), dateTime, "")
-    }
 
+    @Mock
+    lateinit var categoryRepository: CategoryRepository
+
+
+    @Before
+    fun setup() {
+        MockitoAnnotations.initMocks(this)
+
+    }
 
     @Test
     @Throws(Exception::class)
     fun categoryCalculation1() {
         val expensesItemSubject = TestExpensesSubject()
-        val calculator = CategoryCalculator(Period.months(1), expensesItemSubject,
-                getCategoryCalcService())
+        val endDate = YearMonth(2017, 1)
+
+        val calculator = CategoryCalculator(expensesItemSubject, categoryRepository, Observable.just(endDate))
         var deltaExpenses: Map<YearMonth, MonthStatistic> = mutableMapOf()
+        val category1 = "Category1"
         calculator.deltaStatisticsForAll.subscribe { deltaExpenses = it }
-        expensesItemSubject.add(makeExpenses(category1, 10, 20, TestHelper.getDay(2017, 1, 2)))
+        expensesItemSubject.add(makeExpenses(category1, 10, 20, LocalDate(2017, 1, 2)))
         val statisticEntryList = calculator.getAbsoluteStatisticsFor(category1)
-        Assert.assertEquals(1, statisticEntryList.size)
+        Assert.assertEquals(2, statisticEntryList.size)
 
         val jan = YearMonth(2017, 1)
         val entry = statisticEntryList[jan]!!
@@ -43,31 +53,13 @@ class CategoryCalculatorTests {
         Assert.assertEquals(20, entry[TestHelper.milena])
 
         // calculate statistics for overall
-        var statistics = calculator.getCategoryStatistics(jan)
-        Assert.assertEquals(2, statistics.size)
-        var categoryStatistics = statistics[0]
-        Assert.assertEquals(category1, categoryStatistics.name)
-        Assert.assertEquals(30, categoryStatistics.winnings)
+        val statistics = calculator.deltaStatisticsForAll.blockingFirst()
+        var categoryStatistics = statistics[jan]!!
+        Assert.assertEquals(30, categoryStatistics.entryMap.values.sum())
 
-        categoryStatistics = statistics[1]
-        Assert.assertEquals(calculator.allCategory, categoryStatistics.name)
-        Assert.assertEquals(30, categoryStatistics.winnings)
 
-        // calculate statistics for year before
-        statistics = calculator.getCategoryStatistics(Years.years(2016))
-        Assert.assertEquals(2, statistics.size)
-        categoryStatistics = statistics[0]
-        Assert.assertEquals(category1, categoryStatistics.name)
-        Assert.assertEquals(0, categoryStatistics.winnings)
 
-        categoryStatistics = statistics[1]
-        Assert.assertEquals(calculator.allCategory, categoryStatistics.name)
-        Assert.assertEquals(0, categoryStatistics.winnings)
-
-        Assert.assertEquals(10, deltaExpenses[jan]!![thomas])
-        Assert.assertEquals(20, deltaExpenses[jan]!![milena])
-
-        expensesItemSubject.add(makeExpenses(category1, 10, 20, TestHelper.getDay(2015, 1, 31)))
+        expensesItemSubject.add(makeExpenses(category1, 10, 20, LocalDate(2015, 1, 31)))
 
 
         Assert.assertEquals(10, deltaExpenses[jan]!![thomas])
@@ -85,7 +77,7 @@ class CategoryCalculatorTests {
         }
 
         // test missing month
-        expensesItemSubject.add(makeExpenses(category1, 10, 20, TestHelper.getDay(2015, 4, 30)))
+        expensesItemSubject.add(makeExpenses(category1, 10, 20, LocalDate(2015, 4, 30)))
         val april15 = YearMonth(2015, 4)
 
         // calculate statistics for overall
@@ -98,38 +90,10 @@ class CategoryCalculatorTests {
         Assert.assertEquals(30, monthStatistic[thomas])
         Assert.assertEquals(60, monthStatistic[milena])
 
-
     }
 
-    private fun getCategoryCalcService(): CategoryCalculatorService {
-        return object : CategoryCalculatorService {
-            override val absoluteCategoryMap: MutableMap<String, MutableMap<YearMonth, MonthStatistic>>
-                get() = mutableMapOf()
-            override val deltaCategoryMap: MutableMap<String, MutableMap<YearMonth, MonthStatistic>>
-                get() = mutableMapOf()
-            override val overallString: String
-                get() = "All"
-            override val startDate: DateTime
-                get() = DateTime(2015, 1, 1, 0, 0)
-
-            override fun saveStatistics(deltaCategoryMap: Map<String, Map<YearMonth, MonthStatistic>>, absoluteCategoryMap: MutableMap<String, MutableMap<YearMonth, MonthStatistic>>) {
-
-            }
-
-            override fun getGoalFor(category: String, month: YearMonth): Double {
-                return 0.0
-            }
-
-            override fun getGoalFor(category: String, year: Years): Int {
-                return 0
-            }
-
-            override val endDate = YearMonth(2017, 1)
-        }
-    }
-
-    companion object {
-        var category1 = "Category1"
+    fun makeExpenses(category: String, thomas: Int, milena: Int, dateTime: LocalDate): Expenses {
+        return Expenses("", category, "", thomas + milena, TestHelper.makeCostDistribution(thomas, thomas, milena, milena), dateTime, "")
     }
 
 }

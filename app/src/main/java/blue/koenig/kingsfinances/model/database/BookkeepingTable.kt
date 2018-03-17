@@ -17,7 +17,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 abstract class BookkeepingTable<T : BookkeepingEntry>(database: SQLiteDatabase, lock: ReentrantLock) : ItemTable<T>(database, lock) {
 
-    override val tableSpecificCreateStatement: String
+    override val itemSpecificCreateStatement: String
         get() = (", "
                 + CATEGORY + " TEXT,"
                 + SUBCATEGORY + " TEXT,"

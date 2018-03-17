@@ -1,6 +1,5 @@
 package blue.koenig.kingsfinances.model;
 
-import com.koenig.commonModel.finance.statistics.StatisticEntryDeprecated;
 
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -31,36 +30,5 @@ public class StatisticsUtils {
         return months;
     }
 
-    public static StatisticEntryDeprecated calcDifferenceInPeriod(DateTime startDate, DateTime endDate, List<StatisticEntryDeprecated> entrys) {
-        assert startDate.getDayOfMonth() == 1;
-        assert endDate.getDayOfMonth() == 1;
-        StatisticEntryDeprecated allSavings = new StatisticEntryDeprecated(endDate);
 
-
-        StatisticEntryDeprecated first = entrys.size() > 0 ? entrys.get(0) : null;
-
-        if (first == null || first.getDate().withTimeAtStartOfDay().isAfter(endDate.withTimeAtStartOfDay())) {
-            return allSavings;
-        }
-
-        StatisticEntryDeprecated last = entrys.size() > 0 ? entrys.get(entrys.size() - 1) : null;
-        for (StatisticEntryDeprecated entry : entrys) {
-            if (!entry.getDate().withTimeAtStartOfDay().isAfter(startDate.withTimeAtStartOfDay())) {
-                // it is nearer at the start day
-                first = entry;
-            } else if (!entry.getDate().withTimeAtStartOfDay().isAfter(endDate.withTimeAtStartOfDay())) {
-                // nearer at end day
-                last = entry;
-            }
-        }
-
-        if (first != null && last != null) {
-            allSavings.addEntry(last);
-            allSavings.subtractEntry(first);
-        } else {
-            logger.error("first or last is null: " + first + ", last: " + last);
-        }
-
-        return allSavings;
-    }
 }

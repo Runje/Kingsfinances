@@ -17,7 +17,7 @@ import java.util.concurrent.locks.ReentrantLock
 class BankAccountTable(database: SQLiteDatabase, private val userService: (String) -> User?, lock: ReentrantLock) : ItemTable<BankAccount>(database, lock) {
     override val columnNames: MutableList<String>
 
-    override val tableSpecificCreateStatement: String
+    override val itemSpecificCreateStatement: String
         get() = ", $BANK TEXT, $BALANCES BLOB, $OWNERS TEXT"
 
 

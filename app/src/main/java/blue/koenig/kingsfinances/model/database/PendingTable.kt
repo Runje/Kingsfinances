@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock
 class PendingTable(database: SQLiteDatabase, lock: ReentrantLock) : ItemTable<PendingOperation<*>>(database, lock) {
     override val tableName: String
         get() = NAME
-    override val tableSpecificCreateStatement: String
+    override val itemSpecificCreateStatement: String
         get() = ",$COLUMN_DATE LONG, $COLUMN_OPERATION BLOB, $COLUMN_STATUS TEXT"
     override val columnNames: MutableList<String>
         get() = mutableListOf(COLUMN_DATE, COLUMN_OPERATION, COLUMN_STATUS)

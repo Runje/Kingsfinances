@@ -89,7 +89,8 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
 
 
         fun calcSavingRate(startDate: YearMonth, endDate: YearMonth, overallWin: Int, incomes: Map<YearMonth, MonthStatistic>): Float {
-            val allSavings = lastEntryBefore(endDate, incomes).sum - (incomes[startDate]?.sum ?: 0)
+            val allSavings = lastEntryBefore(endDate.plusMonths(1), incomes).sum - (incomes[startDate.minusMonths(1)]?.sum
+                    ?: 0)
             return if (allSavings == 0) {
                 0f
             } else overallWin / allSavings.toFloat()

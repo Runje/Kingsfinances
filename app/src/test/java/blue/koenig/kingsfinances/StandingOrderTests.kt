@@ -1,19 +1,9 @@
 package blue.koenig.kingsfinances
 
-import com.koenig.FamilyConstants
-import com.koenig.commonModel.Frequency
-import com.koenig.commonModel.finance.CostDistribution
-import com.koenig.commonModel.finance.StandingOrder
-import com.koenig.commonModel.finance.features.getExecutionDatesUntil
-import junit.framework.Assert
-import org.joda.time.DateTime
-import org.joda.time.Period
-import org.junit.Test
-import java.util.*
-
 /**
  * Created by Thomas on 28.01.2018.
  */
+/*
 class StandingOrderTests {
 
     @Test
@@ -58,4 +48,4 @@ class StandingOrderTests {
     }
 
 
-}
+}*/
