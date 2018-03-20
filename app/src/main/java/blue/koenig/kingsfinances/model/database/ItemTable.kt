@@ -50,7 +50,15 @@ abstract class ItemTable<T : Item>(db: SQLiteDatabase, lock: ReentrantLock) : Da
             getListFromCursor(cursor)
         })
 
+    override val all: List<DatabaseItem<T>>
+        get() {
+            return runInLockWithResult<ArrayList<DatabaseItem<T>>>(Database.ResultTransaction {
+                val selectQuery = "SELECT * FROM $tableName WHERE ${DatabaseItemTable.COLUMN_DELETED} != ?"
+                val cursor = db.rawQuery(selectQuery, arrayOf(DatabaseItemTable.TRUE_STRING))
+                getListFromCursor(cursor)
+            })
 
+        }
 
     fun getWith(condition: String, argumentList: List<String>): List<DatabaseItem<T>> {
         return runInLockWithResult {

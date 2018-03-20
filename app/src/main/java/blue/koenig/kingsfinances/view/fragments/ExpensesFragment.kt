@@ -159,7 +159,7 @@ class ExpensesFragment : MvpFragment<ExpensesState, ExpensesView, ExpensesPresen
     @Synchronized
     private fun updateLinechart(statisticEntryList: Map<YearMonth, MonthStatistic>) {
         // TODO: after long abstinence(probably destroy was called) and then resume it fails with a NPE on lineChart
-        val lineData = ChartHelper.mapToLineData(statisticEntryList.values.sortedBy { it.month }, IntArray(Color.GREEN), listOf(state.user))
+        val lineData = ChartHelper.mapToLineData(statisticEntryList.values.sortedBy { it.month }, intArrayOf(Color.GREEN), listOf(state.user))
         lineChart?.data = lineData
 
         val xValues = entrysToMonthXValues(statisticEntryList.keys.sorted())

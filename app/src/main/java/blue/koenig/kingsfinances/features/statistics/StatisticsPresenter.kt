@@ -10,6 +10,7 @@ import com.koenig.commonModel.User
 import com.koenig.commonModel.finance.statistics.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import org.joda.time.LocalDate
 import org.joda.time.Period
 import org.joda.time.YearMonth
 import org.joda.time.Years
@@ -50,7 +51,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
     }
 
     fun clickYear(position: Int) {
-        var startMonth = FamilyConstants.BEGIN_YEAR_MONTH
+        var startMonth = assetsCalculator.startDate
         var endMonth = FamilyConstants.UNLIMITED.yearMonth
         var entrysForFutureForecast: Map<YearMonth, MonthStatistic>? = null
         // get all users (familymembers)
@@ -65,7 +66,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
             endMonth = startMonth.plus(Years.ONE)
         }
 
-        val statistics = assetsCalculator.calcStatisticsFor(startMonth, endMonth)
+        val statistics = assetsCalculator.calcStatisticsFor(startMonth, endMonth, withYearForecast = LocalDate().year == startMonth.year)
         val savingRate = calcSavingRate(statistics.startDate, statistics.endDate, statistics.overallWin, incomeCalculator.absoluteMap)
         val statisticsToShow: AssetsStatistics = if (entrysForFutureForecast != null) AssetsStatistics(statistics.startDate, statistics.endDate, entrysForFutureForecast, statistics.monthlyWin, statistics.overallWin) else statistics
         val lastGoalDate = statistics.assets.maxBy { it.key }!!.key
@@ -75,7 +76,7 @@ class StatisticsPresenter(private var assetsCalculator: AssetsCalculator, privat
         //statistics.assets.forEach { entry -> entry.putEntry(FamilyConstants.GOAL_ALL_USER, 0) }
         // add goal statistics to other statistics
 
-        val assets = statistics.assets.toMutableMap()
+        val assets = statisticsToShow.assets.toMutableMap()
         for ((month, goal) in goals) {
             assets[month] = (statistics.assets[month] ?: MonthStatistic(month)) + goal
         }

@@ -31,8 +31,8 @@ abstract class AndroidTable<T>(protected var db: SQLiteDatabase, override var lo
     override val all: List<T>
         get() {
             return runInLockWithResult<ArrayList<T>>(Database.ResultTransaction {
-                val selectQuery = "SELECT * FROM $tableName WHERE ${DatabaseItemTable.COLUMN_DELETED} != ?"
-                val cursor = db.rawQuery(selectQuery, arrayOf(DatabaseItemTable.TRUE_STRING))
+                val selectQuery = "SELECT * FROM $tableName"
+                val cursor = db.rawQuery(selectQuery, arrayOf())
                 getListFromCursor(cursor)
             })
 

@@ -5,6 +5,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteStatement
 import com.koenig.commonModel.User
+import com.koenig.commonModel.database.DatabaseItemTable
 import com.koenig.commonModel.finance.Balance
 import com.koenig.commonModel.finance.BankAccount
 import java.util.*
@@ -38,7 +39,7 @@ class BankAccountTable(database: SQLiteDatabase, private val userService: (Strin
     }
 
     override fun getItem(cursor: Cursor): BankAccount {
-        val name = getString(cursor, NAME)
+        val name = getString(cursor, DatabaseItemTable.COLUMN_NAME)
         val bank = getString(cursor, BANK)
         val balances = getBalances(cursor, BALANCES)
         val users = getUsers(userService, getString(cursor, OWNERS))
