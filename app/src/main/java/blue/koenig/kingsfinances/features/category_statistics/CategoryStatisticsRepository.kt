@@ -18,9 +18,11 @@ interface CategoryStatisticsRepository {
 class CategoryStatisticsDbRepository(val categoryRepository: CategoryRepository, val goalRepository: GoalRepository) : CategoryStatisticsRepository {
     override fun getCategoryStatistics(start: YearMonth, end: YearMonth): List<CategoryStatistics> {
         return categoryRepository.savedCategorys.map { category ->
-            val map = categoryRepository.allCategoryAbsoluteStatistics
+            val map = categoryRepository.getCategoryAbsoluteStatistics(category)
             // end - (start - 1)
-            val sum = lastEntryBefore(end, map).sum - (map[start.minusMonths(1)]?.sum ?: 0)
+
+            val sum = lastEntryBefore(end.plusMonths(1), map).sum - (map[start.minusMonths(1)]?.sum
+                    ?: 0)
             var goal = 0.0
             yearMonthRange(start, end).forEach { month ->
                 goal += goalRepository.getGoalFor(category, month)
