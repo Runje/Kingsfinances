@@ -41,8 +41,10 @@ class ExpensesPresenter(val expensesRepository: ExpensesRepository, familyMember
             disposables.add(it.onRefresh.subscribe {
                 update(state.copy(isLoading = true))
 
+
                 lateinit var items: List<Expenses>
                 Observable.fromCallable {
+                    //mache dies hier und sorge dafür, dass auch die Schulden gescheit angezeigt werden(oder zeige nur die aktuellen Schulden an)
                     // TODO: make server requestor which handles it, requestor.askForExpenses()
                     // TODO: make answerTo ID in msg header to check for answer!
                     connection.sendFamilyMessage(AskForUpdatesMessage.askForExpenses(config.getLastSyncDate(ItemType.EXPENSES.name)))
